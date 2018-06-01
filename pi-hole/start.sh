@@ -1,0 +1,3 @@
+pihole updateGravity
+
+/bin/bash

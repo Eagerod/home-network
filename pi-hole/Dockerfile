@@ -12,8 +12,6 @@ RUN apt-get update
 RUN apt-get install -y \
 	curl
 
-COPY ./setupVars.conf /etc/pihole/setupVars.conf
-
 RUN apt-get install -y \
 	apt-utils \
 	dialog \
@@ -48,6 +46,15 @@ RUN curl -sSL https://install.pi-hole.net -o ./install.sh
 
 COPY ./install-docker.sh ./install-docker.sh
 
-RUN /bin/bash -x ./install-docker.sh
+ENV USER root
 
-CMD ["/bin/bash"]
+COPY ./setupVars.conf /etc/pihole/setupVars.conf
+
+RUN /bin/bash ./install-docker.sh
+
+RUN rm ./install-docker.sh ./install.sh
+
+EXPOSE 53 53/udp
+EXPOSE 80
+
+ENTRYPOINT pihole updateGravity && pihole enable && tail -f /var/log/pihole.log
