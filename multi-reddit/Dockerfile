@@ -44,5 +44,5 @@ RUN sed -i -r "s#(MULTI_REDDIT_SAVED_LOCATION=).*#\1$MULTI_REDDIT_SAVED_LOCATION
 
 EXPOSE 22
 
-# CMD ["/usr/sbin/sshd", "-D"]
+CMD ["/usr/sbin/sshd", "-D"]
 
