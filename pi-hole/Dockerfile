@@ -4,14 +4,16 @@ ENV TERM dumb
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update
-RUN apt-get install -y apt-utils
 RUN apt-get upgrade -y
-RUN apt-get clean
 
-RUN apt-get update
 RUN apt-get install -y \
 	curl
 
+# Install a bunch of known dependencied for pi-hole, so that they can be cached
+#   in images and avoid needing to be fetched and installed during the
+#   pi-hole installation process.
+# Three different groups are installed; one for each of the groups of
+#   dependencies that pi-hole defines.
 RUN apt-get install -y \
 	apt-utils \
 	dialog \
@@ -57,4 +59,4 @@ RUN rm ./install-docker.sh ./install.sh
 EXPOSE 53 53/udp
 EXPOSE 80
 
-ENTRYPOINT pihole updateGravity && pihole enable && tail -f /var/log/pihole.log
+# CMD pihole updateGravity && pihole enable && tail -f /var/log/pihole.log
