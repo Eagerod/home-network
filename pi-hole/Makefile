@@ -25,3 +25,7 @@ release:
 .PHONY: validate_env
 validate_env:
 
+.PHONY: kill
+kill:
+	docker kill $$(docker ps | awk '{if ($$2 == "$(DOCKER_IMAGE_NAME)") print $$NF;}')
+

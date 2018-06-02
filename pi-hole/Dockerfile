@@ -59,4 +59,4 @@ RUN rm ./install-docker.sh ./install.sh
 EXPOSE 53 53/udp
 EXPOSE 80
 
-# CMD pihole updateGravity && pihole enable && tail -f /var/log/pihole.log
+CMD pihole updateGravity && pihole enable && tail -f /var/log/pihole.log

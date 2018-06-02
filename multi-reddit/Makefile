@@ -32,3 +32,8 @@ validate_env:
 	if [ -z "$${DEFAULT_BLOBSTORE_WRITE_ACL}" ]; then exit -1; fi
 	if [ -z "$${MULTI_REDDIT_SUBS_LOCATION}" ]; then exit -1; fi
 	if [ -z "$${MULTI_REDDIT_SAVED_LOCATION}" ]; then exit -1; fi
+
+.PHONY: kill
+kill:
+	docker kill $$(docker ps | awk '{if ($$2 == "$(DOCKER_IMAGE_NAME)") print $$NF;}')
+
