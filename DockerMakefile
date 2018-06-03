@@ -1,0 +1,47 @@
+DOCKER_IMAGE_NAME:=
+DOCKER_PORT_FORWARDS:=
+DOCKER_BUILD_ARGS:=
+
+ifeq ($(shell uname),Darwin)
+SED_INLINE:=sed -i ''
+else
+SED_INLINE:=sed -i
+endif
+
+
+.PHONY: image
+image: validate_build_args validate_image_name
+	docker build $(DOCKER_BUILD_ARGS) . -t $(DOCKER_IMAGE_NAME)
+
+.PHONY: validate_env
+validate_env:
+
+.PHONY: validate_build_args
+validate_build_args:
+
+.PHONY: validate_image_name
+validate_image_name:
+	@if [ -z "$(DOCKER_IMAGE_NAME)" ]; then \
+		echo >&2 'No Docker image name specified. Please create a $$(DOCKER_IMAGE_NAME).'; \
+		exit -1; \
+	fi
+
+.PHONY: detached
+detached: validate_image_name
+	docker container run -d $(DOCKER_PORT_FORWARDS) $(DOCKER_IMAGE_NAME)
+
+.PHONY: attached
+attached: validate_image_name
+	winpty docker container run $(DOCKER_PORT_FORWARDS) -it $(DOCKER_IMAGE_NAME)
+
+.PHONY: debug
+debug:
+	$(SED_INLINE) 's/^CMD/# CMD/g' Dockerfile
+
+.PHONY: release
+release:
+	$(SED_INLINE) 's/^# CMD/CMD/g' Dockerfile
+
+.PHONY: kill
+kill: validate_image_name
+	docker kill $$(docker ps | awk '{if ($$2 == "$(DOCKER_IMAGE_NAME)") print $$NF;}') 2> /dev/null || true
