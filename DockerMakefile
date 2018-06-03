@@ -1,23 +1,32 @@
+DOCKER:=docker
+
+DOCKER_BUILD_ARGS:=
 DOCKER_IMAGE_NAME:=
 DOCKER_PORT_FORWARDS:=
-DOCKER_BUILD_ARGS:=
 
+# TODO: Test uname on windows machine to make sure that cygwin/mingw are handled
+#   correctly.
 ifeq ($(shell uname),Darwin)
 SED_INLINE:=sed -i ''
+ATTACHED_DOCKER:=$(DOCKER)
 else
 SED_INLINE:=sed -i
+ATTACHED_DOCKER:=winpty $(DOCKER)
 endif
 
 
 .PHONY: image
 image: validate_build_args validate_image_name
-	docker build $(DOCKER_BUILD_ARGS) . -t $(DOCKER_IMAGE_NAME)
-
-.PHONY: validate_env
-validate_env:
+	$(DOCKER) build $(foreach arg,$(DOCKER_BUILD_ARGS),--build-arg $(arg)=$${$(arg)} ) . -t $(DOCKER_IMAGE_NAME)
 
 .PHONY: validate_build_args
 validate_build_args:
+	@$(foreach arg,$(DOCKER_BUILD_ARGS),\
+		if [ -z "$${$(arg)}" ]; then \
+			echo >&2 "Missing build environment variable $(arg)"; \
+		 	exit -1; \
+		fi; \
+	)
 
 .PHONY: validate_image_name
 validate_image_name:
@@ -28,11 +37,11 @@ validate_image_name:
 
 .PHONY: detached
 detached: validate_image_name
-	docker container run -d $(DOCKER_PORT_FORWARDS) $(DOCKER_IMAGE_NAME)
+	$(DOCKER) container run -d $(DOCKER_PORT_FORWARDS) $(DOCKER_IMAGE_NAME)
 
 .PHONY: attached
 attached: validate_image_name
-	winpty docker container run $(DOCKER_PORT_FORWARDS) -it $(DOCKER_IMAGE_NAME)
+	$(ATTACHED_DOCKER) container run $(DOCKER_PORT_FORWARDS) -it $(DOCKER_IMAGE_NAME)
 
 .PHONY: debug
 debug:
@@ -44,4 +53,4 @@ release:
 
 .PHONY: kill
 kill: validate_image_name
-	docker kill $$(docker ps | awk '{if ($$2 == "$(DOCKER_IMAGE_NAME)") print $$NF;}') 2> /dev/null || true
+	$(DOCKER) kill $$($(DOCKER) ps | awk '{if ($$2 == "$(DOCKER_IMAGE_NAME)") print $$NF;}') 2> /dev/null || true
