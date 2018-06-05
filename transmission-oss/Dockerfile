@@ -17,4 +17,4 @@ RUN apt-get install -y \
 
 COPY ./settings.json /var/lib/transmission-daemon/info/settings.json
 
-# CMD transmission-daemon -f --config-dir /var/lib/transmission-daemon/info --watch-dir /var/lib/transmission-daemon/watch
+CMD transmission-daemon -f --config-dir /var/lib/transmission-daemon/info --watch-dir /var/lib/transmission-daemon/watch
