@@ -1,0 +1,14 @@
+include ../DockerMakefile
+
+DOCKER_IMAGE_NAME:=openvpn-ca
+DOCKER_PORT_FORWARDS:=
+DOCKET_BUILD_ARGS:=\
+	KEY_COUNTRY \
+	KEY_PROVINCE \
+	KEY_CITY \
+	KEY_ORG \
+	KEY_EMAIL \
+	KEY_OU \
+	KEY_NAME \
+	KEY_CN
+
