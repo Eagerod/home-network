@@ -4,6 +4,8 @@ DOCKER_BUILD_ARGS:=
 DOCKER_IMAGE_NAME:=
 DOCKER_PORT_FORWARDS:=
 
+RUNNING_CONTAINER_NAME=$$($(DOCKER) ps | awk '{if ($$2 == "$(DOCKER_IMAGE_NAME)") print $$NF;}') 2> /dev/null
+
 # TODO: Test uname on windows machine to make sure that cygwin/mingw are handled
 #   correctly.
 ifeq ($(shell uname),Darwin)
@@ -53,4 +55,8 @@ release:
 
 .PHONY: kill
 kill: validate_image_name
-	$(DOCKER) kill $$($(DOCKER) ps | awk '{if ($$2 == "$(DOCKER_IMAGE_NAME)") print $$NF;}') 2> /dev/null || true
+	$(DOCKER) kill $(RUNNING_CONTAINER_NAME) 2> /dev/null || true
+
+.PHONY: shell
+shell: validate_image_name
+	$(ATTACHED_DOCKER) exec -it $(RUNNING_CONTAINER_NAME) bash || echo "Failed to find container"
