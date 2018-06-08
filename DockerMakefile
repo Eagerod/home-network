@@ -64,3 +64,7 @@ kill: validate_image_name
 .PHONY: shell
 shell: validate_image_name
 	$(ATTACHED_DOCKER) exec -it $(RUNNING_CONTAINER_NAME) bash || echo "Failed to find container"
+
+.PHONY: logs
+logs:
+	$(ATTACHED_DOCKER) logs -f $(RUNNING_CONTAINER_NAME)
