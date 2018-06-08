@@ -43,7 +43,7 @@ validate_image_name:
 
 .PHONY: detached
 detached: validate_image_name
-	$(DOCKER) container run -d $(DOCKER_PORT_FORWARDS) $(DOCKER_IMAGE_NAME)
+	$(DOCKER) container run -dit $(DOCKER_PORT_FORWARDS) $(DOCKER_IMAGE_NAME)
 
 .PHONY: attached
 attached: validate_image_name
