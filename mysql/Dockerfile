@@ -18,5 +18,5 @@ RUN chown mysql:mysql /var/lib/mysqld.pid
 
 USER mysql
 
-CMD  ["/usr/sbin/mysqld", "--datadir=/var/lib/data", "--pid-file=/var/lib/mysqld.pid"]
+CMD  ["/usr/sbin/mysqld", "--datadir=/var/lib/data", "--pid-file=/var/lib/mysqld.pid", "--bind-address=0.0.0.0"]
 
