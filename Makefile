@@ -8,3 +8,7 @@ $(DOCKER_CONTAINERS):
 	cd $@ && make kill || true
 	cd $@ && make release image detached
 
+kill:
+	@$(foreach container, $(DOCKER_CONTAINERS),\
+		make -C $(CURDIR)/$(container) kill; \
+	)
