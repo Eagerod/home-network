@@ -1,4 +1,4 @@
-DOCKER_CONTAINERS:=multi-reddit pi-hole transmission-oss
+DOCKER_CONTAINERS:=multi-reddit pi-hole transmission-oss mysql
 
 .PHONY: all
 all: $(DOCKER_CONTAINERS)
