@@ -13,10 +13,43 @@ DOCKER_PORT_FORWARDS:=\
 endif
 
 MYSQL_DAEMON:=/usr/sbin/mysqld
-MYSQL_CLIENT:=/usr/bin/mydsq
-
-MYSQL_DAEMON:=/usr/sbin/mysqld
 MYSQL_CLIENT:=/usr/bin/mysql
+
+
+.PHONY: verify-mysql-root-password
+verify-mysql-root-password:
+	@if [ -z "$${MYSQL_ROOT_PASSWORD}" ]; then \
+		echo >&2 "Root password missing. A root password must be provided"; \
+		exit -1; \
+	fi
+
+.PHONY: validate-mysql-root-password
+validate-mysql-root-password: verify-mysql-root-password
+	@if [ "$${#MYSQL_ROOT_PASSWORD}" -lt 16 ]; then \
+		echo >&2 "Root password too short, aborting password creation"; \
+		exit -1; \
+	fi
+
+.PHONY: verify-mysql-user
+verify-mysql-user:
+	@if [ -z "$${MYSQL_USER}" ]; then \
+		echo >&2 "Must provide a username for this operation."; \
+		exit -1; \
+	fi
+
+.PHONY: verify-mysql-password
+verify-mysql-password: verify-mysql-user
+	@if [ -z "$${MYSQL_PASSWORD}" ]; then \
+		echo >&2 "Must provide a password for $${MYSQL_USER}"; \
+		exit -1; \
+	fi
+
+.PHONY: verify-mysql-database
+verify-mysql-database:
+	@if [ -z "$${MYSQL_DATABASE}" ]; then \
+		echo >&2 "Must provide a database for this operation."; \
+		exit -1; \
+	fi
 
 
 # Initialization script to be run once on any given machine to set up the
@@ -32,11 +65,7 @@ initialize:
 #   `MYSQL_ROOT_PASSWORD` environment variable.
 # Only works if the root password is at least 16 characters long.
 .PHONY: password
-password:
-	@if [ "$${#MYSQL_ROOT_PASSWORD}" -lt 16 ]; then \
-		echo >&2 "Root password too short, aborting password creation"; \
-		exit -1; \
-	fi
+password: validate-root-mysql-password
 	$(MAKE) -C $(CURDIR) kill debug image detached
 	$(DOCKER) exec -dit $(RUNNING_CONTAINER_NAME) $(MYSQL_DAEMON) --datadir=/var/lib/data --pid-file=/var/lib/mysqld.pid --skip-grant-tables
 	sleep 1
@@ -49,11 +78,7 @@ password:
 #   an issue with managing IO when starting the mysql in the docker exec
 #   statement.
 .PHONY: root-shell
-root-shell:
-	@if [ -z "$${MYSQL_ROOT_PASSWORD}" ]; then \
-		echo >&2 "Root password missing. Cannot create root shell."; \
-		exit -1; \
-	fi
+root-shell: verify-mysql-root-password
 	$(ATTACHED_DOCKER) exec -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" -it $(RUNNING_CONTAINER_NAME) /bin/bash
 
 # Because docker (possibly only in windows with winpty?) seems to have issues
@@ -62,17 +87,17 @@ root-shell:
 #   queries can be submitted to the database to create users without needing
 #   to start up interactive shell, which seems to have some issues on its own.
 .PHONY: create-user
-create-user:
-	@if [ -z "$${MYSQL_USER}" ]; then \
-		echo >&2 "Must provide a username to create"; \
-		exit -1; \
-	fi
-	@if [ -z "$${MYSQL_PASSWORD}" ]; then \
-		echo >&2 "Must provide a password for $${MYSQL_USER}"; \
-		exit -1; \
-	fi
-	@if [ -z "$${MYSQL_ROOT_PASSWORD}" ]; then \
-		echo >&2 "Root password missing. Cannot execute user creation script as root."; \
-		exit -1; \
-	fi
-	$(DOCKER) exec -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "CREATE USER IF NOT EXISTS $${MYSQL_USER}@'%'; SET PASSWORD FOR $${MYSQL_USER}@'%' = PASSWORD('$${MYSQL_PASSWORD}');"
+create-user: verify-mysql-root-password verify-mysql-user verify-mysql-password
+	$(DOCKER) exec -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
+		CREATE USER IF NOT EXISTS $${MYSQL_USER}@'%';\
+		SET PASSWORD FOR $${MYSQL_USER}@'%' = PASSWORD('$${MYSQL_PASSWORD}');\
+	"
+
+# Grant a single user defined in an environment variable to have complete
+#   access to a table defined in another environment variable.
+.PHONY: grant-database
+grant-database: verify-mysql-root-password verify-mysql-user verify-mysql-database
+	$(DOCKER) exec -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
+		CREATE DATABASE IF NOT EXISTS $${MYSQL_DATABASE}; \
+		GRANT ALL ON $${MYSQL_DATABASE}.* TO $${MYSQL_USER}@'%';\
+	"
