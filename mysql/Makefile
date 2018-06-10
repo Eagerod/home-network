@@ -6,10 +6,12 @@ ifeq ($(shell uname),Darwin)
 DOCKER_PORT_FORWARDS:=\
 	-p 3306:3306 \
 	-v ~/Desktop/docker/mysql:/var/lib/mysql
-else
+else ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
 DOCKER_PORT_FORWARDS:=\
 	-p 3306:3306 \
-	-v D:/DockerMySql/data:/var/lib/data
+	-v mysql-data:/var/lib/data
+else
+$(error "Unsupported distro")
 endif
 
 MYSQL_DAEMON:=/usr/sbin/mysqld
@@ -54,12 +56,21 @@ verify-mysql-database:
 
 # Initialization script to be run once on any given machine to set up the
 #   /var/lib/data directory with the mysql database.
+# On some machines (Windows, noteably), in order for permissions to be set up
+#    correctly, a docker volume has to created, rather than just using normal
+#    -v volume args
 # Creates a mysql-ready container running bash, and submits the mysqld
 #   initialize command to it with the approprite parameters.
 .PHONY: initialize
 initialize:
+ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
+	$(DOCKER) volume create --name mysql-data -d local
+endif
 	$(MAKE) -C $(CURDIR) kill debug image detached
-	$(DOCKER) exec -it $(RUNNING_CONTAINER_NAME) $(MYSQL_DAEMON) --datadir=/var/lib/data --pid-file=/var/lib/mysqld.pid --initialize
+ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
+	$(ATTACHED_DOCKER) exec -it -u 0 $(RUNNING_CONTAINER_NAME) chown -R mysql:mysql /var/lib/data
+endif
+	$(ATTACHED_DOCKER) exec -it $(RUNNING_CONTAINER_NAME) $(MYSQL_DAEMON) --datadir=/var/lib/data --pid-file=/var/lib/mysqld.pid --initialize
 
 # Set the root password on my MySQL database to the value provided in the
 #   `MYSQL_ROOT_PASSWORD` environment variable.
