@@ -76,7 +76,7 @@ endif
 #   `MYSQL_ROOT_PASSWORD` environment variable.
 # Only works if the root password is at least 16 characters long.
 .PHONY: password
-password: validate-root-mysql-password
+password: validate-mysql-root-password
 	$(MAKE) -C $(CURDIR) kill debug image detached
 	$(DOCKER) exec -dit $(RUNNING_CONTAINER_NAME) $(MYSQL_DAEMON) --datadir=/var/lib/data --pid-file=/var/lib/mysqld.pid --skip-grant-tables
 	sleep 1
@@ -99,7 +99,7 @@ root-shell: verify-mysql-root-password
 #   to start up interactive shell, which seems to have some issues on its own.
 .PHONY: create-user
 create-user: verify-mysql-root-password verify-mysql-user verify-mysql-password
-	$(DOCKER) exec -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
+	$(ATTACHED_DOCKER) exec -it -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
 		CREATE USER IF NOT EXISTS $${MYSQL_USER}@'%';\
 		SET PASSWORD FOR $${MYSQL_USER}@'%' = PASSWORD('$${MYSQL_PASSWORD}');\
 	"
@@ -108,7 +108,7 @@ create-user: verify-mysql-root-password verify-mysql-user verify-mysql-password
 #   access to a table defined in another environment variable.
 .PHONY: grant-database
 grant-database: verify-mysql-root-password verify-mysql-user verify-mysql-database
-	$(DOCKER) exec -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
+	$(ATTACHED_DOCKER) exec -it -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
 		CREATE DATABASE IF NOT EXISTS $${MYSQL_DATABASE}; \
 		GRANT ALL ON $${MYSQL_DATABASE}.* TO $${MYSQL_USER}@'%';\
 	"
