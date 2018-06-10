@@ -5,10 +5,10 @@ all: $(DOCKER_CONTAINERS)
 
 .PHONY: $(DOCKER_CONTAINERS)
 $(DOCKER_CONTAINERS):
-	cd $@ && make kill || true
-	cd $@ && make release image detached
+	cd $@ && $(MAKE) kill || true
+	cd $@ && if [[ -f ".env" ]]; then source $$(pwd)/.env; fi && $(MAKE) release image detached
 
 kill:
 	@$(foreach container, $(DOCKER_CONTAINERS),\
-		make -C $(CURDIR)/$(container) kill; \
+		$(MAKE) -C $(CURDIR)/$(container) kill; \
 	)
