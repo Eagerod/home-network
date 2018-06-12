@@ -6,9 +6,10 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update
 RUN apt-get upgrade -y
 
-RUN apt-get install -y curl
-RUN apt-get install -y xz-utils
-RUN apt-get install -y uuid-runtime
+RUN apt-get install -y \
+	curl \
+	xz-utils \
+	uuid-runtime
 
 ENV FACTORIO_SERVER_VERSION 0.16.36
 
@@ -16,11 +17,17 @@ RUN curl -sSL https://www.factorio.com/get-download/$FACTORIO_SERVER_VERSION/hea
 RUN tar -xf /tmp/$FACTORIO_SERVER_VERSION.tar.gz -C /var/lib/
 RUN rm /tmp/$FACTORIO_SERVER_VERSION.tar.gz 
 
-RUN ln -s /var/lib/factorio/bin/x64/factorio /usr/bin/factorio
+ENV FACTORIO_DIR /var/lib/factorio
+ENV DATA_DIR $FACTORIO_DIR/data
+ENV SAVE_DIR $FACTORIO_DIR/saves
 
-RUN cp /var/lib/factorio/data/server-settings.example.json /var/lib/factorio/data/server-settings.json
-RUN sed -i -r 's/("require_user_verification"\s*:\s*).*/\1false,/g' /var/lib/factorio/data/server-settings.json
+RUN ln -s $FACTORIO_DIR/bin/x64/factorio /usr/bin/factorio
+
+ENV SAVE_GAME ""
+
+RUN cp $DATA_DIR/server-settings.example.json $DATA_DIR/server-settings.json
+RUN sed -i -r 's/("require_user_verification"\s*:\s*).*/\1false,/g' $DATA_DIR/server-settings.json
 
 EXPOSE 34197
 
-CMD export SAVE_GAME=$(uuidgen) && factorio --create /var/lib/factorio/saves/$SAVE_GAME.zip && factorio --server-settings /var/lib/factorio/data/server-settings.json --start-server /var/lib/factorio/saves/$SAVE_GAME.zip
+CMD if [ -z "${SAVE_GAME}" ]; then export SAVE_GAME=$(uuidgen); fi && if [ ! -f "$SAVE_DIR/$SAVE_GAME.zip" ]; then factorio --create $SAVE_DIR/$SAVE_GAME.zip; fi && factorio --server-settings $DATA_DIR/server-settings.json --start-server $SAVE_DIR/$SAVE_GAME.zip
