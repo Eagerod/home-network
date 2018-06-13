@@ -1,10 +1,4 @@
-FROM ubuntu:16.04
-
-ENV TERM dummy
-ENV DEBIAN_FRONTEND noninteractive
-
-RUN apt-get update
-RUN apt-get upgrade -y
+FROM ncfgbase
 
 RUN apt-get install -y openssh-server
 

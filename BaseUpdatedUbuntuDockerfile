@@ -1,0 +1,12 @@
+FROM ubuntu:16.04
+
+ENV TERM dummy
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get update
+RUN apt-get upgrade -y
+
+# Since nearly every single actually functional container will likely need
+#   curl just to function, install it here so that every individual container
+#   doesn't need to try to download their own copies.
+RUN apt-get install -y curl
