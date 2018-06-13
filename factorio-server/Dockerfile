@@ -25,8 +25,14 @@ RUN ln -s $FACTORIO_DIR/bin/x64/factorio /usr/bin/factorio
 
 ENV SAVE_GAME ""
 
+ARG AUTH_REQUIRED="true"
+ARG SERVER_TOKEN=""
+ARG GAME_PUBLIC="true"
+
 RUN cp $DATA_DIR/server-settings.example.json $DATA_DIR/server-settings.json
-RUN sed -i -r 's/("require_user_verification"\s*:\s*).*/\1false,/g' $DATA_DIR/server-settings.json
+RUN sed -i -r 's/("require_user_verification"\s*:\s*).*/\1'$AUTH_REQUIRED',/g' $DATA_DIR/server-settings.json
+RUN sed -i -r 's/("token"\s*:\s*).*/\1"'$SERVER_TOKEN'",/g' $DATA_DIR/server-settings.json
+RUN sed -i -r 's/("public"\s*:\s*).*/\1'$GAME_PUBLIC',/g' $DATA_DIR/server-settings.json
 
 EXPOSE 34197
 
