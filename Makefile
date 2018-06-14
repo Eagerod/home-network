@@ -19,3 +19,8 @@ reset:
 	$(MAKE) kill
 	docker container rm $$(docker container ls -aq)
 	docker image rm $$(docker image list -q)
+
+.PHONY: clean
+clean:
+	docker container prune -f
+	docker image prune -f
