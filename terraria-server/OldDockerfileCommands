@@ -1,0 +1,13 @@
+# These commands are stored here just for their history.
+#
+# These didn't end up working in the ubuntu container on their own, so the
+#   solution using mono ended up winning out, since it actually worked.
+ENV TERRARIA_SERVER_VERSION 1353
+
+RUN curl -sSL https://terraria.org/system/dedicated_servers/archives/000/000/032/original/terraria-server-$TERRARIA_SERVER_VERSION.zip -o /tmp/terraria.zip
+
+RUN unzip /tmp/terraria.zip -d /var/lib
+RUN mv /var/lib/$TERRARIA_SERVER_VERSION/Linux /var/lib/terraria
+RUN rm -rf /var/lib/$TERRARIA_SERVER_VERSION
+RUN chmod 755 /var/lib/terraria/TerrariaServer*
+
