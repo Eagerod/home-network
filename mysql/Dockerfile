@@ -1,6 +1,8 @@
 FROM ncfgbase
 
-RUN apt-get install -y mysql-server
+RUN \
+	apt-get update -y && \
+	apt-get install -y mysql-server
 
 RUN mkdir /var/run/mysqld
 RUN chown mysql:mysql /var/run/mysqld

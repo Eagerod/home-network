@@ -1,6 +1,8 @@
 FROM ncfgbase
 
-RUN apt-get install -y openssh-server
+RUN \
+	apt-get update -y && \
+	apt-get install -y openssh-server
 
 # Privilege separation directory needed by SSH.
 RUN mkdir /var/run/sshd

@@ -15,10 +15,10 @@ kill:
 	)
 
 .PHONY: reset
-reset:
-	$(MAKE) kill
-	docker container rm $$(docker container ls -aq)
-	docker image rm $$(docker image list -q)
+reset: kill
+	docker container rm $$(docker container ls -aq) || true
+	docker image rm $$(docker image list -q) || true
+	$(MAKE)
 
 .PHONY: clean
 clean:

@@ -1,21 +1,20 @@
 FROM ncfgbase
 
-RUN apt-get install -y \
-	curl
-
 # Install a bunch of known dependencied for pi-hole, so that they can be cached
 #   in images and avoid needing to be fetched and installed during the
 #   pi-hole installation process.
 # Three different groups are installed; one for each of the groups of
 #   dependencies that pi-hole defines.
-RUN apt-get install -y \
-	apt-utils \
-	dialog \
-	debconf \
-	dhcpcd5 \
-	git \
-	iproute2 \
-	whiptail
+RUN \
+	apt-get update -y && \
+	apt-get install -y \
+		apt-utils \
+		dialog \
+		debconf \
+		dhcpcd5 \
+		git \
+		iproute2 \
+		whiptail
 
 RUN apt-get install -y \
 	bc \
