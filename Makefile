@@ -1,4 +1,4 @@
-DOCKER_CONTAINERS:=multi-reddit pi-hole transmission-oss mysql
+DOCKER_CONTAINERS:=multi-reddit pi-hole transmission-oss mysql firefly-iii
 
 .PHONY: all
 all: $(DOCKER_CONTAINERS)
