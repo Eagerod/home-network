@@ -16,9 +16,8 @@ endif
 # Initialization script to be run once on any given machine to set up the
 #   /var/lib/data directory with the Mongo database.
 # There are documented concerns using MongoDB without docker volumes on Windows
-#   and on Mac. 
-# Creates a mysql-ready container running bash, and submits the mysqld
-#   initialize command to it with the approprite parameters.
+#   and on Mac. If the host machine is Windows, create a docker volume to
+#   manage the file storage aspects.
 .PHONY: initialize
 initialize:
 ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
