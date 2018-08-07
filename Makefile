@@ -1,5 +1,5 @@
 DOCKER_CONTAINERS:=util pi-hole transmission-oss mysql firefly-iii \
-	mongodb
+	mongodb resilio-server
 
 .PHONY: all
 all: $(DOCKER_CONTAINERS)
