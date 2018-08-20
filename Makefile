@@ -1,5 +1,22 @@
-DOCKER_CONTAINERS:=util pi-hole transmission-oss mysql firefly-iii \
-	mongodb resilio-server
+SHELL=/bin/bash
+
+ifeq ($(shell docker ps > /dev/null 2> /dev/null && echo "pass"),pass)
+DOCKER:=docker
+else ifeq ($(shell sudo docker ps > /dev/null && echo "pass"),pass)
+DOCKER:=sudo docker
+else ifeq ($(shell type docker-machine > /dev/null && echo "pass"),pass)
+$(error Cannot communicate with docker daemon. Maybe run `eval $$(docker-machine env $(shell docker-machine ls -q))`)
+else
+$(error Cannot communicate with docker daemon)
+endif
+
+DOCKER_CONTAINERS:=\
+	util \
+	transmission-oss \
+	mysql \
+	firefly-iii \
+	mongodb \
+	resilio-server
 
 .PHONY: all
 all: $(DOCKER_CONTAINERS)
@@ -17,11 +34,11 @@ kill:
 
 .PHONY: reset
 reset: kill
-	docker container rm $$(docker container ls -aq) || true
-	docker image rm $$(docker image list -q) || true
+	$(DOCKER) container rm $$($(DOCKER) container ls -aq) || true
+	$(DOCKER) image rm $$($(DOCKER) image list -q) || true
 	$(MAKE)
 
 .PHONY: clean
 clean:
-	docker container prune -f
-	docker image prune -f
+	$(DOCKER) container prune -f
+	$(DOCKER) image prune -f

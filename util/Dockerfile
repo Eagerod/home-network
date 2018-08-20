@@ -26,7 +26,8 @@ COPY ./authorized_keys /root/.ssh/authorized_keys
 RUN chmod 700 /root/.ssh
 RUN chmod 500 /root/.ssh/authorized_keys
 
-COPY ./app/* /usr/sbin/
+COPY ./app/mr /usr/sbin/mr
+RUN chmod 755 /usr/sbin/mr
 
 ARG DEFAULT_BLOBSTORE_WRITE_ACL
 ARG DEFAULT_BLOBSTORE_READ_ACL
