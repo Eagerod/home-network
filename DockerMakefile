@@ -1,4 +1,6 @@
-ifeq ($(shell docker ps > /dev/null && echo "pass"),pass)
+SHELL=/bin/bash
+
+ifeq ($(shell docker ps > /dev/null 2> /dev/null && echo "pass"),pass)
 DOCKER:=docker
 else ifeq ($(shell sudo docker ps > /dev/null && echo "pass"),pass)
 DOCKER:=sudo docker
@@ -18,6 +20,9 @@ RUNNING_CONTAINER_NAME=$$($(DOCKER) ps | awk '{if ($$2 == "$(DOCKER_IMAGE_NAME)"
 #   correctly.
 ifeq ($(shell uname),Darwin)
 SED_INLINE:=sed -i ''
+ATTACHED_DOCKER:=$(DOCKER)
+else ifeq ($(shell uname),Linux)
+SED_INLINE:=sed -i
 ATTACHED_DOCKER:=$(DOCKER)
 else
 SED_INLINE:=sed -i
