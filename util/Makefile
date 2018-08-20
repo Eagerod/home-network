@@ -1,14 +1,20 @@
 include ../DockerMakefile
 
 DOCKER_IMAGE_NAME:=util
-DOCKER_PORT_FORWARDS:=\
-	-p 22:22\
-	-v D:/DockerBackups:/var/lib/backups
+DOCKER_PORT_FORWARDS:=-p 22:22
 DOCKER_BUILD_ARGS:=\
 	DEFAULT_BLOBSTORE_WRITE_ACL \
 	DEFAULT_BLOBSTORE_READ_ACL \
 	MULTI_REDDIT_SUBS_LOCATION \
 	MULTI_REDDIT_SAVED_LOCATION
+
+ifeq ($(shell uname),Linux)
+DOCKER_PORT_FORWARDS+=\
+	-v /var/lib/backups:/var/lib/backups
+else
+DOCKER_PORT_FORWARDS+= \
+	-v D:/DockerBackups:/var/lib/backups
+endif
 
 
 # Create an ssh key for the host machine that the container will accept
@@ -23,5 +29,8 @@ initialize:
 	@if [ -z "$$(cat authorized_keys | grep "$$(cat ~/.ssh/util-server.pub)")" ]; then \
 		cat ~/.ssh/util-server.pub >> authorized_keys; \
 	else \
-		echo >&2 "SSH key already authorised for util server. Skipping addition to authorized_keys."; \
+		echo >&2 "SSH key already authorized for util server. Skipping addition to authorized_keys."; \
 	fi
+ifeq ($(shell uname),Linux)
+	sudo mkdir -p /var/lib/backups
+endif
