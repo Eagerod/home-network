@@ -1,11 +1,19 @@
 include ../DockerMakefile
 
 DOCKER_IMAGE_NAME:=resilio-sync
-DOCKER_PORT_FORWARDS:=\
-	-p 8888:8888\
-	-v D:/DockerResilioSync/settings:/.sync\
-	-v D:/DockerBackups:/var/lib/resilio-folders
+DOCKER_PORT_FORWARDS:=-p 8888:8888
 
+ifeq ($(shell uname),Linux)
+SETTINGS_ROOT_DIR:=/var/lib/.sync
+DOCKER_PORT_FORWARDS+=\
+	-v $(SETTINGS_ROOT_DIR):/.sync \
+	-v /var/lib/backups:/var/lib/resilio-folders
+else
+SETTINGS_ROOT_DIR:=/cygdrive/d/DockerResilioSync/settings
+DOCKER_PORT_FORWARDS+= \
+	-v D:/DockerResilioSync/settings/.sync \
+	-v D:/DockerBackups:/var/lib/resilio-folders
+endif
 
 sync-prod.conf:
 	@if [ -z "$${RESILIO_SERVER_USERNAME}" ]; then \
@@ -26,17 +34,12 @@ initialize: sync-prod.conf
 		exit -1; \
 	fi
 	@if [ -z "$${RESILIO_SERVER_PASSWORD}" ]; then \
-                echo >&2 "Failed to find Resilio Sync password in environment. Cannot initialize"; \
-                exit -1; \
-        fi
-	if [ ! -d /cygdrive/d/DockerResilioSync ]; then \
-		mkdir /cygdrive/d/DockerResilioSync; \
-	fi
-	if [ ! -d /cygdrive/d/DockerResilioSync/settings ]; then \
-		mkdir /cygdrive/d/DockerResilioSync/settings; \
-	fi
-	if [ ! -f /cygdrive/d/DockerResilioSync/settings/sync.conf ]; then \
-		cp sync-prod.conf /cygdrive/d/DockerResilioSync/settings/sync.conf; \
+		echo >&2 "Failed to find Resilio Sync password in environment. Cannot initialize"; \
+		exit -1; \
+    fi
+
+	sudo mkdir -p $(SETTINGS_ROOT_DIR)
+	if [ ! -f $(SETTINGS_ROOT_DIR)/sync.conf ]; then \
+		sudo cp sync-prod.conf $(SETTINGS_ROOT_DIR)/sync.conf; \
 	fi
 	rm sync-prod.conf
-
