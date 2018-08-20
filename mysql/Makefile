@@ -1,14 +1,16 @@
 include ../DockerMakefile
 
 DOCKER_IMAGE_NAME:=mysql
+DOCKER_PORT_FORWARDS=-p 3306:3306
 
 ifeq ($(shell uname),Darwin)
-DOCKER_PORT_FORWARDS:=\
-	-p 3306:3306 \
-	-v ~/Desktop/docker/mysql:/var/lib/mysql
+DOCKER_PORT_FORWARDS+=\
+	-v ~/Desktop/docker/mysql:/var/lib/data
+else ifeq ($(shell uname),Linux)
+DOCKER_PORT_FORWARDS+=\
+	-v /var/lib/mysql:/var/lib/data
 else ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
-DOCKER_PORT_FORWARDS:=\
-	-p 3306:3306 \
+DOCKER_PORT_FORWARDS+=\
 	-v mysql-data:/var/lib/data
 else
 $(error "Unsupported distro")
@@ -53,20 +55,35 @@ verify-mysql-database:
 		exit -1; \
 	fi
 
-
 # Initialization script to be run once on any given machine to set up the
 #   /var/lib/data directory with the mysql database.
-# On some machines (Windows, noteably), in order for permissions to be set up
+# On some machines (Windows, notably), in order for permissions to be set up
 #    correctly, a docker volume has to created, rather than just using normal
 #    -v volume args
 # Creates a mysql-ready container running bash, and submits the mysqld
-#   initialize command to it with the approprite parameters.
+#   initialize command to it with the appropriate parameters.
 .PHONY: initialize
 initialize:
-ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
+ifeq ($(shell uname),Linux)
+	if ! grep -q mysql /etc/group; then \
+		sudo groupadd mysql; \
+	fi
+	if ! id -u mysql; then \
+	    sudo adduser --system --home /bin/false --no-create-home --disabled-password --disabled-login mysql; \
+	fi
+
+	sed -i "s/<gid>/$$(cat /etc/group | grep mysql | cut -d ':' -f3)/g" Dockerfile
+	sed -i "s/<uid>/$$(cat /etc/passwd | grep mysql | cut -d ':' -f3)/g" Dockerfile
+
+	sudo usermod -a -G mysql mysql
+	sudo mkdir -p /var/lib/mysql
+	sudo chown mysql:mysql /var/lib/mysql
+else ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
 	$(DOCKER) volume create --name mysql-data -d local
 endif
+
 	$(MAKE) -C $(CURDIR) kill debug image detached
+
 ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
 	$(ATTACHED_DOCKER) exec -it -u 0 $(RUNNING_CONTAINER_NAME) chown -R mysql:mysql /var/lib/data
 endif
