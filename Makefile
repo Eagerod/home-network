@@ -11,12 +11,16 @@ $(error Cannot communicate with docker daemon)
 endif
 
 DOCKER_CONTAINERS:=\
+	pi-hole\
 	util \
 	transmission-oss \
 	mysql \
 	firefly-iii \
 	mongodb \
 	resilio-server
+
+INSTALLED_CRON_PATH:=/etc/cron.d/docker-home-network
+INSTALLED_CRON_LOG_BASE:=/var/log/docker-network-init
 
 .PHONY: all
 all: $(DOCKER_CONTAINERS)
@@ -37,6 +41,14 @@ reset: kill
 	$(DOCKER) container rm $$($(DOCKER) container ls -aq) || true
 	$(DOCKER) image rm $$($(DOCKER) image list -q) || true
 	$(MAKE)
+
+.PHONY: install
+install:
+	@if ! sudo [ -f $(INSTALLED_CRON_PATH) ]; then \
+		sudo sh -c 'echo "@reboot root $(CURDIR)/startup.sh > $(INSTALLED_CRON_LOG_BASE).log 2> $(INSTALLED_CRON_LOG_BASE).error.log" > $(INSTALLED_CRON_PATH)'; \
+	else \
+		echo "The script is already installed"; \
+	fi
 
 .PHONY: clean
 clean:
