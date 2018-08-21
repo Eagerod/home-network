@@ -11,6 +11,7 @@ $(error Cannot communicate with docker daemon)
 endif
 
 DOCKER_CONTAINERS:=\
+	pi-hole\
 	multi-reddit \
 	transmission-oss \
 	mysql \
