@@ -19,7 +19,10 @@ DOCKER_CONTAINERS:=\
 	mongodb \
 	resilio-server
 
-INSTALLED_CRON_PATH:=/etc/cron.d/docker-home-network
+CRON_BASE_PATH:=/etc/cron.d
+INSTALLED_CRON_PATH:=$(CRON_BASE_PATH)/docker-home-network
+MYSQL_BACKUP_CRON_PATH:=$(CRON_BASE_PATH)/mysql-backup
+
 INSTALLED_CRON_LOG_BASE:=/var/log/docker-network-init
 
 .PHONY: all
@@ -47,10 +50,19 @@ install:
 	@if ! sudo [ -f $(INSTALLED_CRON_PATH) ]; then \
 		sudo sh -c 'echo "@reboot root $(CURDIR)/startup.sh > $(INSTALLED_CRON_LOG_BASE).log 2> $(INSTALLED_CRON_LOG_BASE).error.log" > $(INSTALLED_CRON_PATH)'; \
 	else \
-		echo "The script is already installed"; \
+		echo >&2 "The script is already installed"; \
 	fi
 
 .PHONY: clean
 clean:
 	$(DOCKER) container prune -f
 	$(DOCKER) image prune -f
+
+.PHONY: install-backups
+install-backups:
+	mkdir -p /var/lib/backups/mysql
+	@if ! sudo [ -f $(MYSQL_BACKUP_CRON_PATH) ]; then \
+		sudo sh -c 'echo "@hourly root rsync -ahuDH /var/lib/mysql/ /var/lib/backups/mysql" > $(MYSQL_BACKUP_CRON_PATH)' ; \
+	else \
+		echo >&2 "The MySQL backup script is already installed"; \
+	fi
