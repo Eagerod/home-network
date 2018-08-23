@@ -129,3 +129,13 @@ grant-database: verify-mysql-root-password verify-mysql-user verify-mysql-databa
 		CREATE DATABASE IF NOT EXISTS $${MYSQL_DATABASE}; \
 		GRANT ALL ON $${MYSQL_DATABASE}.* TO $${MYSQL_USER}@'%';\
 	"
+
+image: validate_permissions
+.PHONY: validate_permissions
+validate_permissions:
+ifeq ($(shell uname),Linux)
+	@if [ ! -z "$$(find /var/lib/mysql ! -user mysql)" ]; then \
+		echo >&2 "There are files in the mysql directory that aren't owned by the mysql user. This is bad".; \
+		exit -1; \
+	fi
+endif
