@@ -2,8 +2,10 @@ include ../DockerMakefile
 
 ifeq ($(shell uname),Linux)
 HOST_REPOSITORY_LOCATION:=/var/lib/git
+SUDO:=sudo
 else
 HOST_REPOSITORY_LOCATION:=/Users/${USER}/Desktop/git
+SUDO:=
 endif
 HOST_REPO_REPO:=$(HOST_REPOSITORY_LOCATION)/repositories.git
 
@@ -37,10 +39,10 @@ repo-manager:
 		exit 1; \
 	fi
 
-	mkdir -p $(HOST_REPO_REPO)
-	git -C $(HOST_REPO_REPO) init --bare
-	cp git/pre-receive.py $(HOST_REPO_REPO)/hooks/pre-receive
-	chmod 755 $(HOST_REPO_REPO)/hooks/pre-receive
+	$(SUDO) mkdir -p $(HOST_REPO_REPO)
+	$(SUDO) git -C $(HOST_REPO_REPO) init --bare
+	$(SUDO) cp git/pre-receive.py $(HOST_REPO_REPO)/hooks/pre-receive
+	$(SUDO) chmod 755 $(HOST_REPO_REPO)/hooks/pre-receive
 
 	# Create a commit in the repo, with the repositories repository as an 
 	#   example of building within the repo.
@@ -50,8 +52,11 @@ repo-manager:
 	git -C temp add .
 	git -C temp commit -am "Created fresh repositories list."
 	git -C temp remote add origin $(HOST_REPO_REPO)
-	git -C temp push origin master
-	rm -rf temp
+	$(SUDO) git -C temp push origin master
+
+	# For some reason, the remote refs can end up being owned by sudo, so
+	#   use sudo for deleting
+	$(SUDO) rm -rf temp
 
 
 # Create an ssh key for the host machine that the container will accept
