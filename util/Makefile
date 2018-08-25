@@ -1,7 +1,16 @@
 include ../DockerMakefile
 
+ifeq ($(shell uname),Linux)
+HOST_REPOSITORY_LOCATION:=/var/lib/git
+else
+HOST_REPOSITORY_LOCATION:=/Users/${USER}/Desktop/git
+endif
+HOST_REPO_REPO:=$(HOST_REPOSITORY_LOCATION)/repositories.git
+
 DOCKER_IMAGE_NAME:=util
-DOCKER_PORT_FORWARDS:=-p 22:22
+DOCKER_PORT_FORWARDS:=\
+	-p 22:22\
+	-v $(HOST_REPOSITORY_LOCATION):/var/lib/git
 DOCKER_BUILD_ARGS:=\
 	DEFAULT_BLOBSTORE_WRITE_ACL \
 	DEFAULT_BLOBSTORE_READ_ACL \
@@ -15,6 +24,34 @@ else
 DOCKER_PORT_FORWARDS+= \
 	-v D:/DockerBackups:/var/lib/backups
 endif
+
+
+image: repo-manager
+
+
+# The repository manager lives on the host in the repository root directory
+.PHONY: repo-manager
+repo-manager:
+	@if [ -d $(HOST_REPO_REPO) ]; then \
+		echo "Repository already configured"; \
+		exit 1; \
+	fi
+
+	mkdir -p $(HOST_REPO_REPO)
+	git -C $(HOST_REPO_REPO) init --bare
+	cp git/pre-receive.py $(HOST_REPO_REPO)/hooks/pre-receive
+	chmod 755 $(HOST_REPO_REPO)/hooks/pre-receive
+
+	# Create a commit in the repo, with the repositories repository as an 
+	#   example of building within the repo.
+	mkdir temp
+	git -C temp init
+	sed 's?root_dir:.*?root_dir: $(HOST_REPOSITORY_LOCATION)?' git/repositories.template.yaml > temp/repositories.yaml
+	git -C temp add .
+	git -C temp commit -am "Created fresh repositories list."
+	git -C temp remote add origin $(HOST_REPO_REPO)
+	git -C temp push origin master
+	rm -rf temp
 
 
 # Create an ssh key for the host machine that the container will accept
