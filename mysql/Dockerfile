@@ -1,5 +1,8 @@
 FROM ncfgbase
 
+RUN groupadd --system --gid <gid> mysql
+RUN useradd --system --gid <gid> --uid <uid> mysql
+
 RUN \
 	apt-get update -y && \
 	apt-get install -y mysql-server

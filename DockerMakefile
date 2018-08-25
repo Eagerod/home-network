@@ -1,4 +1,14 @@
+SHELL=/bin/bash
+
+ifeq ($(shell docker ps > /dev/null 2> /dev/null && echo "pass"),pass)
 DOCKER:=docker
+else ifeq ($(shell sudo docker ps > /dev/null && echo "pass"),pass)
+DOCKER:=sudo docker
+else ifeq ($(shell type docker-machine > /dev/null && echo "pass"),pass)
+$(error Cannot communicate with docker daemon. Maybe run `eval $$(docker-machine env $(shell docker-machine ls -q))`)
+else
+$(error Cannot communicate with docker daemon)
+endif
 
 DOCKER_BUILD_ARGS:=
 DOCKER_IMAGE_NAME:=
@@ -10,6 +20,9 @@ RUNNING_CONTAINER_NAME=$$($(DOCKER) ps | awk '{if ($$2 == "$(DOCKER_IMAGE_NAME)"
 #   correctly.
 ifeq ($(shell uname),Darwin)
 SED_INLINE:=sed -i ''
+ATTACHED_DOCKER:=$(DOCKER)
+else ifeq ($(shell uname),Linux)
+SED_INLINE:=sed -i
 ATTACHED_DOCKER:=$(DOCKER)
 else
 SED_INLINE:=sed -i
@@ -35,7 +48,7 @@ validate_image_name:
 
 .PHONY: base-image
 base-image:
-	$(DOCKER) build . -f ../BaseUpdatedUbuntuDockerfile -t ncfgbase
+	$(DOCKER) build .. -f ../BaseUpdatedUbuntuDockerfile -t ncfgbase
 
 .PHONY: image
 image: validate_build_args validate_image_name base-image
