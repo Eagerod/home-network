@@ -2,6 +2,7 @@
 192.168.0.35	pihole.local	pihole
 192.168.0.35	resiliosync.local	resiliosync
 192.168.0.35	oss-bt.local	transmission
+192.168.0.35	sharelatex.local	sharelatex
 
 192.168.0.35	mongodb.local	mongodb
 192.168.0.35	mysql.local	mysql

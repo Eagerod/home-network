@@ -20,7 +20,7 @@ endif
 .PHONY: initialize
 initialize:
 ifeq ($(shell uname),Linux)
-	mkdir -p /var/lib/sharelatex
+	sudo mkdir -p /var/lib/sharelatex
 else
 	$(DOCKER) volume create --name sharelatex-data -d local
 endif
