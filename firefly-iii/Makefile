@@ -1,4 +1,4 @@
-include ../DockerMakefile
+include ../docker.make
 
 DOCKER_IMAGE_NAME:=firefly-iii
 DOCKER_PORT_FORWARDS:=\

@@ -1,4 +1,4 @@
-include ../DockerMakefile
+include ../docker.make
 
 DOCKER_IMAGE_NAME:=util
 DOCKER_PORT_FORWARDS:=-p 22:22

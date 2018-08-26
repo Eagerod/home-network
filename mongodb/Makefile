@@ -1,4 +1,4 @@
-include ../DockerMakefile
+include ../docker.make
 
 DOCKER_IMAGE_NAME:=mongodb
 DOCKER_PORT_FORWARDS:=\

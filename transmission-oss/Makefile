@@ -1,4 +1,4 @@
-include ../DockerMakefile
+include ../docker.make
 
 DOCKER_IMAGE_NAME:=transmission-oss
 DOCKER_PORT_FORWARDS:=-p 9091:9091

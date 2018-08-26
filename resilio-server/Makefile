@@ -1,4 +1,4 @@
-include ../DockerMakefile
+include ../docker.make
 
 DOCKER_IMAGE_NAME:=resilio-sync
 DOCKER_PORT_FORWARDS:=-p 8888:8888

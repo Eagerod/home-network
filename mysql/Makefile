@@ -1,4 +1,4 @@
-include ../DockerMakefile
+include ../docker.make
 
 DOCKER_IMAGE_NAME:=mysql
 DOCKER_PORT_FORWARDS=-p 3306:3306
