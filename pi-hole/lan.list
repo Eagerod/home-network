@@ -1,9 +1,11 @@
-192.168.0.35    firefly.local   firefly
-192.168.0.35    mongodb.local mongodb
-192.168.0.35    mysql.local mysql
-192.168.0.35    pihole.local    pihole
-192.168.0.35    resiliosync.local   resiliosync
-192.168.0.35    oss-bt.local    transmission
+192.168.0.35	firefly.local	firefly
+192.168.0.35	pihole.local	pihole
+192.168.0.35	resiliosync.local	resiliosync
+192.168.0.35	oss-bt.local	transmission
 
-192.168.0.35    git.local    git
-192.168.0.35    util.local  utilserver
+192.168.0.35	mongodb.local	mongodb
+192.168.0.35	mysql.local	mysql
+192.168.0.35	redis.local	redis
+
+192.168.0.35	git.local	git
+192.168.0.35	util.local	utilserver
