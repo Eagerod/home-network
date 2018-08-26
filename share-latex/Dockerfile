@@ -14,5 +14,13 @@ RUN tlmgr install scheme-small
 RUN tlmgr install scheme-medium
 # RUN tlmgr install scheme-full
 
+# If the a sufficient scheme isn't installed, include some additional package
+#   installations that aren't included in the chosen scheme, but are still 
+#   needed.
+RUN tlmgr install \
+    ly1 \
+    mathdesign \
+    tabulary
+
 ENV SHARELATEX_REDIS_HOST redis.local
 ENV SHARELATEX_MONGO_URL mongodb://mongodb.local:27017/share-latex
