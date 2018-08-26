@@ -17,6 +17,7 @@ DOCKER_CONTAINERS:=\
 	mysql \
 	firefly-iii \
 	mongodb \
+	redis \
 	resilio-server
 
 CRON_BASE_PATH:=/etc/cron.d
