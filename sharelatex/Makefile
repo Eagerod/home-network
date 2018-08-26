@@ -1,6 +1,6 @@
 include ../DockerMakefile
 
-DOCKER_IMAGE_NAME:=share-latex
+DOCKER_IMAGE_NAME:=sharelatex
 
 # Note: Have to mount the entire sharelatex directory, even though `./data` is
 #   really the only important directory. A temp directory can be created as well
