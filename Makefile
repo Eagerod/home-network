@@ -18,7 +18,8 @@ DOCKER_CONTAINERS:=\
 	firefly-iii \
 	mongodb \
 	redis \
-	resilio-server
+	resilio-server \
+	sharelatex
 
 CRON_BASE_PATH:=/etc/cron.d
 INSTALLED_CRON_PATH:=$(CRON_BASE_PATH)/docker-home-network

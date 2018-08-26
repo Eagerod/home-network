@@ -18,9 +18,14 @@ RUN tlmgr install scheme-medium
 #   installations that aren't included in the chosen scheme, but are still 
 #   needed.
 RUN tlmgr install \
+    bezos \
+    datetime2 \
     ly1 \
     mathdesign \
-    tabulary
+    marginnote \
+    pdfcomment \
+    tabulary \
+    titlesec
 
 ENV SHARELATEX_REDIS_HOST redis.local
 ENV SHARELATEX_MONGO_URL mongodb://mongodb.local:27017/sharelatex
