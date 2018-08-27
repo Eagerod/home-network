@@ -1,7 +1,5 @@
 include ../docker.make
 
-DOCKER_IMAGE_NAME:=mysql
-
 MYSQL_CONTAINER_DATA_DIR:=/var/lib/data
 
 ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
@@ -11,10 +9,10 @@ else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 MYSQL_HOST_DATA_DIR:=/var/lib/mysql
 endif
 
+DOCKER_IMAGE_NAME:=mysql
 DOCKER_PORT_FORWARDS=\
 	-p 3306:3306\
 	-v $(MYSQL_HOST_DATA_DIR):$(MYSQL_CONTAINER_DATA_DIR)
-
 
 MYSQL_DAEMON:=/usr/sbin/mysqld
 MYSQL_CLIENT:=/usr/bin/mysql

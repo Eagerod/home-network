@@ -1,19 +1,27 @@
 include ../docker.make
 
-DOCKER_IMAGE_NAME:=resilio-sync
-DOCKER_PORT_FORWARDS:=-p 8888:8888
+RESILIO_CONTAINER_SYNC_DIRECTORY:=/.sync
+RESILIO_CONTAINER_BACKUPS_DIRECTORY:=/var/lib/resilio-folders
 
-ifeq ($(PLATFORM),$(PLATFORM_LINUX))
-SETTINGS_ROOT_DIR:=/var/lib/.sync
-DOCKER_PORT_FORWARDS+=\
-	-v $(SETTINGS_ROOT_DIR):/.sync \
-	-v /var/lib/backups:/var/lib/resilio-folders
+ifeq ($(PLATFORM),$(PLATFORM_MACOS))
+RESILIO_HOST_SYNC_DIRECTORY:=~/Desktop/docker/resilio
+RESILIO_HOST_BACKUPS_DIRECTORY:=~/Desktop/docker/backups
+SUDO:=
+else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
+RESILIO_HOST_SYNC_DIRECTORY:=/var/lib/.sync
+RESILIO_HOST_BACKUPS_DIRECTORY:=/var/lib/backups
+SUDO:=sudo
 else ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
-SETTINGS_ROOT_DIR:=/cygdrive/d/DockerResilioSync/settings
-DOCKER_PORT_FORWARDS+= \
-	-v D:/DockerResilioSync/settings/.sync \
-	-v D:/DockerBackups:/var/lib/resilio-folders
+RESILIO_HOST_SYNC_DIRECTORY:=D:/DockerResilioSync/settings/.sync
+RESILIO_HOST_BACKUPS_DIRECTORY:=D:/DockerBackups
+SUDO:=
 endif
+
+DOCKER_IMAGE_NAME:=resilio-sync
+DOCKER_PORT_FORWARDS:=\
+	-p 8888:8888\
+	-v $(RESILIO_HOST_SYNC_DIRECTORY):$(RESILIO_CONTAINER_SYNC_DIRECTORY)\
+	-v $(RESILIO_HOST_BACKUPS_DIRECTORY):$(RESILIO_CONTAINER_BACKUPS_DIRECTORY)\
 
 sync-prod.conf:
 	@if [ -z "$${RESILIO_SERVER_USERNAME}" ]; then \
@@ -29,8 +37,8 @@ sync-prod.conf:
 
 .PHONY: initialize
 initialize: sync-prod.conf
-	sudo mkdir -p $(SETTINGS_ROOT_DIR)
-	if [ ! -f $(SETTINGS_ROOT_DIR)/sync.conf ]; then \
-		sudo cp sync-prod.conf $(SETTINGS_ROOT_DIR)/sync.conf; \
+	$(SUDO) mkdir -p $(RESILIO_HOST_SYNC_DIRECTORY)
+	if [ ! -f $(RESILIO_HOST_SYNC_DIRECTORY)/sync.conf ]; then \
+		$(SUDO) cp sync-prod.conf $(RESILIO_HOST_SYNC_DIRECTORY)/sync.conf; \
 	fi
 	rm sync-prod.conf
