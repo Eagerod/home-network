@@ -8,7 +8,7 @@ DOCKER_BUILD_ARGS:=\
 	MULTI_REDDIT_SUBS_LOCATION \
 	MULTI_REDDIT_SAVED_LOCATION
 
-ifeq ($(shell uname),Linux)
+ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 DOCKER_PORT_FORWARDS+=\
 	-v /var/lib/backups:/var/lib/backups
 else
@@ -31,6 +31,6 @@ initialize:
 	else \
 		echo >&2 "SSH key already authorized for util server. Skipping addition to authorized_keys."; \
 	fi
-ifeq ($(shell uname),Linux)
+ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 	sudo mkdir -p /var/lib/backups
 endif

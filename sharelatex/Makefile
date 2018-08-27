@@ -7,7 +7,7 @@ DOCKER_IMAGE_NAME:=sharelatex
 #   but because of sharelatex implementing the temp directory with a `rename`
 #   rather than a `mv`, the transaction can't cross file-system boundaries.
 # See: https://stackoverflow.com/questions/43206198/
-ifeq ($(shell uname),Linux)
+ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 DOCKER_PORT_FORWARDS:=\
 	-p 8081:80\
 	-v /var/lib/sharelatex:/var/lib/sharelatex
@@ -19,7 +19,7 @@ endif
 
 .PHONY: initialize
 initialize:
-ifeq ($(shell uname),Linux)
+ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 	sudo mkdir -p /var/lib/sharelatex
 else
 	$(DOCKER) volume create --name sharelatex-data -d local

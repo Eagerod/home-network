@@ -14,3 +14,34 @@ DOCKER:=sudo docker
 else
 $(error Cannot communicate with docker daemon)
 endif
+
+# Determine the platform of this machine. There will often be different paths,
+#   or different tools that need to be chosen based on running on a different
+#   platform.
+UNAME:=$(shell uname)
+PLATFORM_MACOS:=MacOS
+PLATFORM_LINUX:=Linux
+PLATFORM_WINDOWS:=Windows
+
+ifeq ($(UNAME),Darwin)
+PLATFORM:=$(PLATFORM_MACOS)
+else ifeq ($(UNAME),Linux)
+PLATFORM:=$(PLATFORM_LINUX)
+else ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
+PLATFORM:=$(PLATFORM_WINDOWS)
+else
+$(error Unknown distribution ($(UNAME)) for running these containers)
+endif
+
+# Configure some platform specific commands, or prefixes so that any makefile
+#   can use these without needing to check the platform.
+ifeq ($(PLATFORM),$(PLATFORM_MACOS))
+SED_INLINE:=sed -i ''
+ATTACHED_DOCKER:=$(DOCKER)
+else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
+SED_INLINE:=sed -i
+ATTACHED_DOCKER:=$(DOCKER)
+else ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
+SED_INLINE:=sed -i
+ATTACHED_DOCKER:=winpty $(DOCKER)
+endif

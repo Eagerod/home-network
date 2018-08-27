@@ -6,7 +6,7 @@ DOCKER_PORT_FORWARDS:=\
 	-e MONGO_INITDB_ROOT_USERNAME=$${MONGO_INITDB_ROOT_USERNAME} \
 	-e MONGO_INITDB_ROOT_PASSWORD=$${MONGO_INITDB_ROOT_PASSWORD}
 
-ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
+ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
 DOCKER_PORT_FORWARDS+= -v mongodb-data:/data/db
 else
 DOCKER_PORT_FORWARDS+= -v /var/lib/mongodb/data:/data/db
@@ -20,6 +20,6 @@ endif
 #   manage the file storage aspects.
 .PHONY: initialize
 initialize:
-ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
+ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
 	$(DOCKER) volume create --name mongodb-data -d local
 endif

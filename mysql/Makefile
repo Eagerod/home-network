@@ -3,17 +3,15 @@ include ../docker.make
 DOCKER_IMAGE_NAME:=mysql
 DOCKER_PORT_FORWARDS=-p 3306:3306
 
-ifeq ($(shell uname),Darwin)
+ifeq ($(PLATFORM),$(PLATFORM_MACOS))
 DOCKER_PORT_FORWARDS+=\
 	-v ~/Desktop/docker/mysql:/var/lib/data
-else ifeq ($(shell uname),Linux)
+else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 DOCKER_PORT_FORWARDS+=\
 	-v /var/lib/mysql:/var/lib/data
-else ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
+else ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
 DOCKER_PORT_FORWARDS+=\
 	-v mysql-data:/var/lib/data
-else
-$(error "Unsupported distro")
 endif
 
 MYSQL_DAEMON:=/usr/sbin/mysqld
@@ -64,7 +62,7 @@ verify-mysql-database:
 #   initialize command to it with the appropriate parameters.
 .PHONY: initialize
 initialize:
-ifeq ($(shell uname),Linux)
+ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 	if ! grep -q mysql /etc/group; then \
 		sudo groupadd mysql; \
 	fi
@@ -78,13 +76,13 @@ ifeq ($(shell uname),Linux)
 	sudo usermod -a -G mysql mysql
 	sudo mkdir -p /var/lib/mysql
 	sudo chown mysql:mysql /var/lib/mysql
-else ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
+else ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
 	$(DOCKER) volume create --name mysql-data -d local
 endif
 
 	$(MAKE) -C $(CURDIR) kill debug image detached
 
-ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
+ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
 	$(ATTACHED_DOCKER) exec -it -u 0 $(RUNNING_CONTAINER_NAME) chown -R mysql:mysql /var/lib/data
 endif
 	$(ATTACHED_DOCKER) exec -it $(RUNNING_CONTAINER_NAME) $(MYSQL_DAEMON) --datadir=/var/lib/data --pid-file=/var/lib/mysqld.pid --initialize
@@ -133,7 +131,7 @@ grant-database: verify-mysql-root-password verify-mysql-user verify-mysql-databa
 image: validate_permissions
 .PHONY: validate_permissions
 validate_permissions:
-ifeq ($(shell uname),Linux)
+ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 	@if [ ! -z "$$(find /var/lib/mysql ! -user mysql)" ]; then \
 		echo >&2 "There are files in the mysql directory that aren't owned by the mysql user. This is bad".; \
 		exit -1; \

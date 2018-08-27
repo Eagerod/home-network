@@ -1,4 +1,4 @@
-include common.make
+include $(dir $(realpath $(lastword $(MAKEFILE_LIST))))/common.make
 
 SHELL=/bin/bash
 
@@ -7,20 +7,6 @@ DOCKER_IMAGE_NAME:=
 DOCKER_PORT_FORWARDS:=
 
 RUNNING_CONTAINER_NAME=$$($(DOCKER) ps | awk '{if ($$2 == "$(DOCKER_IMAGE_NAME)") print $$NF;}') 2> /dev/null
-
-# TODO: Test uname on windows machine to make sure that cygwin/mingw are handled
-#   correctly.
-ifeq ($(shell uname),Darwin)
-SED_INLINE:=sed -i ''
-ATTACHED_DOCKER:=$(DOCKER)
-else ifeq ($(shell uname),Linux)
-SED_INLINE:=sed -i
-ATTACHED_DOCKER:=$(DOCKER)
-else
-SED_INLINE:=sed -i
-ATTACHED_DOCKER:=winpty $(DOCKER)
-endif
-
 
 .PHONY: validate_build_args
 validate_build_args:
