@@ -33,6 +33,25 @@ else
 $(error Unknown distribution ($(UNAME)) for running these containers)
 endif
 
+# Copyable, consistent set of conditionals; must be in the defined order, and
+#   if multiple platforms need similar behaviours, the first's position should
+#   be taken for both.
+#
+# ifeq ($(PLATFORM),$(PLATFORM_MACOS))
+# $(info Platform is MacOS)
+# else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
+# $(info Platform is Linus)
+# else ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
+# $(info Platform is Windows)
+# endif
+#
+# ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
+# $(info Platform is MacOS, or Windows maybe)
+# else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
+# $(info Platform is Linus)
+# endif
+#
+
 # Configure some platform specific commands, or prefixes so that any makefile
 #   can use these without needing to check the platform.
 ifeq ($(PLATFORM),$(PLATFORM_MACOS))
