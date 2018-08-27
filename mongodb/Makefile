@@ -27,9 +27,9 @@ DOCKER_PORT_FORWARDS:=\
 .PHONY: initialize
 initialize:
 ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
-	if ! $(DOCKER) volume ls --filter name=$(MONGODB_DOCKER_VOLUME_NAME) | tail -1 | grep -q $(MONGODB_DOCKER_VOLUME_NAME); then \
+	@if ! $(DOCKER) volume ls --filter name=$(MONGODB_DOCKER_VOLUME_NAME) | tail -1 | grep -q $(MONGODB_DOCKER_VOLUME_NAME); then \
 		$(DOCKER) volume create --name $(MONGODB_DOCKER_VOLUME_NAME) -d local; \
 	else \
-		echo "Docker volume already exists"; \
+		echo >&2 "Docker volume already exists"; \
 	fi
 endif
