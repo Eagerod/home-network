@@ -1,4 +1,4 @@
-include ../DockerMakefile
+include ../docker.make
 
 DOCKER_IMAGE_NAME:=firefly-iii
 DOCKER_PORT_FORWARDS:=\
@@ -9,6 +9,7 @@ DOCKER_PORT_FORWARDS:=\
 	-e FF_DB_PASSWORD=${FF_DB_PASSWORD} \
 	-e FF_APP_KEY=${FF_APP_KEY} \
 	-e FF_APP_ENV=${FF_APP_ENV}
+
 
 # Create the required database and user in the MySQL DB, and set up permissions
 #   so that the snipeit user can do what they want.

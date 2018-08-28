@@ -1,14 +1,6 @@
-SHELL=/bin/bash
+include common.make
 
-ifeq ($(shell docker ps > /dev/null 2> /dev/null && echo "pass"),pass)
-DOCKER:=docker
-else ifeq ($(shell sudo docker ps > /dev/null && echo "pass"),pass)
-DOCKER:=sudo docker
-else ifeq ($(shell type docker-machine > /dev/null && echo "pass"),pass)
-$(error Cannot communicate with docker daemon. Maybe run `eval $$(docker-machine env $(shell docker-machine ls -q))`)
-else
-$(error Cannot communicate with docker daemon)
-endif
+SHELL=/bin/bash
 
 DOCKER_CONTAINERS:=\
 	pi-hole\

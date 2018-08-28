@@ -1,34 +1,12 @@
-SHELL=/bin/bash
+include $(dir $(realpath $(lastword $(MAKEFILE_LIST))))/common.make
 
-ifeq ($(shell docker ps > /dev/null 2> /dev/null && echo "pass"),pass)
-DOCKER:=docker
-else ifeq ($(shell sudo docker ps > /dev/null && echo "pass"),pass)
-DOCKER:=sudo docker
-else ifeq ($(shell type docker-machine > /dev/null && echo "pass"),pass)
-$(error Cannot communicate with docker daemon. Maybe run `eval $$(docker-machine env $(shell docker-machine ls -q))`)
-else
-$(error Cannot communicate with docker daemon)
-endif
+SHELL=/bin/bash
 
 DOCKER_BUILD_ARGS:=
 DOCKER_IMAGE_NAME:=
 DOCKER_PORT_FORWARDS:=
 
 RUNNING_CONTAINER_NAME=$$($(DOCKER) ps | awk '{if ($$2 == "$(DOCKER_IMAGE_NAME)") print $$NF;}') 2> /dev/null
-
-# TODO: Test uname on windows machine to make sure that cygwin/mingw are handled
-#   correctly.
-ifeq ($(shell uname),Darwin)
-SED_INLINE:=sed -i ''
-ATTACHED_DOCKER:=$(DOCKER)
-else ifeq ($(shell uname),Linux)
-SED_INLINE:=sed -i
-ATTACHED_DOCKER:=$(DOCKER)
-else
-SED_INLINE:=sed -i
-ATTACHED_DOCKER:=winpty $(DOCKER)
-endif
-
 
 .PHONY: validate_build_args
 validate_build_args:

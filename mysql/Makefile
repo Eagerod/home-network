@@ -1,20 +1,18 @@
-include ../DockerMakefile
+include ../docker.make
+
+MYSQL_CONTAINER_DATA_DIR:=/var/lib/data
+
+ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
+MYSQL_DOCKER_VOLUME_NAME:=mysql-data
+MYSQL_HOST_DATA_DIR:=$(MYSQL_DOCKER_VOLUME_NAME)
+else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
+MYSQL_HOST_DATA_DIR:=/var/lib/mysql
+endif
 
 DOCKER_IMAGE_NAME:=mysql
-DOCKER_PORT_FORWARDS=-p 3306:3306
-
-ifeq ($(shell uname),Darwin)
-DOCKER_PORT_FORWARDS+=\
-	-v ~/Desktop/docker/mysql:/var/lib/data
-else ifeq ($(shell uname),Linux)
-DOCKER_PORT_FORWARDS+=\
-	-v /var/lib/mysql:/var/lib/data
-else ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
-DOCKER_PORT_FORWARDS+=\
-	-v mysql-data:/var/lib/data
-else
-$(error "Unsupported distro")
-endif
+DOCKER_PORT_FORWARDS=\
+	-p 3306:3306\
+	-v $(MYSQL_HOST_DATA_DIR):$(MYSQL_CONTAINER_DATA_DIR)
 
 MYSQL_DAEMON:=/usr/sbin/mysqld
 MYSQL_CLIENT:=/usr/bin/mysql
@@ -64,7 +62,13 @@ verify-mysql-database:
 #   initialize command to it with the appropriate parameters.
 .PHONY: initialize
 initialize:
-ifeq ($(shell uname),Linux)
+ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
+	@if ! $(DOCKER) volume ls --filter name=$(MYSQL_DOCKER_VOLUME_NAME) | tail -1 | grep -q $(MYSQL_DOCKER_VOLUME_NAME); then \
+		$(DOCKER) volume create --name $(MYSQL_DOCKER_VOLUME_NAME) -d local; \
+	else \
+		echo >&2 "Docker volume already exists"; \
+	fi
+else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 	if ! grep -q mysql /etc/group; then \
 		sudo groupadd mysql; \
 	fi
@@ -72,22 +76,20 @@ ifeq ($(shell uname),Linux)
 	    sudo adduser --system --home /bin/false --no-create-home --disabled-password --disabled-login mysql; \
 	fi
 
-	sed -i "s/<gid>/$$(cat /etc/group | grep mysql | cut -d ':' -f3)/g" Dockerfile
-	sed -i "s/<uid>/$$(cat /etc/passwd | grep mysql | cut -d ':' -f3)/g" Dockerfile
+	$(SED_INLINE) "s/<gid>/$$(cat /etc/group | grep mysql | cut -d ':' -f3)/g" Dockerfile
+	$(SED_INLINE) "s/<uid>/$$(cat /etc/passwd | grep mysql | cut -d ':' -f3)/g" Dockerfile
 
 	sudo usermod -a -G mysql mysql
-	sudo mkdir -p /var/lib/mysql
-	sudo chown mysql:mysql /var/lib/mysql
-else ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
-	$(DOCKER) volume create --name mysql-data -d local
+	sudo mkdir -p $(MYSQL_HOST_DATA_DIR)
+	sudo chown mysql:mysql $(MYSQL_HOST_DATA_DIR)
 endif
 
 	$(MAKE) -C $(CURDIR) kill debug image detached
 
-ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
-	$(ATTACHED_DOCKER) exec -it -u 0 $(RUNNING_CONTAINER_NAME) chown -R mysql:mysql /var/lib/data
+ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
+	$(ATTACHED_DOCKER) exec -it -u 0 $(RUNNING_CONTAINER_NAME) chown -R mysql:mysql $(MYSQL_CONTAINER_DATA_DIR)
 endif
-	$(ATTACHED_DOCKER) exec -it $(RUNNING_CONTAINER_NAME) $(MYSQL_DAEMON) --datadir=/var/lib/data --pid-file=/var/lib/mysqld.pid --initialize
+	$(ATTACHED_DOCKER) exec -it $(RUNNING_CONTAINER_NAME) $(MYSQL_DAEMON) --datadir=$(MYSQL_CONTAINER_DATA_DIR) --pid-file=/var/lib/mysqld.pid --initialize
 
 # Set the root password on my MySQL database to the value provided in the
 #   `MYSQL_ROOT_PASSWORD` environment variable.
@@ -95,7 +97,7 @@ endif
 .PHONY: password
 password: validate-mysql-root-password
 	$(MAKE) -C $(CURDIR) kill debug image detached
-	$(DOCKER) exec -dit $(RUNNING_CONTAINER_NAME) $(MYSQL_DAEMON) --datadir=/var/lib/data --pid-file=/var/lib/mysqld.pid --skip-grant-tables
+	$(DOCKER) exec -dit $(RUNNING_CONTAINER_NAME) $(MYSQL_DAEMON) --datadir=$(MYSQL_CONTAINER_DATA_DIR) --pid-file=/var/lib/mysqld.pid --skip-grant-tables
 	sleep 1
 	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "FLUSH PRIVILEGES; SET PASSWORD FOR root@'localhost' = PASSWORD('$${MYSQL_ROOT_PASSWORD}'); FLUSH PRIVILEGES;"
 	$(MAKE) -C $(CURDIR) kill
@@ -133,8 +135,8 @@ grant-database: verify-mysql-root-password verify-mysql-user verify-mysql-databa
 image: validate_permissions
 .PHONY: validate_permissions
 validate_permissions:
-ifeq ($(shell uname),Linux)
-	@if [ ! -z "$$(find /var/lib/mysql ! -user mysql)" ]; then \
+ifeq ($(PLATFORM),$(PLATFORM_LINUX))
+	@if [ ! -z "$$(find $(MYSQL_HOST_DATA_DIR) ! -user mysql)" ]; then \
 		echo >&2 "There are files in the mysql directory that aren't owned by the mysql user. This is bad".; \
 		exit -1; \
 	fi
