@@ -21,10 +21,12 @@ DOCKER_BUILD_ARGS:=\
 
 ifeq ($(shell uname),Linux)
 DOCKER_PORT_FORWARDS+=\
-	-v /var/lib/backups:/var/lib/backups
+	-v /var/lib/backups:/var/lib/backups \
+	-v /var/lib/git:/var/lib/git
 else
 DOCKER_PORT_FORWARDS+= \
-	-v D:/DockerBackups:/var/lib/backups
+	-v D:/DockerBackups:var/lib/backups \
+	-v D:/DockerGit:/var/lib/git
 endif
 
 
@@ -33,12 +35,9 @@ image: repo-manager
 
 # The repository manager lives on the host in the repository root directory
 .PHONY: repo-manager
-repo-manager:
-	@if [ -d $(HOST_REPO_REPO) ]; then \
-		echo "Repository already configured"; \
-		exit 1; \
-	fi
+repo-manager: $(HOST_REPO_REPO)
 
+$(HOST_REPO_REPO):
 	$(SUDO) mkdir -p $(HOST_REPO_REPO)
 	$(SUDO) git -C $(HOST_REPO_REPO) init --bare
 	$(SUDO) cp git/pre-receive.py $(HOST_REPO_REPO)/hooks/pre-receive

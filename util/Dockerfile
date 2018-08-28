@@ -1,8 +1,12 @@
 FROM ncfgbase
 
+# Install all the primary applications to be used/made available on the util
+#   server.
 RUN \
 	apt-get update -y && \
-	apt-get install -y openssh-server
+	apt-get install -y \
+		openssh-server \
+		python-pip
 
 # Privilege separation directory needed by SSH.
 RUN mkdir /var/run/sshd
@@ -14,6 +18,7 @@ RUN sed -i -r 's/^[#\s]*(PermitRootLogin).*$/\1 prohibit-password/' /etc/ssh/ssh
 #   but appears to not be needed, kept around in case it needs to be used
 # RUN sed -i -r 's/(session\s*)required(\s*pam_loginuid.so)/\1optional\2/g' /etc/pam.d/sshd
 
+# Install dependencies needed for installing the blob client.
 RUN apt-get install -y \
 	curl \
 	unzip \
@@ -21,6 +26,8 @@ RUN apt-get install -y \
 	cmake \
 	git
 RUN curl https://aleem.haji.ca/blob/clientlib/installer.sh | bash
+
+RUN python -m pip install PyYAML
 
 COPY ./authorized_keys /root/.ssh/authorized_keys
 RUN chmod 700 /root/.ssh
