@@ -30,6 +30,7 @@ HOST_SSH_KEY_COMMENT:=ca.haji.aleem.util/host
 $(HOST_SSH_KEY_PATH):
 	ssh-keygen -t rsa -b 4096 -C "$(HOST_SSH_KEY_COMMENT)" -f $(HOST_SSH_KEY_PATH)
 
+
 # Create an ssh key for the host machine that the container will accept
 #   as an authorized_host
 .PHONY: initialize

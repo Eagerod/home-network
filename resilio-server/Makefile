@@ -23,6 +23,8 @@ DOCKER_PORT_FORWARDS:=\
 	-v $(RESILIO_HOST_SYNC_DIRECTORY):$(RESILIO_CONTAINER_SYNC_DIRECTORY)\
 	-v $(RESILIO_HOST_BACKUPS_DIRECTORY):$(RESILIO_CONTAINER_BACKUPS_DIRECTORY)\
 
+
+.INTERMEDIATE: sync-prod.conf
 sync-prod.conf:
 	@if [ -z "$${RESILIO_SERVER_USERNAME}" ]; then \
 		echo >&2 "Failed to find Resilio Sync username in environment. Cannot initialize"; \
@@ -34,11 +36,9 @@ sync-prod.conf:
 	fi
 	sed "s/webui.username/$${RESILIO_SERVER_USERNAME}/g; s/webui.password/$${RESILIO_SERVER_PASSWORD}/g" sync.conf > sync-prod.conf
 
+$(RESILIO_HOST_SYNC_DIRECTORY)/sync.conf: sync-prod.conf
+	$(SUDO) mkdir -p $(RESILIO_HOST_SYNC_DIRECTORY)
+	$(SUDO) cp sync-prod.conf $(RESILIO_HOST_SYNC_DIRECTORY)/sync.conf
 
 .PHONY: initialize
-initialize: sync-prod.conf
-	$(SUDO) mkdir -p $(RESILIO_HOST_SYNC_DIRECTORY)
-	if [ ! -f $(RESILIO_HOST_SYNC_DIRECTORY)/sync.conf ]; then \
-		$(SUDO) cp sync-prod.conf $(RESILIO_HOST_SYNC_DIRECTORY)/sync.conf; \
-	fi
-	rm sync-prod.conf
+initialize: $(RESILIO_HOST_SYNC_DIRECTORY)/sync.conf
