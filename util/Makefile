@@ -9,11 +9,11 @@ BACKUPS_CONTAINER_GIT_DIR:=/var/lib/git
 
 ifeq ($(PLATFORM),$(PLATFORM_MACOS))
 BACKUPS_HOST_BACKUP_DIR:=~/Desktop/docker/backups
-BACKUPS_HOST_GIT_DIR:=/var/lib/git
+BACKUPS_HOST_GIT_DIR:=~/Desktop/docker/git
 SUDO:=
 else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 BACKUPS_HOST_BACKUP_DIR:=/var/lib/backups
-BACKUPS_HOST_GIT_DIR:=~/Desktop/docker/git
+BACKUPS_HOST_GIT_DIR:=/var/lib/git
 SUDO:=sudo
 else ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
 BACKUPS_HOST_BACKUP_DIR:=D:/DockerBackups
@@ -27,7 +27,7 @@ DOCKER_IMAGE_NAME:=util
 DOCKER_PORT_FORWARDS:=\
 	-p 22:22\
 	-v $(BACKUPS_HOST_BACKUP_DIR):$(BACKUPS_CONTAINER_BACKUP_DIR)\
-	-v $(DOCKER_HOST_GIT_DIR):$(DOCKER_CONTAINER_GIT_DIR)
+	-v $(BACKUPS_HOST_GIT_DIR):$(BACKUPS_CONTAINER_GIT_DIR)
 
 DOCKER_BUILD_ARGS:=\
 	DEFAULT_BLOBSTORE_WRITE_ACL \
@@ -42,9 +42,6 @@ $(HOST_SSH_KEY_PATH):
 	ssh-keygen -t rsa -b 4096 -C "$(HOST_SSH_KEY_COMMENT)" -f $(HOST_SSH_KEY_PATH)
 
 
-image: repo-manager
-
-
 # The repository manager lives on the host in the repository root directory
 .PHONY: repo-manager
 repo-manager: $(HOST_REPO_REPO)
@@ -57,7 +54,7 @@ $(HOST_REPO_REPO):
 
 	# Create a commit in the repo, with the repositories repository as an 
 	#   example of building within the repo.
-	mkdir temp
+	mkdir -p temp
 	git -C temp init
 	sed 's?root_dir:.*?root_dir: $(HOST_REPOSITORY_LOCATION)?' git/repositories.template.yaml > temp/repositories.yaml
 	git -C temp add .
@@ -73,7 +70,7 @@ $(HOST_REPO_REPO):
 # Create an ssh key for the host machine that the container will accept
 #   as an authorized_host
 .PHONY: initialize
-initialize: $(HOST_SSH_KEY_PATH)
+initialize: $(HOST_SSH_KEY_PATH) $(HOST_REPO_REPO)
 	@if ! grep -q -f $(HOST_SSH_KEY_PATH).pub authorized_keys ; then \
 		cat $(HOST_SSH_KEY_PATH).pub >> authorized_keys; \
 	else \
