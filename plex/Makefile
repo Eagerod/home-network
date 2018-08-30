@@ -1,5 +1,7 @@
 include ../docker.make
 
+# Lot of configurations for this container came from the official docker hub
+#   page: https://hub.docker.com/r/plexinc/pms-docker/
 PLEX_CONTAINER_CONFIG_DIR:=/config
 
 ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
@@ -20,7 +22,8 @@ DOCKER_PORT_FORWARDS:=\
 	-p 32412:32412/udp\
 	-p 32413:32413/udp\
 	-p 32414:32414/udp\
-	-v $(PLEX_HOST_CONFIG_DIR):$(PLEX_CONTAINER_CONFIG_DIR)
+	-v $(PLEX_HOST_CONFIG_DIR):$(PLEX_CONTAINER_CONFIG_DIR)\
+	$(shell awk '{print " -v "$$2":"$$1}' volumes.txt)
 
 
 .PHONY: intitialize
