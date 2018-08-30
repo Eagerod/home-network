@@ -1,29 +1,12 @@
-DOCKER:=docker
+include $(dir $(realpath $(lastword $(MAKEFILE_LIST))))/common.make
+
+SHELL=/bin/bash
 
 DOCKER_BUILD_ARGS:=
 DOCKER_IMAGE_NAME:=
 DOCKER_PORT_FORWARDS:=
 
 RUNNING_CONTAINER_NAME=$$($(DOCKER) ps | awk '{if ($$2 == "$(DOCKER_IMAGE_NAME)") print $$NF;}') 2> /dev/null
-
-# TODO: Test uname on windows machine to make sure that cygwin/mingw are handled
-#   correctly.
-ifeq ($(shell uname),Darwin)
-SED_INLINE:=sed -i ''
-ATTACHED_DOCKER:=$(DOCKER)
-else
-SED_INLINE:=sed -i
-ATTACHED_DOCKER:=winpty $(DOCKER)
-endif
-
-
-.PHONY: image
-image: validate_build_args validate_image_name
-	@if [ $(RUNNING_CONTAINER_NAME) ]; then \
-		echo >&2 "Container is already running; creating image will delete old tag."; \
-		exit -1; \
-	fi
-	$(DOCKER) build $(foreach arg,$(DOCKER_BUILD_ARGS),--build-arg $(arg)=$${$(arg)} ) . -t $(DOCKER_IMAGE_NAME)
 
 .PHONY: validate_build_args
 validate_build_args:
@@ -41,20 +24,32 @@ validate_image_name:
 		exit -1; \
 	fi
 
+.PHONY: base-image
+base-image:
+	$(DOCKER) build .. -f ../BaseUpdatedUbuntuDockerfile -t ncfgbase
+
+.PHONY: image
+image: validate_build_args validate_image_name base-image
+	@if [ $(RUNNING_CONTAINER_NAME) ]; then \
+		echo >&2 "Container is already running; creating image will delete old tag."; \
+		exit -1; \
+	fi
+	$(DOCKER) build $(foreach arg,$(DOCKER_BUILD_ARGS),--build-arg $(arg)=$${$(arg)} ) . -t $(DOCKER_IMAGE_NAME)
+
 .PHONY: detached
-detached: validate_image_name
+detached: image
 	$(DOCKER) container run -dit $(DOCKER_PORT_FORWARDS) $(DOCKER_IMAGE_NAME)
 
 .PHONY: attached
-attached: validate_image_name
+attached: image
 	$(ATTACHED_DOCKER) container run $(DOCKER_PORT_FORWARDS) -it $(DOCKER_IMAGE_NAME)
 
 .PHONY: debug
-debug:
+debug: kill
 	$(SED_INLINE) 's/^CMD/# CMD/g' Dockerfile
 
 .PHONY: release
-release:
+release: kill
 	$(SED_INLINE) 's/^# CMD/CMD/g' Dockerfile
 
 .PHONY: kill
