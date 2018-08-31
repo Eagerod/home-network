@@ -24,6 +24,8 @@ DOCKER_PORT_FORWARDS:=\
 	-v $(RESILIO_HOST_BACKUPS_DIRECTORY):$(RESILIO_CONTAINER_BACKUPS_DIRECTORY)\
 
 
+image: base-image
+
 .INTERMEDIATE: sync-prod.conf
 sync-prod.conf:
 	@if [ -z "$${RESILIO_SERVER_USERNAME}" ]; then \

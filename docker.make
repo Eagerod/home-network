@@ -29,7 +29,7 @@ base-image:
 	$(DOCKER) build .. -f ../BaseUpdatedUbuntuDockerfile -t ncfgbase
 
 .PHONY: image
-image: validate_build_args validate_image_name base-image
+image: validate_build_args validate_image_name
 	@if [ $(RUNNING_CONTAINER_NAME) ]; then \
 		echo >&2 "Container is already running; creating image will delete old tag."; \
 		exit -1; \

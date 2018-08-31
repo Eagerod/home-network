@@ -18,6 +18,9 @@ MYSQL_DAEMON:=/usr/sbin/mysqld
 MYSQL_CLIENT:=/usr/bin/mysql
 
 
+image: base-image
+
+
 .PHONY: verify-mysql-root-password
 verify-mysql-root-password:
 	@if [ -z "$${MYSQL_ROOT_PASSWORD}" ]; then \

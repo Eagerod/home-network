@@ -42,6 +42,8 @@ $(HOST_SSH_KEY_PATH):
 	ssh-keygen -t rsa -b 4096 -C "$(HOST_SSH_KEY_COMMENT)" -f $(HOST_SSH_KEY_PATH)
 
 
+image: base-image
+
 # The repository manager lives on the host in the repository root directory
 .PHONY: repo-manager
 repo-manager: $(HOST_REPO_REPO)
