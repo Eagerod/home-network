@@ -1,0 +1,17 @@
+include ../docker.make
+
+CONTAINER_SOME_DIR:=/var/lib/${APP_NAME}
+
+ifeq ($(PLATFORM),$(PLATFORM_MACOS))
+HOST_SOME_DIR:=~/Desktop/docker/${APP_NAME}
+else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
+HOST_SOME_DIR:=/var/lib/${APP_NAME}
+else ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
+HOST_SOME_DIR:=D:/Docker${APP_NAME}
+endif
+
+DOCKER_IMAGE_NAME:=${APP_NAME}
+DOCKER_PORT_FORWARDS:=\
+    -v $(HOST_SOME_DIR):$(CONTAINER_SOME_DIR)\
+
+image: base-image

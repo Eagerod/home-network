@@ -60,3 +60,14 @@ install-backups:
 	else \
 		echo >&2 "The MySQL backup script is already installed"; \
 	fi
+
+.PHONY: app
+app:
+	@if [ -z "$${APP_NAME}" ]; then \
+		echo >&2 "Failed to find environment '\$$APP_NAME'"; \
+		exit -1; \
+	fi
+
+	mkdir -p $${APP_NAME}
+	sed 's/$${APP_NAME}/${APP_NAME}/g' Dockerfile.template > $${APP_NAME}/Dockerfile
+	sed 's/$${APP_NAME}/${APP_NAME}/g' Makefile.template > $${APP_NAME}/Makefile

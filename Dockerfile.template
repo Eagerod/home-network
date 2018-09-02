@@ -1,0 +1,5 @@
+FROM ncfgbase
+
+RUN apt-get update -y
+
+CMD ["/bin/bash"]
