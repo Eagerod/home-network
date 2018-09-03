@@ -21,3 +21,7 @@ services:
       - '/var/lib/git:/var/lib/git'
     ports:
       - '22:22'
+  resilio-server:
+    volumes:
+      - /var/lib/.sync:/.sync
+      - /var/lib/backups:/var/lib/resilio-folders

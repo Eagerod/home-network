@@ -3,9 +3,6 @@ include common.make
 SHELL=/bin/bash
 
 DOCKER_CONTAINERS:=\
-	resilio-server
-
-COMPOSE_CONTAINERS:=\
 	pi-hole \
 	redis \
 	mysql \
@@ -13,9 +10,10 @@ COMPOSE_CONTAINERS:=\
 	sharelatex \
 	transmission-oss \
 	util \
+	resilio-server \
 	firefly-iii
 
-COMPOSE_ENVIRONMENT_FILES:=$(foreach c,$(COMPOSE_CONTAINERS),$(c)/compose.env)
+COMPOSE_ENVIRONMENT_FILES:=$(foreach c,$(DOCKER_CONTAINERS),$(c)/compose.env)
 
 CRON_BASE_PATH:=/etc/cron.d
 INSTALLED_CRON_PATH:=$(CRON_BASE_PATH)/docker-home-network
@@ -24,7 +22,7 @@ MYSQL_BACKUP_CRON_PATH:=$(CRON_BASE_PATH)/mysql-backup
 INSTALLED_CRON_LOG_BASE:=/var/log/docker-network-init
 
 .PHONY: all
-all: $(COMPOSE_ENVIRONMENT_FILES) compose-up $(DOCKER_CONTAINERS)
+all: $(COMPOSE_ENVIRONMENT_FILES) compose-up
 
 .PHONY: compose-up
 compose-up:
@@ -36,8 +34,7 @@ compose-down:
 
 .PHONY: $(DOCKER_CONTAINERS)
 $(DOCKER_CONTAINERS):
-	cd $@ && $(MAKE) kill || true
-	cd $@ && if [[ -f ".env" ]]; then source $$(pwd)/.env; fi && $(MAKE) release image detached
+	$(DOCKER_COMPOSE) up $@
 
 # Source each file, and loop over the environments that should have been set,
 #   and write those out to the compose env file.

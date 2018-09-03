@@ -49,3 +49,9 @@ services:
   util:
     build: util
     env_file: util/compose.env
+
+  resilio-server:
+    build: resilio-server
+    env_file: resilio-server/.env
+    ports:
+      - 8888:8888

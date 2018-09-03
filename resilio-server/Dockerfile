@@ -9,5 +9,4 @@ RUN \
 
 EXPOSE 8888
 
-CMD ["rslsync", "--nodaemon", "--config", ".sync/sync.conf"]
-
+CMD ["rslsync", "--nodaemon", "--config", "/.sync/sync.conf"]

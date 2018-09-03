@@ -21,6 +21,10 @@ services:
       - 'D:/DockerGit:/var/lib/git'
     ports:
       - '22:22'
+  resilio-server:
+    volumes:
+      - D:/DockerResilioSync/settings/.sync:/.sync
+      - D:/DockerBackups:/var/lib/resilio-folders
 
 volumes:
   sharelatex-data:
