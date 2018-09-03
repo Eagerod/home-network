@@ -1,0 +1,14 @@
+version: '3'
+services:
+  sharelatex:
+    volumes:
+      - 'sharelatex-data:/var/lib/sharelatex'
+  mongodb:
+    volumes:
+      - mongodb-data:/db/data
+
+volumes:
+  sharelatex-data:
+    external: true
+  mongodb-data:
+    external: true

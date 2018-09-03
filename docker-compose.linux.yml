@@ -1,0 +1,8 @@
+version: '3'
+services:
+  sharelatex:
+    volumes:
+      - '/var/lib/sharelatex:/var/lib/sharelatex'
+  mongodb:
+    volumes:
+      - /var/lib/mongodb/data:/db/data

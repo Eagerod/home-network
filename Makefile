@@ -7,12 +7,14 @@ DOCKER_CONTAINERS:=\
 	transmission-oss \
 	mysql \
 	firefly-iii \
-	mongodb \
-	redis \
 	resilio-server \
+
+COMPOSE_CONTAINERS:=\
+	pi-hole\
+	redis\
+	mongodb \
 	sharelatex
 
-COMPOSE_CONTAINERS:=pi-hole
 
 COMPOSE_ENVIRONMENT_FILES:=$(foreach c,$(COMPOSE_CONTAINERS),$(c)/compose.env)
 
@@ -27,7 +29,11 @@ all: $(COMPOSE_ENVIRONMENT_FILES) compose-up $(DOCKER_CONTAINERS)
 
 .PHONY: compose-up
 compose-up:
-	$(DOCKER_COMPOSE) up -d
+	$(DOCKER_COMPOSE) -f docker-compose.yml -f $(COMPOSE_PLATFORM_FILE) up -d
+
+.PHONY: compose-down
+compose-down:
+	$(DOCKER_COMPOSE) down
 
 .PHONY: $(DOCKER_CONTAINERS)
 $(DOCKER_CONTAINERS):
@@ -44,7 +50,7 @@ $(COMPOSE_ENVIRONMENT_FILES):
 env: $(COMPOSE_ENVIRONMENT_FILES)
 
 .PHONY: kill
-kill:
+kill: compose-down
 	@$(foreach container, $(DOCKER_CONTAINERS),\
 		$(MAKE) -C $(CURDIR)/$(container) kill; \
 	)
