@@ -28,5 +28,5 @@ RUN tlmgr install \
     tabulary \
     titlesec
 
-ENV SHARELATEX_REDIS_HOST redis.local
-ENV SHARELATEX_MONGO_URL mongodb://mongodb.local:27017/sharelatex
+ENV SHARELATEX_REDIS_HOST redis
+ENV SHARELATEX_MONGO_URL mongodb://mongodb:27017/sharelatex
