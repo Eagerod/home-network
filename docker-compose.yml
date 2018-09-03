@@ -40,3 +40,8 @@ services:
       - 8082:80
     depends_on:
       - mysql
+
+  transmission-oss:
+    build: transmission-oss
+    ports:
+      - 9091:9091

@@ -9,3 +9,9 @@ services:
   mysql:
     volumes:
       - '/var/lib/mysql:/var/lib/data'
+  transmission-oss:
+    volumes:
+      - '/var/lib/transmission-daemon/downloads:/var/lib/transmission-daemon/downloads'
+      - '/var/lib/transmission-daemon/watch:/var/lib/transmission-daemon/watch'
+      - '/var/lib/transmission-daemon/info/resume:/var/lib/transmission-daemon/info/resume'
+      - '/var/lib/transmission-daemon/info/torrents:/var/lib/transmission-daemon/info/torrents'

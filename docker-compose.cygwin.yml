@@ -5,10 +5,16 @@ services:
       - 'sharelatex-data:/var/lib/sharelatex'
   mongodb:
     volumes:
-      - mongodb-data:/db/data
+      - 'mongodb-data:/db/data'
   mysql:
     volumes:
       - 'mysql-data:/var/lib/data'
+  transmission-oss:
+    volumes:
+      - D:/DockerTransmission/downloads:/var/lib/transmission-daemon/downloads
+      - D:/DockerTransmission/watch:/var/lib/transmission-daemon/watch
+      - D:/DockerTransmission/info/resume:/var/lib/transmission-daemon/info/resume
+      - D:/DockerTransmission/info/torrents:/var/lib/transmission-daemon/info/torrents
 
 volumes:
   sharelatex-data:

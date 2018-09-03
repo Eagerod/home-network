@@ -9,6 +9,12 @@ services:
   mysql:
     volumes:
       - 'mysql-data:/var/lib/data'
+  transmission-oss:
+    volumes:
+      - ~/Desktop/docker/transmission/downloads:/var/lib/transmission-daemon/downloads
+      - ~/Desktop/docker/transmission/watch:/var/lib/transmission-daemon/watch
+      - ~/Desktop/docker/transmission/info/resume:/var/lib/transmission-daemon/info/resume
+      - ~/Desktop/docker/transmission/info/torrents:/var/lib/transmission-daemon/info/torrents
 
 volumes:
   sharelatex-data:
