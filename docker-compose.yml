@@ -45,3 +45,7 @@ services:
     build: transmission-oss
     ports:
       - 9091:9091
+
+  util:
+    build: util
+    env_file: util/compose.env

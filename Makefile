@@ -3,7 +3,6 @@ include common.make
 SHELL=/bin/bash
 
 DOCKER_CONTAINERS:=\
-	util \
 	resilio-server
 
 COMPOSE_CONTAINERS:=\
@@ -13,6 +12,7 @@ COMPOSE_CONTAINERS:=\
 	mongodb \
 	sharelatex \
 	transmission-oss \
+	util \
 	firefly-iii
 
 COMPOSE_ENVIRONMENT_FILES:=$(foreach c,$(COMPOSE_CONTAINERS),$(c)/compose.env)

@@ -17,11 +17,11 @@ BACKUPS_HOST_GIT_DIR:=/var/lib/git
 SUDO:=sudo
 else ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
 BACKUPS_HOST_BACKUP_DIR:=D:/DockerBackups
-BACKUPS_HOST_GIT_DIR:=D>/DockerGit
+BACKUPS_HOST_GIT_DIR:=D:/DockerGit
 SUDO:=
 endif
 
-HOST_REPO_REPO:=$(HOST_REPOSITORY_LOCATION)/repositories.git
+HOST_REPO_REPO:=$(BACKUPS_HOST_GIT_DIR)/repositories.git
 
 DOCKER_IMAGE_NAME:=util
 DOCKER_PORT_FORWARDS:=\
@@ -58,7 +58,7 @@ $(HOST_REPO_REPO):
 	#   example of building within the repo.
 	mkdir -p temp
 	git -C temp init
-	sed 's?root_dir:.*?root_dir: $(HOST_REPOSITORY_LOCATION)?' git/repositories.template.yaml > temp/repositories.yaml
+	sed 's?root_dir:.*?root_dir: $(BACKUPS_HOST_GIT_DIR)?' git/repositories.template.yaml > temp/repositories.yaml
 	git -C temp add .
 	git -C temp commit -am "Created fresh repositories list."
 	git -C temp remote add origin $(HOST_REPO_REPO)

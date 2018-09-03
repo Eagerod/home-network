@@ -15,3 +15,9 @@ services:
       - '/var/lib/transmission-daemon/watch:/var/lib/transmission-daemon/watch'
       - '/var/lib/transmission-daemon/info/resume:/var/lib/transmission-daemon/info/resume'
       - '/var/lib/transmission-daemon/info/torrents:/var/lib/transmission-daemon/info/torrents'
+  util:
+    volumes:
+      - '/var/lib/backups:/var/lib/backups'
+      - '/var/lib/git:/var/lib/git'
+    ports:
+      - '22:22'

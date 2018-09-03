@@ -15,6 +15,12 @@ services:
       - D:/DockerTransmission/watch:/var/lib/transmission-daemon/watch
       - D:/DockerTransmission/info/resume:/var/lib/transmission-daemon/info/resume
       - D:/DockerTransmission/info/torrents:/var/lib/transmission-daemon/info/torrents
+  util:
+    volumes:
+      - 'D:/DockerBackups:/var/lib/backups'
+      - 'D:/DockerGit:/var/lib/git'
+    ports:
+      - '22:22'
 
 volumes:
   sharelatex-data:
