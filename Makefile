@@ -13,7 +13,10 @@ DOCKER_CONTAINERS:=\
 	resilio-server \
 	firefly-iii
 
+PLATFORM_DOCKER_COMPOSE:=$(DOCKER_COMPOSE) -f docker-compose.yml -f $(COMPOSE_PLATFORM_FILE)
 COMPOSE_ENVIRONMENT_FILES:=$(foreach c,$(DOCKER_CONTAINERS),$(c)/compose.env)
+COMPOSE_ARGUMENTS_FILES:=$(shell find . -iname ".args")
+SOURCE_BUILD_ARGS:=source $(COMPOSE_ARGUMENTS_FILES)
 
 CRON_BASE_PATH:=/etc/cron.d
 INSTALLED_CRON_PATH:=$(CRON_BASE_PATH)/docker-home-network
@@ -26,20 +29,25 @@ all: $(COMPOSE_ENVIRONMENT_FILES) compose-up
 
 .PHONY: compose-up
 compose-up:
-	$(DOCKER_COMPOSE) -f docker-compose.yml -f $(COMPOSE_PLATFORM_FILE) up -d
+	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) build
+	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) up -d
 
 .PHONY: compose-down
 compose-down:
-	$(DOCKER_COMPOSE) down
+	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) down
 
+# Building any container requires that all environment files are present.
+# For whatever reason, docker-compose reads in environments of services that
+#   aren't in any way related to the service that's being started.
 .PHONY: $(DOCKER_CONTAINERS)
-$(DOCKER_CONTAINERS):
-	$(DOCKER_COMPOSE) up $@
+$(DOCKER_CONTAINERS): $(COMPOSE_ENVIRONMENT_FILES)
+	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) build $@
+	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) up -d $@
 
 # Source each file, and loop over the environments that should have been set,
 #   and write those out to the compose env file.
 $(COMPOSE_ENVIRONMENT_FILES):
-	if [ -f $(@D)/.env ]; then \
+	@if [ -f $(@D)/.env ]; then \
 		source $(@D)/.env && grep -o "^\s*export \w*" $(@D)/.env | sed -e 's/^[[:space:]]*//' | sort | uniq | sed -e 's/export \(.*\)/\1/g' | awk '{print $$1"="ENVIRON[$$1]}' >> $@; \
 	fi
 
@@ -47,9 +55,6 @@ env: $(COMPOSE_ENVIRONMENT_FILES)
 
 .PHONY: kill
 kill: compose-down
-	@$(foreach container, $(DOCKER_CONTAINERS),\
-		$(MAKE) -C $(CURDIR)/$(container) kill; \
-	)
 
 .PHONY: reset
 reset: kill

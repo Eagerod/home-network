@@ -47,8 +47,13 @@ services:
       - 9091:9091
 
   util:
-    build: util
-    env_file: util/compose.env
+    build:
+      context: util
+      args:
+        DEFAULT_BLOBSTORE_WRITE_ACL: ${DEFAULT_BLOBSTORE_WRITE_ACL}
+        DEFAULT_BLOBSTORE_READ_ACL: ${DEFAULT_BLOBSTORE_READ_ACL}
+        MULTI_REDDIT_SUBS_LOCATION: ${MULTI_REDDIT_SUBS_LOCATION}
+        MULTI_REDDIT_SAVED_LOCATION: ${MULTI_REDDIT_SAVED_LOCATION}
 
   resilio-server:
     build: resilio-server
