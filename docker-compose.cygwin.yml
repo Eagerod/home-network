@@ -6,9 +6,14 @@ services:
   mongodb:
     volumes:
       - mongodb-data:/db/data
+  mysql:
+    volumes:
+      - 'mysql-data:/var/lib/data'
 
 volumes:
   sharelatex-data:
     external: true
   mongodb-data:
+    external: true
+  mysql-data:
     external: true

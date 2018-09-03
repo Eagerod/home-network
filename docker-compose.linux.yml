@@ -6,3 +6,6 @@ services:
   mongodb:
     volumes:
       - /var/lib/mongodb/data:/db/data
+  mysql:
+    volumes:
+      - '/var/lib/mysql:/var/lib/data'

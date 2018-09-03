@@ -5,15 +5,15 @@ SHELL=/bin/bash
 DOCKER_CONTAINERS:=\
 	util \
 	transmission-oss \
-	mysql \
-	firefly-iii \
-	resilio-server \
+	resilio-server
 
 COMPOSE_CONTAINERS:=\
 	pi-hole\
 	redis\
+	mysql \
 	mongodb \
-	sharelatex
+	sharelatex \
+	firefly-iii
 
 
 COMPOSE_ENVIRONMENT_FILES:=$(foreach c,$(COMPOSE_CONTAINERS),$(c)/compose.env)
