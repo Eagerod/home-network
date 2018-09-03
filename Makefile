@@ -3,7 +3,6 @@ include common.make
 SHELL=/bin/bash
 
 DOCKER_CONTAINERS:=\
-	pi-hole\
 	util \
 	transmission-oss \
 	mysql \
@@ -13,6 +12,10 @@ DOCKER_CONTAINERS:=\
 	resilio-server \
 	sharelatex
 
+COMPOSE_CONTAINERS:=pi-hole
+
+COMPOSE_ENVIRONMENT_FILES:=$(foreach c,$(COMPOSE_CONTAINERS),$(c)/compose.env)
+
 CRON_BASE_PATH:=/etc/cron.d
 INSTALLED_CRON_PATH:=$(CRON_BASE_PATH)/docker-home-network
 MYSQL_BACKUP_CRON_PATH:=$(CRON_BASE_PATH)/mysql-backup
@@ -20,12 +23,25 @@ MYSQL_BACKUP_CRON_PATH:=$(CRON_BASE_PATH)/mysql-backup
 INSTALLED_CRON_LOG_BASE:=/var/log/docker-network-init
 
 .PHONY: all
-all: $(DOCKER_CONTAINERS)
+all: $(COMPOSE_ENVIRONMENT_FILES) compose-up $(DOCKER_CONTAINERS)
+
+.PHONY: compose-up
+compose-up:
+	$(DOCKER_COMPOSE) up -d
 
 .PHONY: $(DOCKER_CONTAINERS)
 $(DOCKER_CONTAINERS):
 	cd $@ && $(MAKE) kill || true
 	cd $@ && if [[ -f ".env" ]]; then source $$(pwd)/.env; fi && $(MAKE) release image detached
+
+# Source each file, and loop over the environments that should have been set,
+#   and write those out to the compose env file.
+$(COMPOSE_ENVIRONMENT_FILES):
+	if [ -f $(@D)/.env ]; then \
+		source $(@D)/.env && grep -o "^\s*export \w*" $(@D)/.env | sed -e 's/^[[:space:]]*//' | sort | uniq | sed -e 's/export \(.*\)/\1/g' | awk '{print $$1"="ENVIRON[$$1]}' >> $@; \
+	fi
+
+env: $(COMPOSE_ENVIRONMENT_FILES)
 
 .PHONY: kill
 kill:
@@ -51,6 +67,7 @@ install:
 clean:
 	$(DOCKER) container prune -f
 	$(DOCKER) image prune -f
+	rm -rf $(COMPOSE_ENVIRONMENT_FILES)
 
 .PHONY: install-backups
 install-backups:
