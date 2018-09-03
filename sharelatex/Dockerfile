@@ -24,6 +24,7 @@ RUN tlmgr install \
     mathdesign \
     marginnote \
     pdfcomment \
+    soul \
     tabulary \
     titlesec
 
