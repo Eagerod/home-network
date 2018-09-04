@@ -3,22 +3,16 @@ include ../docker.make
 MYSQL_CONTAINER_DATA_DIR:=/var/lib/data
 
 ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
-MYSQL_DOCKER_VOLUME_NAME:=mysql-data
-MYSQL_HOST_DATA_DIR:=$(MYSQL_DOCKER_VOLUME_NAME)
+MYSQL_HOST_DATA_DIR:=mysql-data
 else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 MYSQL_HOST_DATA_DIR:=/var/lib/mysql
 endif
-
-DOCKER_IMAGE_NAME:=mysql
-DOCKER_PORT_FORWARDS=\
-	-p 3306:3306\
-	-v $(MYSQL_HOST_DATA_DIR):$(MYSQL_CONTAINER_DATA_DIR)
 
 MYSQL_DAEMON:=/usr/sbin/mysqld
 MYSQL_CLIENT:=/usr/bin/mysql
 
 
-image: base-image
+setup: initialize password
 
 
 .PHONY: verify-mysql-root-password
@@ -66,11 +60,8 @@ verify-mysql-database:
 .PHONY: initialize
 initialize:
 ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
-	@if ! $(DOCKER) volume ls --filter name=$(MYSQL_DOCKER_VOLUME_NAME) | tail -1 | grep -q $(MYSQL_DOCKER_VOLUME_NAME); then \
-		$(DOCKER) volume create --name $(MYSQL_DOCKER_VOLUME_NAME) -d local; \
-	else \
-		echo >&2 "Docker volume already exists"; \
-	fi
+	$(SED_INLINE) 's/^RUN groupadd/# RUN groupadd/g' Dockerfile 
+	$(SED_INLINE) 's/^RUN useradd/# RUN useradd/g' Dockerfile 
 else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 	if ! grep -q mysql /etc/group; then \
 		sudo groupadd mysql; \
@@ -87,23 +78,26 @@ else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 	sudo chown mysql:mysql $(MYSQL_HOST_DATA_DIR)
 endif
 
-	$(MAKE) -C $(CURDIR) kill debug image detached
-
+	$(SED_INLINE) 's/^CMD/# CMD/g' Dockerfile
+	DOCKER_COMPOSE_EXTRAS='-f mysql/debug.yml' $(MAKE) -C .. mysql
+	sleep 1
 ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
 	$(ATTACHED_DOCKER) exec -it -u 0 $(RUNNING_CONTAINER_NAME) chown -R mysql:mysql $(MYSQL_CONTAINER_DATA_DIR)
 endif
 	$(ATTACHED_DOCKER) exec -it $(RUNNING_CONTAINER_NAME) $(MYSQL_DAEMON) --datadir=$(MYSQL_CONTAINER_DATA_DIR) --pid-file=/var/lib/mysqld.pid --initialize
+	$(SED_INLINE) 's/^# CMD/CMD/g' Dockerfile
+	$(MAKE) kill
 
 # Set the root password on my MySQL database to the value provided in the
 #   `MYSQL_ROOT_PASSWORD` environment variable.
 # Only works if the root password is at least 16 characters long.
 .PHONY: password
 password: validate-mysql-root-password
-	$(MAKE) -C $(CURDIR) kill debug image detached
-	$(DOCKER) exec -dit $(RUNNING_CONTAINER_NAME) $(MYSQL_DAEMON) --datadir=$(MYSQL_CONTAINER_DATA_DIR) --pid-file=/var/lib/mysqld.pid --skip-grant-tables
+	$(SED_INLINE) 's?"/usr/sbin/mysqld", ?"/usr/sbin/mysqld", "--skip-grant-tables", ?g' Dockerfile
+	$(MAKE) -C .. mysql
 	sleep 1
 	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "FLUSH PRIVILEGES; SET PASSWORD FOR root@'localhost' = PASSWORD('$${MYSQL_ROOT_PASSWORD}'); FLUSH PRIVILEGES;"
-	$(MAKE) -C $(CURDIR) kill
+	$(SED_INLINE) 's?"/usr/sbin/mysqld", "--skip-grant-tables", ?"/usr/sbin/mysqld", ?g' Dockerfile
 
 # Create a bash session on a running mysql container to start a root mysql
 #   session.

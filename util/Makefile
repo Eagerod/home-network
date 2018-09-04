@@ -23,31 +23,29 @@ endif
 
 HOST_REPO_REPO:=$(BACKUPS_HOST_GIT_DIR)/repositories.git
 
-DOCKER_IMAGE_NAME:=util
-DOCKER_PORT_FORWARDS:=\
-	-p 22:22\
-	-v $(BACKUPS_HOST_BACKUP_DIR):$(BACKUPS_CONTAINER_BACKUP_DIR)\
-	-v $(BACKUPS_HOST_GIT_DIR):$(BACKUPS_CONTAINER_GIT_DIR)
-
-DOCKER_BUILD_ARGS:=\
-	DEFAULT_BLOBSTORE_WRITE_ACL \
-	DEFAULT_BLOBSTORE_READ_ACL \
-	MULTI_REDDIT_SUBS_LOCATION \
-	MULTI_REDDIT_SAVED_LOCATION
-
 HOST_SSH_KEY_PATH:=~/.ssh/util-server
 HOST_SSH_KEY_COMMENT:=ca.haji.aleem.util/host
+
+
+setup: initialize
+
+# Create an ssh key for the host machine that the container will accept
+#   as an authorized_host
+.PHONY: initialize
+initialize: $(HOST_SSH_KEY_PATH) $(HOST_REPO_REPO)
+	@if ! grep -q -f $(HOST_SSH_KEY_PATH).pub authorized_keys ; then \
+		cat $(HOST_SSH_KEY_PATH).pub >> authorized_keys; \
+	else \
+		echo >&2 "SSH key already authorized for util server. Skipping addition to authorized_keys."; \
+	fi
+ifeq ($(PLATFORM),$(PLATFORM_LINUX))
+	sudo mkdir -p $(BACKUPS_HOST_BACKUP_DIR)
+endif
 
 $(HOST_SSH_KEY_PATH):
 	ssh-keygen -t rsa -b 4096 -C "$(HOST_SSH_KEY_COMMENT)" -f $(HOST_SSH_KEY_PATH)
 
-
-image: base-image
-
 # The repository manager lives on the host in the repository root directory
-.PHONY: repo-manager
-repo-manager: $(HOST_REPO_REPO)
-
 $(HOST_REPO_REPO):
 	$(SUDO) mkdir -p $(HOST_REPO_REPO)
 	$(SUDO) git -C $(HOST_REPO_REPO) init --bare
@@ -67,17 +65,3 @@ $(HOST_REPO_REPO):
 	# For some reason, the remote refs can end up being owned by sudo, so
 	#   use sudo for deleting
 	$(SUDO) rm -rf temp
-
-
-# Create an ssh key for the host machine that the container will accept
-#   as an authorized_host
-.PHONY: initialize
-initialize: $(HOST_SSH_KEY_PATH) $(HOST_REPO_REPO)
-	@if ! grep -q -f $(HOST_SSH_KEY_PATH).pub authorized_keys ; then \
-		cat $(HOST_SSH_KEY_PATH).pub >> authorized_keys; \
-	else \
-		echo >&2 "SSH key already authorized for util server. Skipping addition to authorized_keys."; \
-	fi
-ifeq ($(PLATFORM),$(PLATFORM_LINUX))
-	sudo mkdir -p $(BACKUPS_HOST_BACKUP_DIR)
-endif

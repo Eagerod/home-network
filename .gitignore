@@ -1,3 +1,4 @@
 .env
 compose.env
 .args
+setup

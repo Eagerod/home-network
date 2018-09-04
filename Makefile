@@ -13,10 +13,13 @@ DOCKER_CONTAINERS:=\
 	resilio-server \
 	firefly-iii
 
-PLATFORM_DOCKER_COMPOSE:=$(DOCKER_COMPOSE) -f docker-compose.yml -f $(COMPOSE_PLATFORM_FILE)
-COMPOSE_ENVIRONMENT_FILES:=$(foreach c,$(DOCKER_CONTAINERS),$(c)/compose.env)
+DOCKER_COMPOSE_EXTRAS:=${DOCKER_COMPOSE_EXTRAS}
+
+PLATFORM_DOCKER_COMPOSE:=$(DOCKER_COMPOSE) -f docker-compose.yml -f $(COMPOSE_PLATFORM_FILE) $(DOCKER_COMPOSE_EXTRAS)
+COMPOSE_ENVIRONMENT_FILES=$(foreach c,$(DOCKER_CONTAINERS),$(c)/compose.env)
+SETUP_FILES:=$(foreach c,$(DOCKER_CONTAINERS),$(c)/setup)
 COMPOSE_ARGUMENTS_FILES:=$(shell find . -iname ".args")
-SOURCE_BUILD_ARGS:=source $(COMPOSE_ARGUMENTS_FILES)
+SOURCE_BUILD_ARGS=source $(COMPOSE_ARGUMENTS_FILES)
 
 CRON_BASE_PATH:=/etc/cron.d
 INSTALLED_CRON_PATH:=$(CRON_BASE_PATH)/docker-home-network
@@ -25,7 +28,13 @@ MYSQL_BACKUP_CRON_PATH:=$(CRON_BASE_PATH)/mysql-backup
 INSTALLED_CRON_LOG_BASE:=/var/log/docker-network-init
 
 .PHONY: all
-all: $(COMPOSE_ENVIRONMENT_FILES) compose-up
+all: setup $(COMPOSE_ENVIRONMENT_FILES) compose-up
+
+.PHONY: setup
+setup: volumes $(SETUP_FILES)
+
+$(SETUP_FILES):
+	$(MAKE) -C $(@D) setup;
 
 .PHONY: compose-up
 compose-up:
@@ -75,6 +84,7 @@ clean:
 	$(DOCKER) container prune -f
 	$(DOCKER) image prune -f
 	rm -rf $(COMPOSE_ENVIRONMENT_FILES)
+	rm -rf $(shell find . -type f -iname "setup")
 
 .PHONY: install-backups
 install-backups:
@@ -95,3 +105,18 @@ app:
 	mkdir -p $${APP_NAME}
 	sed 's/$${APP_NAME}/${APP_NAME}/g' Dockerfile.template > $${APP_NAME}/Dockerfile
 	sed 's/$${APP_NAME}/${APP_NAME}/g' Makefile.template > $${APP_NAME}/Makefile
+
+# Volumes need to be created before docker-compose will let any individual
+#   service start, so if there are volumes defined in any of the 
+.PHONY: volumes
+volumes:
+	@python -c 'import yaml; print "\n".join([k for k, v in yaml.load(open("docker-compose.yml")).get("volumes", {}).iteritems() if v.get("external", False) == True]);' | while read line; do \
+		if [ ! -z "$$line" ]; then \
+			$(DOCKER) volume create $$line; \
+		fi \
+	done
+	@python -c 'import yaml; print "\n".join([k for k, v in yaml.load(open("$(COMPOSE_PLATFORM_FILE)")).get("volumes", {}).iteritems() if v.get("external", False) == True]);' | while read line; do \
+		if [ ! -z "$$line" ]; then \
+			$(DOCKER) volume create $$line; \
+		fi \
+	done
