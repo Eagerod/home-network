@@ -3,6 +3,7 @@ include common.make
 SHELL=/bin/bash
 
 DOCKER_CONTAINERS:=\
+	nginx \
 	pi-hole \
 	redis \
 	mysql \
