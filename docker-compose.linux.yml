@@ -5,7 +5,7 @@ services:
       - '/var/lib/sharelatex:/var/lib/sharelatex'
   mongodb:
     volumes:
-      - /var/lib/mongodb/data:/db/data
+      - '/var/lib/mongodb/data:/data/db'
   mysql:
     volumes:
       - '/var/lib/mysql:/var/lib/data'
