@@ -103,8 +103,8 @@ app:
 	fi
 
 	mkdir -p $${APP_NAME}
-	sed 's/$${APP_NAME}/${APP_NAME}/g' Dockerfile.template > $${APP_NAME}/Dockerfile
-	sed 's/$${APP_NAME}/${APP_NAME}/g' Makefile.template > $${APP_NAME}/Makefile
+	printf 'include ../docker.make\n' > $${APP_NAME}/Dockerfile
+	printf 'FROM ncfgbase\n\nRUN apt-get update -y\n\nCMD ["/bin/bash"]\n' > $${APP_NAME}/Makefile
 
 # Volumes need to be created before docker-compose will let any individual
 #   service start, so if there are volumes defined in any of the compose files
