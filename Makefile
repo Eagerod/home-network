@@ -84,7 +84,7 @@ clean:
 	$(DOCKER) container prune -f
 	$(DOCKER) image prune -f
 	rm -rf $(COMPOSE_ENVIRONMENT_FILES)
-	rm -rf $(shell find . -type f -iname "setup")
+	rm -rf $(SETUP_FILES)
 
 .PHONY: install-backups
 install-backups:
@@ -107,7 +107,8 @@ app:
 	sed 's/$${APP_NAME}/${APP_NAME}/g' Makefile.template > $${APP_NAME}/Makefile
 
 # Volumes need to be created before docker-compose will let any individual
-#   service start, so if there are volumes defined in any of the 
+#   service start, so if there are volumes defined in any of the compose files
+#   create them before trying to start any containers
 .PHONY: volumes
 volumes:
 	@python -c 'import yaml; print "\n".join([k for k, v in yaml.load(open("docker-compose.yml")).get("volumes", {}).iteritems() if v.get("external", False) == True]);' | while read line; do \
