@@ -18,4 +18,3 @@ initialize:
 	$(DOCKER) exec -dit $(RUNNING_CONTAINER_NAME) php artisan firefly:verify
 	$(DOCKER) exec -dit $(RUNNING_CONTAINER_NAME) php artisan passport:install
 	$(MAKE) -C $(CURDIR) kill
-

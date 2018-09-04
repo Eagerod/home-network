@@ -84,7 +84,9 @@ endif
 ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
 	$(ATTACHED_DOCKER) exec -it -u 0 $(RUNNING_CONTAINER_NAME) chown -R mysql:mysql $(MYSQL_CONTAINER_DATA_DIR)
 endif
-	$(ATTACHED_DOCKER) exec -it $(RUNNING_CONTAINER_NAME) $(MYSQL_DAEMON) --datadir=$(MYSQL_CONTAINER_DATA_DIR) --pid-file=/var/lib/mysqld.pid --initialize
+	if [ -z "$$($(ATTACHED_DOCKER) exec -it $(RUNNING_CONTAINER_NAME) ls /var/lib/data)" ]; then \
+		$(ATTACHED_DOCKER) exec -it $(RUNNING_CONTAINER_NAME) $(MYSQL_DAEMON) --datadir=$(MYSQL_CONTAINER_DATA_DIR) --pid-file=/var/lib/mysqld.pid --initialize; \
+	fi
 	$(SED_INLINE) 's/^# CMD/CMD/g' Dockerfile
 	$(MAKE) kill
 
@@ -129,7 +131,6 @@ grant-database: verify-mysql-root-password verify-mysql-user verify-mysql-databa
 		GRANT ALL ON $${MYSQL_DATABASE}.* TO $${MYSQL_USER}@'%';\
 	"
 
-image: validate_permissions
 .PHONY: validate_permissions
 validate_permissions:
 ifeq ($(PLATFORM),$(PLATFORM_LINUX))
