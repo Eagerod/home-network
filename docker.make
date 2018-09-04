@@ -8,7 +8,11 @@ SHELL=/bin/bash
 
 DOCKER_IMAGE_NAME:=$(shell basename $(CURDIR))
 
+ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
 DOCKER_COMPOSE_IMAGE_PREFIX=$(subst -,,$(shell basename $(realpath $(CURDIR)/..)))
+else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
+DOCKER_COMPOSE_IMAGE_PREFIX=$(shell basename $(realpath $(CURDIR)/..))
+endif
 DOCKER_COMPOSE_IMAGE_NAME:=$(DOCKER_COMPOSE_IMAGE_PREFIX)_$(DOCKER_IMAGE_NAME)
 RUNNING_CONTAINER_NAME=$$($(DOCKER) ps | awk '{if ($$2 == "$(DOCKER_COMPOSE_IMAGE_NAME)") print $$NF;}') 2> /dev/null
 
