@@ -4,8 +4,6 @@ services:
     build: nginx
     ports:
       - '80:80'
-    links:
-      - pi-hole
 
   pi-hole:
     build: pi-hole
