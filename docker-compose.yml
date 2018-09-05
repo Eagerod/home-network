@@ -60,6 +60,7 @@ services:
 
   transmission-oss:
     build: transmission-oss
+    hostname: transmission-oss
     ports:
       - 9091:9091
 
@@ -75,6 +76,7 @@ services:
 
   resilio-server:
     build: resilio-server
+    hostname: resilio-server
     env_file: resilio-server/.env
     ports:
       - 8888:8888
