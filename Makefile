@@ -112,12 +112,12 @@ app:
 #   create them before trying to start any containers
 .PHONY: volumes
 volumes:
-	@python -c 'import yaml; print "\n".join([k for k, v in yaml.load(open("docker-compose.yml")).get("volumes", {}).iteritems() if v.get("external", False) == True]);' | while read line; do \
+	@python .scripts/get_volumes_from_compose_file.py 'docker-compose.yml' | while read line; do \
 		if [ ! -z "$$line" ]; then \
 			$(DOCKER) volume create $$line; \
 		fi \
 	done
-	@python -c 'import yaml; print "\n".join([k for k, v in yaml.load(open("$(COMPOSE_PLATFORM_FILE)")).get("volumes", {}).iteritems() if v.get("external", False) == True]);' | while read line; do \
+	@python .scripts/get_volumes_from_compose_file.py $(COMPOSE_PLATFORM_FILE) | while read line; do \
 		if [ ! -z "$$line" ]; then \
 			$(DOCKER) volume create $$line; \
 		fi \
