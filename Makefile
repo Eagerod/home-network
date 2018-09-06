@@ -31,6 +31,11 @@ INSTALLED_CRON_LOG_BASE:=/var/log/docker-network-init
 NGINX_REVERSE_PROXY_TEMPLATE_FILE:=nginx/reverse-proxy.template.conf
 NGINX_REVERSE_PROXY_FILE:=nginx/reverse-proxy.conf
 
+PIHOLE_LAN_LIST_FILE:=pi-hole/lan.list
+PIHOLE_SEARCH_DOMAINS:=home local
+
+ANY_CONTAINER_BUILD_DEPS:=$(COMPOSE_ENVIRONMENT_FILES) $(NGINX_REVERSE_PROXY_FILE) $(PIHOLE_LAN_LIST_FILE)
+
 .PHONY: all
 all: setup $(COMPOSE_ENVIRONMENT_FILES) compose-up
 
@@ -41,7 +46,7 @@ $(SETUP_FILES):
 	$(MAKE) -C $(@D) setup;
 
 .PHONY: compose-up
-compose-up: $(COMPOSE_ENVIRONMENT_FILES) $(NGINX_REVERSE_PROXY_FILE)
+compose-up: $(ANY_CONTAINER_BUILD_DEPS)
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) build
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) up -d
 
@@ -53,7 +58,7 @@ compose-down:
 # For whatever reason, docker-compose reads in environments of services that
 #   aren't in any way related to the service that's being started.
 .PHONY: $(DOCKER_CONTAINERS)
-$(DOCKER_CONTAINERS): $(COMPOSE_ENVIRONMENT_FILES) $(NGINX_REVERSE_PROXY_FILE)
+$(DOCKER_CONTAINERS): $(ANY_CONTAINER_BUILD_DEPS)
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) build $@
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) up -d $@
 
@@ -131,3 +136,12 @@ $(NGINX_REVERSE_PROXY_FILE):
 		arr=($${line[@]}); \
 		sed "s/"'$${HOSTNAME}'"/$${arr[0]}/g; s/"'$${HOSTPORT}'"/$${arr[1]}/g" $(NGINX_REVERSE_PROXY_TEMPLATE_FILE) >> $(NGINX_REVERSE_PROXY_FILE); \
 	done
+
+$(PIHOLE_LAN_LIST_FILE):
+	$(foreach domain,$(PIHOLE_SEARCH_DOMAINS),\
+		python .scripts/get_hostnames.py 'docker-compose.yml' | while read line; do \
+			arr=($${line[@]}); \
+			hostname=$${arr[0]}; \
+			printf '$${SERVER_IP}	%s.%s.	%s\n' $$hostname $(domain) $$hostname >> $(PIHOLE_LAN_LIST_FILE); \
+		done; \
+	)
