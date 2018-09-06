@@ -3,6 +3,9 @@ services:
   sharelatex:
     volumes:
       - 'sharelatex-data:/var/lib/sharelatex'
+  openvpn-as:
+    volumes:
+      - 'openvpn-as-data:/config/etc/db'
   mongodb:
     volumes:
       - 'mongodb-data:/db/data'
@@ -32,4 +35,6 @@ volumes:
   mongodb-data:
     external: true
   mysql-data:
+    external: true
+  openvpn-as-data:
     external: true

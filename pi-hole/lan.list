@@ -1,4 +1,5 @@
 ${SERVER_IP}	firefly-iii.local.	firefly
+${SERVER_IP}	openvpn-as.local.	openvpn-as
 ${SERVER_IP}	pi-hole.local.	pihole
 ${SERVER_IP}	resilio-server.local.	resiliosync
 ${SERVER_IP}	transmission-oss.local.	transmission
@@ -13,6 +14,7 @@ ${SERVER_IP}	util.local.	utilserver
 
 
 ${SERVER_IP}	firefly-iii.home.	firefly
+${SERVER_IP}	openvpn-as.home.	openvpn-as
 ${SERVER_IP}	pi-hole.home.	pihole
 ${SERVER_IP}	resilio-server.home.	resiliosync
 ${SERVER_IP}	transmission-oss.home.	transmission

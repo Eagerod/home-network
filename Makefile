@@ -12,7 +12,8 @@ DOCKER_CONTAINERS:=\
 	transmission-oss \
 	util \
 	resilio-server \
-	firefly-iii
+	firefly-iii \
+	openvpn-as
 
 DOCKER_COMPOSE_EXTRAS:=${DOCKER_COMPOSE_EXTRAS}
 

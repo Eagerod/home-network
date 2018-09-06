@@ -3,6 +3,9 @@ services:
   sharelatex:
     volumes:
       - '/var/lib/sharelatex:/var/lib/sharelatex'
+  openvpn-as:
+    volumes:
+      - '/var/lib/openvpn-as:/config/etc/db'
   mongodb:
     volumes:
       - '/var/lib/mongodb/data:/data/db'
