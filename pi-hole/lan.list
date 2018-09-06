@@ -1,26 +1,26 @@
-192.168.0.35	firefly.local.	firefly
-192.168.0.35	pihole.local.	pihole
-192.168.0.35	resiliosync.local.	resiliosync
-192.168.0.35	oss-bt.local.	transmission
-192.168.0.35	sharelatex.local.	sharelatex
+${SERVER_IP}	firefly-iii.local.	firefly
+${SERVER_IP}	pi-hole.local.	pihole
+${SERVER_IP}	resilio-server.local.	resiliosync
+${SERVER_IP}	transmission-oss.local.	transmission
+${SERVER_IP}	sharelatex.local.	sharelatex
 
-192.168.0.35	mongodb.local.	mongodb
-192.168.0.35	mysql.local.	mysql
-192.168.0.35	redis.local.	redis
+${SERVER_IP}	mongodb.local.	mongodb
+${SERVER_IP}	mysql.local.	mysql
+${SERVER_IP}	redis.local.	redis
 
-192.168.0.35	git.local.	git
-192.168.0.35	util.local.	utilserver
+${SERVER_IP}	git.local.	git
+${SERVER_IP}	util.local.	utilserver
 
 
-192.168.0.35	firefly.home.	firefly
-192.168.0.35	pihole.home.	pihole
-192.168.0.35	resiliosync.home.	resiliosync
-192.168.0.35	oss-bt.home.	transmission
-192.168.0.35	sharelatex.home.	sharelatex
+${SERVER_IP}	firefly-iii.home.	firefly
+${SERVER_IP}	pi-hole.home.	pihole
+${SERVER_IP}	resilio-server.home.	resiliosync
+${SERVER_IP}	transmission-oss.home.	transmission
+${SERVER_IP}	sharelatex.home.	sharelatex
 
-192.168.0.35	mongodb.home.	mongodb
-192.168.0.35	mysql.home.	mysql
-192.168.0.35	redis.home.	redis
+${SERVER_IP}	mongodb.home.	mongodb
+${SERVER_IP}	mysql.home.	mysql
+${SERVER_IP}	redis.home.	redis
 
-192.168.0.35	git.home.	git
-192.168.0.35	util.home.	utilserver
+${SERVER_IP}	git.home.	git
+${SERVER_IP}	util.home.	utilserver

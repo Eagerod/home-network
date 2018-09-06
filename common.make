@@ -7,10 +7,13 @@
 #   user for their password.
 ifeq ($(shell docker ps > /dev/null 2> /dev/null && echo "pass"),pass)
 DOCKER:=docker
+DOCKER_COMPOSE:=docker-compose
 else ifeq ($(shell type docker-machine > /dev/null && echo "pass"),pass)
 DOCKER:=eval $$(docker-machine env $(shell docker-machine ls -q)) && docker
+DOCKER_COMPOSE:=eval $$(docker-machine env $(shell docker-machine ls -q)) && docker-compose
 else ifeq ($(shell sudo docker ps > /dev/null && echo "pass"),pass)
 DOCKER:=sudo docker
+DOCKER_COMPOSE:=sudo -E docker-compose
 else
 $(error Cannot communicate with docker daemon)
 endif
@@ -57,10 +60,13 @@ endif
 ifeq ($(PLATFORM),$(PLATFORM_MACOS))
 SED_INLINE:=sed -i ''
 ATTACHED_DOCKER:=$(DOCKER)
+COMPOSE_PLATFORM_FILE:=docker-compose.darwin.yml
 else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 SED_INLINE:=sed -i
 ATTACHED_DOCKER:=$(DOCKER)
+COMPOSE_PLATFORM_FILE:=docker-compose.linux.yml
 else ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
 SED_INLINE:=sed -i
 ATTACHED_DOCKER:=winpty $(DOCKER)
+COMPOSE_PLATFORM_FILE:=docker-compose.cygwin.yml
 endif
