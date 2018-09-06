@@ -12,7 +12,8 @@ MYSQL_DAEMON:=/usr/sbin/mysqld
 MYSQL_CLIENT:=/usr/bin/mysql
 
 
-setup: initialize password
+setup: initialize
+	source .env && $(MAKE) password
 
 
 .PHONY: verify-mysql-root-password

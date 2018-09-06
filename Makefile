@@ -28,6 +28,9 @@ MYSQL_BACKUP_CRON_PATH:=$(CRON_BASE_PATH)/mysql-backup
 
 INSTALLED_CRON_LOG_BASE:=/var/log/docker-network-init
 
+NGINX_REVERSE_PROXY_TEMPLATE_FILE:=nginx/reverse-proxy.template.conf
+NGINX_REVERSE_PROXY_FILE:=nginx/reverse-proxy.conf
+
 .PHONY: all
 all: setup $(COMPOSE_ENVIRONMENT_FILES) compose-up
 
@@ -38,7 +41,7 @@ $(SETUP_FILES):
 	$(MAKE) -C $(@D) setup;
 
 .PHONY: compose-up
-compose-up:
+compose-up: $(COMPOSE_ENVIRONMENT_FILES) $(NGINX_REVERSE_PROXY_FILE)
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) build
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) up -d
 
@@ -50,7 +53,7 @@ compose-down:
 # For whatever reason, docker-compose reads in environments of services that
 #   aren't in any way related to the service that's being started.
 .PHONY: $(DOCKER_CONTAINERS)
-$(DOCKER_CONTAINERS): $(COMPOSE_ENVIRONMENT_FILES)
+$(DOCKER_CONTAINERS): $(COMPOSE_ENVIRONMENT_FILES) $(NGINX_REVERSE_PROXY_FILE)
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) build $@
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) up -d $@
 
@@ -121,4 +124,10 @@ volumes:
 		if [ ! -z "$$line" ]; then \
 			$(DOCKER) volume create $$line; \
 		fi \
+	done
+
+$(NGINX_REVERSE_PROXY_FILE):
+	@python .scripts/get_hostname_container_webserver_port.py 'docker-compose.yml' | while read line; do \
+		arr=($${line[@]}); \
+		sed "s/"'$${HOSTNAME}'"/$${arr[0]}/g; s/"'$${HOSTPORT}'"/$${arr[1]}/g" $(NGINX_REVERSE_PROXY_TEMPLATE_FILE) >> $(NGINX_REVERSE_PROXY_FILE); \
 	done
