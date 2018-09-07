@@ -2,17 +2,7 @@ include common.make
 
 SHELL=/bin/bash
 
-DOCKER_CONTAINERS:=\
-	nginx \
-	pi-hole \
-	redis \
-	mysql \
-	mongodb \
-	sharelatex \
-	transmission-oss \
-	util \
-	resilio-server \
-	firefly-iii
+DOCKER_CONTAINERS:=$(shell find . -iname Dockerfile -type f | awk -F '/' '{print $$2}')
 
 DOCKER_COMPOSE_EXTRAS:=${DOCKER_COMPOSE_EXTRAS}
 
