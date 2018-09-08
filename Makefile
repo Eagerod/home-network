@@ -6,7 +6,9 @@ DOCKER_CONTAINERS:=$(shell find . -iname Dockerfile -type f | awk -F '/' '{print
 
 DOCKER_COMPOSE_EXTRAS:=${DOCKER_COMPOSE_EXTRAS}
 
-PLATFORM_DOCKER_COMPOSE:=$(DOCKER_COMPOSE) -f docker-compose.yml -f $(COMPOSE_PLATFORM_FILE) $(DOCKER_COMPOSE_EXTRAS)
+ADDITIONAL_COMPOSE_FILES:=plex/plex-volumes.yml
+
+PLATFORM_DOCKER_COMPOSE:=$(DOCKER_COMPOSE) -f docker-compose.yml -f $(COMPOSE_PLATFORM_FILE) $(foreach f,$(ADDITIONAL_COMPOSE_FILES), -f $(f)) $(DOCKER_COMPOSE_EXTRAS)
 COMPOSE_ENVIRONMENT_FILES=$(foreach c,$(DOCKER_CONTAINERS),$(c)/compose.env)
 SETUP_FILES:=$(foreach c,$(DOCKER_CONTAINERS),$(c)/setup)
 COMPOSE_ARGUMENTS_FILES:=$(shell find . -iname ".args")
