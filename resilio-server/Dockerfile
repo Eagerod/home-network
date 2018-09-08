@@ -7,7 +7,6 @@ RUN \
 	apt-get update -y && \
 	apt-get install -y resilio-sync
 
-EXPOSE 8080
+EXPOSE 8888
 
-CMD ["rslsync", "--nodaemon", "--config", ".sync/sync.conf"]
-
+CMD ["rslsync", "--nodaemon", "--config", "/.sync/sync.conf"]
