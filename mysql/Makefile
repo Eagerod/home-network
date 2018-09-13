@@ -12,7 +12,10 @@ MYSQL_DAEMON:=/usr/sbin/mysqld
 MYSQL_CLIENT:=/usr/bin/mysql
 
 
-setup: initialize
+setup: initialize env-password
+
+
+env-password:
 	source .env && $(MAKE) password
 
 

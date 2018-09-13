@@ -25,7 +25,7 @@ RUN apt-get install -y \
 	golang-go \
 	cmake \
 	git
-RUN curl https://aleem.haji.ca/blob/clientlib/installer.sh | bash
+RUN curl -sfSL https://aleem.haji.ca/blob/clientlib/installer.sh | bash
 
 RUN python -m pip install PyYAML
 
