@@ -86,6 +86,6 @@ services:
   resilio-server:
     build: resilio-server
     hostname: resilio-server
-    env_file: resilio-server/.env
+    env_file: resilio-server/compose.env
     ports:
       - 8888:8888
