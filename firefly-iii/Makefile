@@ -8,6 +8,7 @@ setup: initialize
 # Run the database set up scripts that come bundled with firefly-iii too.
 .PHONY: initialize
 initialize:
+	$(MAKE) -C .. mysql/setup
 	$(MAKE) -C .. mysql
 	source ./.env && source $(CURDIR)/../mysql/.env && $(MAKE) -C $(CURDIR)/../mysql create-user
 	source ./.env && source $(CURDIR)/../mysql/.env && $(MAKE) -C $(CURDIR)/../mysql grant-database
