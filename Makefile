@@ -185,7 +185,7 @@ $(PIHOLE_LAN_LIST_FILE):
 .PHONY: search-env
 search-env:
 	find . -iname ".env" -print | xargs $(foreach e,$(SAVE_ENV_VARS),grep -vE '\s*export $(e)' |) awk -F '=' '{print $$2}' | sed '/^\s*$$/d' | grep -v '^$$(' | grep -v '^$${' | tr -d '"' | tr -d "'" | sort | uniq | while read line; do \
-		if git rev-list --all | xargs git grep $$line; then \
+		if git rev-list --all | xargs git --no-pager grep $$line; then \
 			exit -1; \
 		fi \
 	done
