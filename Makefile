@@ -36,12 +36,15 @@ SAVE_ENV_VARS=\
 #   properly configured, even if you're only trying to start one. Because of
 #   that, this list will be set as a dependency of anything that starts any
 #   containers just to make sure that the containers are built.
+# Also ensure git hooks are appropriately set up, so that after any amount of
+#   testing or playing around with the repo, hooks will be configured.
 ANY_CONTAINER_BUILD_DEPS:=\
 	$(COMPOSE_ENVIRONMENT_FILES)\
 	$(NGINX_REVERSE_PROXY_FILE)\
 	$(PIHOLE_LAN_LIST_FILE)\
 	base-image\
-	volumes
+	volumes\
+	.git/hooks/pre-push
 
 .PHONY: all
 all: setup $(COMPOSE_ENVIRONMENT_FILES) compose-up
@@ -171,6 +174,9 @@ $(PIHOLE_LAN_LIST_FILE):
 			printf '$${SERVER_IP}	%s.%s.	%s\n' $$hostname $(domain) $$hostname >> $(PIHOLE_LAN_LIST_FILE); \
 		done; \
 	)
+
+.git/hooks/pre-push:
+	ln -s ${PWD}/.scripts/hooks/pre-push.sh .git/hooks/pre-push
 
 
 # Search though all .env files, and fail the command if any secret is found
