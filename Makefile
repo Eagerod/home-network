@@ -75,6 +75,13 @@ $(COMPOSE_ENVIRONMENT_FILES):
 		source $(@D)/.env && grep -o "^\s*export \w*" $(@D)/.env | sed -e 's/^[[:space:]]*//' | sort | uniq | sed -e 's/export \(.*\)/\1/g' | awk '{print $$1"="ENVIRON[$$1]}' >> $@; \
 	fi
 
+# Helper to print out the full configuration that docker-compose will use to
+#   bring up the whole system.
+.PHONY: show-config
+show-config:
+	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) config
+
+
 # Helper to create all compose environment files.
 env: $(COMPOSE_ENVIRONMENT_FILES)
 
@@ -141,11 +148,13 @@ volumes:
 		fi \
 	done
 
+
 $(NGINX_REVERSE_PROXY_FILE):
 	@python .scripts/get_hostname_container_webserver_port.py 'docker-compose.yml' | while read line; do \
 		arr=($${line[@]}); \
 		sed "s/"'$${HOSTNAME}'"/$${arr[0]}/g; s/"'$${HOSTPORT}'"/$${arr[1]}/g" $(NGINX_REVERSE_PROXY_TEMPLATE_FILE) >> $(NGINX_REVERSE_PROXY_FILE); \
 	done
+
 
 $(PIHOLE_LAN_LIST_FILE):
 	$(foreach domain,$(PIHOLE_SEARCH_DOMAINS),\
