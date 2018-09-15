@@ -3,7 +3,7 @@ include ../docker.make
 setup: initialize
 
 # Create the required database and user in the MySQL DB, and set up permissions
-#   so that the snipeit user can do what they want.
+#   so that the firefly user can do what they want.
 #
 # Run the database set up scripts that come bundled with firefly-iii too.
 .PHONY: initialize
