@@ -24,16 +24,31 @@ NGINX_REVERSE_PROXY_FILE:=nginx/reverse-proxy.conf
 PIHOLE_LAN_LIST_FILE:=pi-hole/lan.list
 PIHOLE_SEARCH_DOMAINS:=home local
 
-ANY_CONTAINER_BUILD_DEPS:=$(COMPOSE_ENVIRONMENT_FILES) $(NGINX_REVERSE_PROXY_FILE) $(PIHOLE_LAN_LIST_FILE)
+ANY_CONTAINER_BUILD_DEPS:=\
+	$(COMPOSE_ENVIRONMENT_FILES)\
+	$(NGINX_REVERSE_PROXY_FILE)\
+	$(PIHOLE_LAN_LIST_FILE)\
+	base-image\
+	volumes
 
 .PHONY: all
 all: setup $(COMPOSE_ENVIRONMENT_FILES) compose-up
 
+# Set up volumes, and allow each individual container to configure whatever
+#   they need to run.
 .PHONY: setup
-setup: volumes $(SETUP_FILES)
+setup: $(SETUP_FILES)
 
 $(SETUP_FILES):
-	$(MAKE) -C $(@D) setup;
+	$(MAKE) -C $(@D) setup
+
+
+# Base image is needed for several containers. Make sure that it's available
+#   before any attempt at building other containers, or else docker will try to
+#   pull an image called `ncfgbase`, and it won't find one.
+.PHONY: base-image
+base-image:
+	$(DOCKER) build . -f BaseUpdatedUbuntuDockerfile -t ncfgbase
 
 .PHONY: compose-up
 compose-up: $(ANY_CONTAINER_BUILD_DEPS)
@@ -44,6 +59,7 @@ compose-up: $(ANY_CONTAINER_BUILD_DEPS)
 compose-down:
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) down
 
+# Build an individual container, rather than bringing the whole system up.
 # Building any container requires that all environment files are present.
 # For whatever reason, docker-compose reads in environments of services that
 #   aren't in any way related to the service that's being started.
@@ -59,6 +75,7 @@ $(COMPOSE_ENVIRONMENT_FILES):
 		source $(@D)/.env && grep -o "^\s*export \w*" $(@D)/.env | sed -e 's/^[[:space:]]*//' | sort | uniq | sed -e 's/export \(.*\)/\1/g' | awk '{print $$1"="ENVIRON[$$1]}' >> $@; \
 	fi
 
+# Helper to create all compose environment files.
 env: $(COMPOSE_ENVIRONMENT_FILES)
 
 .PHONY: kill
@@ -94,6 +111,8 @@ install-backups:
 		echo >&2 "The MySQL backup script is already installed"; \
 	fi
 
+
+# Helper to create a new skeleton application template.
 .PHONY: app
 app:
 	@if [ -z "$${APP_NAME}" ]; then \
@@ -104,6 +123,7 @@ app:
 	mkdir -p $${APP_NAME}
 	printf 'include ../docker.make\n' > $${APP_NAME}/Makefile
 	printf 'FROM ncfgbase\n\nRUN apt-get update -y\n\nCMD ["/bin/bash"]\n' > $${APP_NAME}/Dockerfile
+
 
 # Volumes need to be created before docker-compose will let any individual
 #   service start, so if there are volumes defined in any of the compose files
