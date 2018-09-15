@@ -32,6 +32,10 @@ SAVE_ENV_VARS=\
 	RESILIO_SERVER_USERNAME
 
 
+# Docker Compose has some odd conditions that require all containers to be
+#   properly configured, even if you're only trying to start one. Because of
+#   that, this list will be set as a dependency of anything that starts any
+#   containers just to make sure that the containers are built.
 ANY_CONTAINER_BUILD_DEPS:=\
 	$(COMPOSE_ENVIRONMENT_FILES)\
 	$(NGINX_REVERSE_PROXY_FILE)\
@@ -42,8 +46,6 @@ ANY_CONTAINER_BUILD_DEPS:=\
 .PHONY: all
 all: setup $(COMPOSE_ENVIRONMENT_FILES) compose-up
 
-# Set up volumes, and allow each individual container to configure whatever
-#   they need to run.
 .PHONY: setup
 setup: $(SETUP_FILES)
 
@@ -83,24 +85,21 @@ $(COMPOSE_ENVIRONMENT_FILES):
 		source $(@D)/.env && grep -o "^\s*export \w*" $(@D)/.env | sed -e 's/^[[:space:]]*//' | sort | uniq | sed -e 's/export \(.*\)/\1/g' | awk '{print $$1"="ENVIRON[$$1]}' >> $@; \
 	fi
 
-# Helper to print out the full configuration that docker-compose will use to
-#   bring up the whole system.
-.PHONY: show-config
-show-config:
-	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) config
-
 
 # Helper to create all compose environment files.
 env: $(COMPOSE_ENVIRONMENT_FILES)
 
+
+# Helper to print out the full configuration that docker-compose will use to
+#   bring up the whole system.
+.PHONY: show-config
+show-config: $(COMPOSE_ENVIRONMENT_FILES)
+	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) config
+
+
 .PHONY: kill
 kill: compose-down
 
-.PHONY: reset
-reset: kill
-	$(DOCKER) container rm $$($(DOCKER) container ls -aq) || true
-	$(DOCKER) image rm $$($(DOCKER) image list -q) || true
-	$(MAKE)
 
 .PHONY: install
 install:
