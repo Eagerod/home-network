@@ -1,5 +1,8 @@
 include ../docker.make
 
+REQUIRED_ENV_VARS:=\
+	MYSQL_ROOT_PASSWORD
+
 MYSQL_CONTAINER_DATA_DIR:=/var/lib/data
 
 ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))

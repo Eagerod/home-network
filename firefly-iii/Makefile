@@ -1,5 +1,13 @@
 include ../docker.make
 
+REQUIRED_ENV_VARS:=\
+	MYSQL_USER\
+	MYSQL_DATABASE\
+	MYSQL_PASSWORD\
+	FF_DB_PASSWORD\
+	FF_APP_KEY\
+	FF_APP_ENV
+
 setup: initialize
 
 # Create the required database and user in the MySQL DB, and set up permissions
