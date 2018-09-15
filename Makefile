@@ -24,6 +24,14 @@ NGINX_REVERSE_PROXY_FILE:=nginx/reverse-proxy.conf
 PIHOLE_LAN_LIST_FILE:=pi-hole/lan.list
 PIHOLE_SEARCH_DOMAINS:=home local
 
+# List of environment variables in projects that shouldn't be treated as secret.
+SAVE_ENV_VARS=\
+	MYSQL_USER\
+	MYSQL_DATABASE\
+	FF_APP_ENV\
+	RESILIO_SERVER_USERNAME
+
+
 ANY_CONTAINER_BUILD_DEPS:=\
 	$(COMPOSE_ENVIRONMENT_FILES)\
 	$(NGINX_REVERSE_PROXY_FILE)\
@@ -164,3 +172,15 @@ $(PIHOLE_LAN_LIST_FILE):
 			printf '$${SERVER_IP}	%s.%s.	%s\n' $$hostname $(domain) $$hostname >> $(PIHOLE_LAN_LIST_FILE); \
 		done; \
 	)
+
+
+# Search though all .env files, and fail the command if any secret is found
+#   anywhere in the git repo history. Can really be applied to any repo to
+#   audit it.
+.PHONY: search-env
+search-env:
+	find . -iname ".env" -print | xargs $(foreach e,$(SAVE_ENV_VARS),grep -vE '\s*export $(e)' |) awk -F '=' '{print $$2}' | sed '/^\s*$$/d' | grep -v '^$$(' | grep -v '^$${' | tr -d '"' | tr -d "'" | sort | uniq | while read line; do \
+		if git rev-list --all | xargs git grep $$line; then \
+			exit -1; \
+		fi \
+	done
