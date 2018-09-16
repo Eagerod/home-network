@@ -2,3 +2,5 @@
 compose.env
 .args
 setup
+nginx/reverse-proxy.conf
+pi-hole/lan.list

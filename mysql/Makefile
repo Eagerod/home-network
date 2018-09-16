@@ -1,5 +1,8 @@
 include ../docker.make
 
+REQUIRED_ENV_VARS:=\
+	MYSQL_ROOT_PASSWORD
+
 MYSQL_CONTAINER_DATA_DIR:=/var/lib/data
 
 ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
@@ -12,7 +15,11 @@ MYSQL_DAEMON:=/usr/sbin/mysqld
 MYSQL_CLIENT:=/usr/bin/mysql
 
 
-setup: initialize password
+setup: initialize env-password
+
+
+env-password:
+	source .env && $(MAKE) password
 
 
 .PHONY: verify-mysql-root-password

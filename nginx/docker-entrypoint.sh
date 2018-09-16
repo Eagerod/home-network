@@ -7,6 +7,4 @@ NAMESERVERS=$(cat /etc/resolv.conf | grep "nameserver" | awk '{print $2}' | tr '
 
 sed -i "s/"'${RESOLVERS}'"/${NAMESERVERS}/g" /etc/nginx/sites-available/reverse-proxy.conf
 
-cat /etc/nginx/sites-available/reverse-proxy.conf
-
 exec nginx -g "daemon off;"
