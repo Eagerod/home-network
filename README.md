@@ -17,7 +17,6 @@ It includes docker images, or host-modifying make commands that will allow any m
 - [ShareLaTeX](/sharelatex)
 - [Transmission (OSS)](/transmission-oss)
 - [Util Server](/util)
-- [ShareLaTeX](/sharelatex)
 
 [//]: # (# Service Name)
 [//]: # ()
