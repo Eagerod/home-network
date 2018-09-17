@@ -7,7 +7,7 @@ It includes docker images, or host-modifying make commands that will allow any m
 
 # Existing projects
 
-- [Firefly III](/firely-iii)
+- [Firefly III](/firefly-iii)
 - [MongoDB](/mongodb)
 - [MySQL](/mysql)
 - [NGINX](/nginx)
