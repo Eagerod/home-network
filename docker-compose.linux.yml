@@ -1,0 +1,27 @@
+version: '3'
+services:
+  sharelatex:
+    volumes:
+      - '/var/lib/sharelatex:/var/lib/sharelatex'
+  mongodb:
+    volumes:
+      - '/var/lib/mongodb/data:/data/db'
+  mysql:
+    volumes:
+      - '/var/lib/mysql:/var/lib/data'
+  transmission-oss:
+    volumes:
+      - '/var/lib/transmission-daemon/downloads:/var/lib/transmission-daemon/downloads'
+      - '/var/lib/transmission-daemon/watch:/var/lib/transmission-daemon/watch'
+      - '/var/lib/transmission-daemon/info/resume:/var/lib/transmission-daemon/info/resume'
+      - '/var/lib/transmission-daemon/info/torrents:/var/lib/transmission-daemon/info/torrents'
+  util:
+    volumes:
+      - '/var/lib/backups:/var/lib/backups'
+      - '/var/lib/git:/var/lib/git'
+    ports:
+      - '22:22'
+  resilio-server:
+    volumes:
+      - /var/lib/.sync:/.sync
+      - /var/lib/backups:/var/lib/resilio-folders

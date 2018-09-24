@@ -1,0 +1,91 @@
+# This compose file consists of all the base level configurations that will
+#   need to exist on any of the containers regardless of the platform they're
+#   being run on.
+# The three other compose files:
+#   - .cygwin.
+#   - .darwin.
+#   - .linux.
+#   are to provide the platform specific configurations to make sure that
+#   discrepancies between testing and running environments can be taken into
+#   account.
+version: '3'
+services:
+  nginx:
+    build: nginx
+    ports:
+      - '80:80'
+
+  pi-hole:
+    build: pi-hole
+    env_file: pi-hole/compose.env
+    hostname: pi-hole
+    ports:
+      - 8080:80
+      - 53:53/tcp
+      - 53:53/udp
+    dns: 127.0.0.1
+
+  redis:
+    build: redis
+    hostname: redis
+    ports:
+      - 6379:6379
+
+  mongodb:
+    build: mongodb
+    hostname: mongodb
+    ports: 
+      - 27017:27017
+
+  sharelatex:
+    build: sharelatex
+    hostname: sharelatex
+    ports:
+      - 8081:80
+    links:
+      - mongodb
+      - redis
+    depends_on:
+      - mongodb
+      - redis
+
+  mysql:
+    build: mysql
+    hostname: mysql
+    env_file: mysql/compose.env
+    ports:
+      - 3306:3306
+
+  firefly-iii:
+    build: firefly-iii
+    hostname: firefly-iii
+    env_file: firefly-iii/compose.env
+    ports:
+      - 8082:80
+    links:
+      - mysql
+    depends_on:
+      - mysql
+
+  transmission-oss:
+    build: transmission-oss
+    hostname: transmission-oss
+    ports:
+      - 9091:9091
+
+  util:
+    hostname: util
+    build:
+      context: util
+      args:
+        DEFAULT_BLOBSTORE_WRITE_ACL: ${DEFAULT_BLOBSTORE_WRITE_ACL}
+        DEFAULT_BLOBSTORE_READ_ACL: ${DEFAULT_BLOBSTORE_READ_ACL}
+        MULTI_REDDIT_SUBS_LOCATION: ${MULTI_REDDIT_SUBS_LOCATION}
+        MULTI_REDDIT_SAVED_LOCATION: ${MULTI_REDDIT_SAVED_LOCATION}
+
+  resilio-server:
+    build: resilio-server
+    hostname: resilio-server
+    env_file: resilio-server/compose.env
+    ports:
+      - 8888:8888
