@@ -9,6 +9,9 @@ services:
   mysql:
     volumes:
       - '/var/lib/mysql:/var/lib/data'
+  unifi:
+    volumes:
+      - /var/lib/unifi/data:/unifi/data
   transmission-oss:
     volumes:
       - '/var/lib/transmission-daemon/downloads:/var/lib/transmission-daemon/downloads'
