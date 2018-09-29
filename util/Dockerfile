@@ -20,8 +20,6 @@ RUN sed -i -r 's/^[#\s]*(PermitRootLogin).*$/\1 prohibit-password/' /etc/ssh/ssh
 
 # Install dependencies needed for installing the blob client.
 RUN apt-get install -y \
-	curl \
-	unzip \
 	golang-go \
 	cmake \
 	git
@@ -49,4 +47,3 @@ RUN sed -i -r "s#(MULTI_REDDIT_SAVED_LOCATION=).*#\1$MULTI_REDDIT_SAVED_LOCATION
 EXPOSE 22
 
 CMD ["/usr/sbin/sshd", "-D", "-e"]
-
