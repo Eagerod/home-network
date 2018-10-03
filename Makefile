@@ -176,7 +176,10 @@ $(PIHOLE_LAN_LIST_FILE):
 	)
 
 .git/hooks/pre-push:
-	ln -s ${PWD}/.scripts/hooks/pre-push.sh .git/hooks/pre-push
+	# For whatever reason, this can choose to run despite the file already
+	#   existing and having no dependencies. Possibly an issue with having a
+	#   symlink as a target?
+	ln -sf ${PWD}/.scripts/hooks/pre-push.sh $@
 
 
 # Search though all .env files, and fail the command if any secret is found
