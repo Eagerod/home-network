@@ -12,6 +12,8 @@ SETUP_FILES:=$(foreach c,$(DOCKER_CONTAINERS),$(c)/setup)
 COMPOSE_ARGUMENTS_FILES:=$(shell find . -iname ".args")
 SOURCE_BUILD_ARGS=source $(COMPOSE_ARGUMENTS_FILES)
 
+CONTAINER_DEBUG_TARGETS:=$(foreach c,$(DOCKER_CONTAINERS),debug/$(c))
+
 CRON_BASE_PATH:=/etc/cron.d
 INSTALLED_CRON_PATH:=$(CRON_BASE_PATH)/docker-home-network
 MYSQL_BACKUP_CRON_PATH:=$(CRON_BASE_PATH)/mysql-backup
@@ -80,6 +82,17 @@ compose-down:
 $(DOCKER_CONTAINERS): $(ANY_CONTAINER_BUILD_DEPS)
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) build $@
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) up -d $@
+
+# Debug phony target to start up a container using docker compose, but also to
+#   set it up with std_in available, so even if it's a bash command the
+#   container's running, it can still be attached to.
+.INTERMEDIATE: $(CONTAINER_DEBUG_FILES)
+PHONY: $(CONTAINER_DEBUG_TARGETS)
+$(CONTAINER_DEBUG_TARGETS):
+	printf "version: '3'\nservices:\n  %s:\n    stdin_open: true\n" $$(basename $@) > "$$(basename $@)/debug.yml"
+	DOCKER_COMPOSE_EXTRAS="-f $$(basename $@)/debug.yml" $(MAKE) $$(basename $@)
+	rm -rf  "$$(basename $@)/debug.yml"
+
 
 # Source each file, and loop over the environments that should have been set,
 #   and write those out to the compose env file.
