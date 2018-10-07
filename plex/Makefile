@@ -38,7 +38,7 @@ port-forwards:
 ifeq ($(PLATFORM),$(PLATFORM_MACOS))
 	upnpc -e Plex -a $$(ipconfig getifaddr en0) $(PLEX_PUBLIC_PORT) $(PLEX_PUBLIC_PORT) TCP
 else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
-	upnpc -e Plex -a $$(ip route get 8.8.8.8 | awk '{for(i=1;i<=NF;i++) if ($i=="src") print $(i+1)}') $(PLEX_PUBLIC_PORT) $(PLEX_PUBLIC_PORT) TCP
+	upnpc -e Plex -a $$(ip route get 8.8.8.8 | awk '{for(i=1;i<=NF;i++) if ($$i=="src") print $$(i+1)}') $(PLEX_PUBLIC_PORT) $(PLEX_PUBLIC_PORT) TCP
 else ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
 	$(error "Can't port forward on windows here yet.")
 endif
