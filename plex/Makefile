@@ -4,12 +4,7 @@ include ../docker.make
 PLEX_PUBLIC_PORT:=32400
 
 
-setup: plex-volumes.yml mount-volumes
-
-
-plex-volumes.yml:
-	printf "version: '3'\nservices:\n  plex:\n    volumes:\n" > plex-volumes.yml
-	awk '{print "      - "$$2":"$$1}' volumes.txt >> plex-volumes.yml
+setup: mount-volumes
 
 
 .PHONY: mount-volumes
