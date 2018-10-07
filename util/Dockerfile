@@ -19,10 +19,12 @@ RUN sed -i -r 's/^[#\s]*(PermitRootLogin).*$/\1 prohibit-password/' /etc/ssh/ssh
 # RUN sed -i -r 's/(session\s*)required(\s*pam_loginuid.so)/\1optional\2/g' /etc/pam.d/sshd
 
 # Install dependencies needed for installing the blob client.
-RUN apt-get install -y \
-	golang-go \
-	cmake \
-	git
+RUN \
+    apt-get update -y && \
+    apt-get install -y \
+        golang-go \
+        cmake \
+        git
 RUN curl -sfSL https://aleem.haji.ca/blob/clientlib/installer.sh | bash
 
 RUN python -m pip install PyYAML
