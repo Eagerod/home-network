@@ -28,6 +28,8 @@ mount-volumes:
 #	 upnpc -d $$(upnpc -l | grep $(PLEX_PUBLIC_PORT) | awk '{print $$1}') tcp;
 .PHONY: port-forwards
 port-forwards:
+	# Note, this should be checking to make sure that the IP address of the
+	#   local device isn't this one's, cause that shouldn't cause a failure.
 	if upnpc -l | grep -q $(PLEX_PUBLIC_PORT); then \
 		echo >&2 "There's already a device on the network that owns $(PLEX_PUBLIC_PORT)."; \
 		exit -1; \
