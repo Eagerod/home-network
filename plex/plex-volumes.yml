@@ -1,6 +1,0 @@
-version: '3'
-services:
-  plex:
-    volumes:
-      - /mnt/downloads:/data/downloads
-      - /mnt/tv-shows:/data/tv-shows

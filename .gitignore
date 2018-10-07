@@ -4,3 +4,4 @@ compose.env
 setup
 nginx/reverse-proxy.conf
 pi-hole/lan.list
+plex/plex-volumes.yml
