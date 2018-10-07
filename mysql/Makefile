@@ -1,5 +1,8 @@
 include ../docker.make
 
+REQUIRED_ENV_VARS:=\
+	MYSQL_ROOT_PASSWORD
+
 MYSQL_CONTAINER_DATA_DIR:=/var/lib/data
 
 ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
@@ -12,7 +15,10 @@ MYSQL_DAEMON:=/usr/sbin/mysqld
 MYSQL_CLIENT:=/usr/bin/mysql
 
 
-setup: initialize
+setup: initialize env-password
+
+
+env-password:
 	source .env && $(MAKE) password
 
 
@@ -80,7 +86,7 @@ else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 endif
 
 	$(SED_INLINE) 's/^CMD/# CMD/g' Dockerfile
-	DOCKER_COMPOSE_EXTRAS='-f mysql/debug.yml' $(MAKE) -C .. mysql
+	$(MAKE) -C .. debug/mysql
 	sleep 1
 ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
 	$(ATTACHED_DOCKER) exec -it -u 0 $(RUNNING_CONTAINER_NAME) chown -R mysql:mysql $(MYSQL_CONTAINER_DATA_DIR)

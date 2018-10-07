@@ -14,6 +14,8 @@ SETUP_FILES:=$(foreach c,$(DOCKER_CONTAINERS),$(c)/setup)
 COMPOSE_ARGUMENTS_FILES:=$(shell find . -iname ".args")
 SOURCE_BUILD_ARGS=source $(COMPOSE_ARGUMENTS_FILES)
 
+CONTAINER_DEBUG_TARGETS:=$(foreach c,$(DOCKER_CONTAINERS),debug/$(c))
+
 CRON_BASE_PATH:=/etc/cron.d
 INSTALLED_CRON_PATH:=$(CRON_BASE_PATH)/docker-home-network
 MYSQL_BACKUP_CRON_PATH:=$(CRON_BASE_PATH)/mysql-backup
@@ -26,16 +28,44 @@ NGINX_REVERSE_PROXY_FILE:=nginx/reverse-proxy.conf
 PIHOLE_LAN_LIST_FILE:=pi-hole/lan.list
 PIHOLE_SEARCH_DOMAINS:=home local
 
-ANY_CONTAINER_BUILD_DEPS:=$(COMPOSE_ENVIRONMENT_FILES) $(NGINX_REVERSE_PROXY_FILE) $(PIHOLE_LAN_LIST_FILE)
+# List of environment variables in projects that shouldn't be treated as secret.
+SAVE_ENV_VARS=\
+	MYSQL_USER\
+	MYSQL_DATABASE\
+	FF_APP_ENV\
+	RESILIO_SERVER_USERNAME
+
+
+# Docker Compose has some odd conditions that require all containers to be
+#   properly configured, even if you're only trying to start one. Because of
+#   that, this list will be set as a dependency of anything that starts any
+#   containers just to make sure that the containers are built.
+# Also ensure git hooks are appropriately set up, so that after any amount of
+#   testing or playing around with the repo, hooks will be configured.
+ANY_CONTAINER_BUILD_DEPS:=\
+	$(COMPOSE_ENVIRONMENT_FILES)\
+	$(NGINX_REVERSE_PROXY_FILE)\
+	$(PIHOLE_LAN_LIST_FILE)\
+	base-image\
+	volumes\
+	.git/hooks/pre-push
 
 .PHONY: all
 all: setup $(COMPOSE_ENVIRONMENT_FILES) compose-up
 
 .PHONY: setup
-setup: volumes $(SETUP_FILES)
+setup: $(SETUP_FILES)
 
 $(SETUP_FILES):
-	$(MAKE) -C $(@D) setup;
+	$(MAKE) -C $(@D) setup
+
+
+# Base image is needed for several containers. Make sure that it's available
+#   before any attempt at building other containers, or else docker will try to
+#   pull an image called `ncfgbase`, and it won't find one.
+.PHONY: base-image
+base-image:
+	$(DOCKER) build . -f BaseUpdatedUbuntuDockerfile -t ncfgbase
 
 .PHONY: compose-up
 compose-up: $(ANY_CONTAINER_BUILD_DEPS)
@@ -46,6 +76,7 @@ compose-up: $(ANY_CONTAINER_BUILD_DEPS)
 compose-down:
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) down
 
+# Build an individual container, rather than bringing the whole system up.
 # Building any container requires that all environment files are present.
 # For whatever reason, docker-compose reads in environments of services that
 #   aren't in any way related to the service that's being started.
@@ -54,6 +85,17 @@ $(DOCKER_CONTAINERS): $(ANY_CONTAINER_BUILD_DEPS)
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) build $@
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) up -d $@
 
+# Debug phony target to start up a container using docker compose, but also to
+#   set it up with std_in available, so even if it's a bash command the
+#   container's running, it can still be attached to.
+.INTERMEDIATE: $(CONTAINER_DEBUG_FILES)
+PHONY: $(CONTAINER_DEBUG_TARGETS)
+$(CONTAINER_DEBUG_TARGETS):
+	printf "version: '3'\nservices:\n  %s:\n    stdin_open: true\n" $$(basename $@) > "$$(basename $@)/debug.yml"
+	DOCKER_COMPOSE_EXTRAS="-f $$(basename $@)/debug.yml" $(MAKE) $$(basename $@)
+	rm -rf  "$$(basename $@)/debug.yml"
+
+
 # Source each file, and loop over the environments that should have been set,
 #   and write those out to the compose env file.
 $(COMPOSE_ENVIRONMENT_FILES):
@@ -61,16 +103,21 @@ $(COMPOSE_ENVIRONMENT_FILES):
 		source $(@D)/.env && grep -o "^\s*export \w*" $(@D)/.env | sed -e 's/^[[:space:]]*//' | sort | uniq | sed -e 's/export \(.*\)/\1/g' | awk '{print $$1"="ENVIRON[$$1]}' >> $@; \
 	fi
 
+
+# Helper to create all compose environment files.
 env: $(COMPOSE_ENVIRONMENT_FILES)
+
+
+# Helper to print out the full configuration that docker-compose will use to
+#   bring up the whole system.
+.PHONY: show-config
+show-config: $(COMPOSE_ENVIRONMENT_FILES)
+	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) config
+
 
 .PHONY: kill
 kill: compose-down
 
-.PHONY: reset
-reset: kill
-	$(DOCKER) container rm $$($(DOCKER) container ls -aq) || true
-	$(DOCKER) image rm $$($(DOCKER) image list -q) || true
-	$(MAKE)
 
 .PHONY: install
 install:
@@ -96,6 +143,8 @@ install-backups:
 		echo >&2 "The MySQL backup script is already installed"; \
 	fi
 
+
+# Helper to create a new skeleton application template.
 .PHONY: app
 app:
 	@if [ -z "$${APP_NAME}" ]; then \
@@ -106,6 +155,7 @@ app:
 	mkdir -p $${APP_NAME}
 	printf 'include ../docker.make\n' > $${APP_NAME}/Makefile
 	printf 'FROM ncfgbase\n\nRUN apt-get update -y\n\nCMD ["/bin/bash"]\n' > $${APP_NAME}/Dockerfile
+
 
 # Volumes need to be created before docker-compose will let any individual
 #   service start, so if there are volumes defined in any of the compose files
@@ -123,11 +173,13 @@ volumes:
 		fi \
 	done
 
+
 $(NGINX_REVERSE_PROXY_FILE):
 	@python .scripts/get_hostname_container_webserver_port.py 'docker-compose.yml' | while read line; do \
 		arr=($${line[@]}); \
 		sed "s/"'$${HOSTNAME}'"/$${arr[0]}/g; s/"'$${HOSTPORT}'"/$${arr[1]}/g" $(NGINX_REVERSE_PROXY_TEMPLATE_FILE) >> $(NGINX_REVERSE_PROXY_FILE); \
 	done
+
 
 $(PIHOLE_LAN_LIST_FILE):
 	$(foreach domain,$(PIHOLE_SEARCH_DOMAINS),\
@@ -137,3 +189,21 @@ $(PIHOLE_LAN_LIST_FILE):
 			printf '$${SERVER_IP}	%s.%s.	%s\n' $$hostname $(domain) $$hostname >> $(PIHOLE_LAN_LIST_FILE); \
 		done; \
 	)
+
+.git/hooks/pre-push:
+	# For whatever reason, this can choose to run despite the file already
+	#   existing and having no dependencies. Possibly an issue with having a
+	#   symlink as a target?
+	ln -sf ${PWD}/.scripts/hooks/pre-push.sh $@
+
+
+# Search though all .env files, and fail the command if any secret is found
+#   anywhere in the git repo history. Can really be applied to any repo to
+#   audit it.
+.PHONY: search-env
+search-env:
+	find . -iname ".env" -print | xargs $(foreach e,$(SAVE_ENV_VARS),grep -vE '\s*export $(e)' |) awk -F '=' '{print $$2}' | sed '/^\s*$$/d' | grep -v '^$$(' | grep -v '^$${' | tr -d '"' | tr -d "'" | sort | uniq | while read line; do \
+		if git rev-list --all | xargs git --no-pager grep $$line; then \
+			exit -1; \
+		fi \
+	done
