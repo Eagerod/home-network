@@ -200,6 +200,14 @@ $(PLEX_VOLUMES_COMPOSE_FILE):
 	awk '{print "      - "$$2":"$$1}' plex/volumes.txt >> $(PLEX_VOLUMES_COMPOSE_FILE)
 
 
+# Because this system will likely be run on a host that isn't the same one disks
+#   are physically attached to, there needs to be a mechanism to mount disks
+#   from other devices on the network.
+.PHONY: mount-volumes
+mount-volumes:
+	python .scripts/mount_disks.py volumes.yml
+
+
 .git/hooks/pre-push:
 	# For whatever reason, this can choose to run despite the file already
 	#   existing and having no dependencies. Possibly an issue with having a
