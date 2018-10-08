@@ -205,7 +205,7 @@ $(PLEX_VOLUMES_COMPOSE_FILE):
 #   from other devices on the network.
 .PHONY: mount-volumes
 mount-volumes:
-	python .scripts/mount_disks.py volumes.yml
+	sudo python .scripts/mount_disks.py volumes.yml
 
 
 .git/hooks/pre-push:

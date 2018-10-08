@@ -28,7 +28,7 @@ for volume in volumes_yaml.get('volumes', {}):
 
     # The unmount will fail if there's nothing already mounted there, so don't
     #   bother checking the returncode on this call.
-    proc = subprocess.Popen(['unmount', volume['local']])
+    proc = subprocess.Popen(['umount', volume['local']])
     proc.wait()
 
     print ' '.join([p if ' ' not in p else '"{}"'.format(p) for p in params])
