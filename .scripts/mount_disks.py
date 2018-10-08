@@ -34,6 +34,9 @@ for volume in volumes_yaml.get('volumes', {}):
         volume['local'],
     ]
 
+    # Whatever version/specific binary lives on OS X is a little more picky
+    #   about the positioning of this option. Needs to be inserted immediately
+    #   after the volume type.
     if 'extras' in volume:
         mount_params.insert(3, '-o')
         mount_params.insert(4, volume['extras'])
