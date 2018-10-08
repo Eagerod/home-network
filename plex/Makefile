@@ -1,6 +1,10 @@
 include ../docker.make
 
 
+REQUIRED_ENV_VARS:=\
+	ADVERTISE_IP
+
+
 PLEX_PUBLIC_PORT:=32400
 
 
