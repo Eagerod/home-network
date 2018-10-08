@@ -36,5 +36,5 @@ volumes:
     external: true
   mysql-data:
     external: true
-  plex:
+  plex-config:
     external: true
