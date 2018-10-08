@@ -3,7 +3,7 @@
 This repo holds configurations for my home network.
 It includes docker images, or host-modifying make commands that will allow any machine to be turned into a home network host without needing to configure much else.
 
-*Note* There's still a lot of "much else", but every time something new is done, the hope if that the gap of "much else" closes.
+*Note:* There's still a lot of "much else", but every time something new is done, the hope if that the gap of "much else" closes.
 
 # Existing projects
 
@@ -12,6 +12,7 @@ It includes docker images, or host-modifying make commands that will allow any m
 - [MySQL](/mysql)
 - [NGINX](/nginx)
 - [Pi-hole](/pi-hole)
+- [Plex](/plex)
 - [Redis](/redis)
 - [Resilio Sync Server](/resilio-server)
 - [ShareLaTeX](/sharelatex)
@@ -34,3 +35,4 @@ It includes docker images, or host-modifying make commands that will allow any m
 - [ ] Get the whole thing configured to work with Docker Swarm, so it can be run on an array of hosts, rather than just one.
 - [ ] Get health checks set up on the containers where a health check makes sense (probably all of them.)
 - [ ] Figure out a more sustainable way of managing backups/crons.
+- [ ] Volume mounting logic may be a little platform specific and needs help.

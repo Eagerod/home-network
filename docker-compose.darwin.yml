@@ -25,6 +25,9 @@ services:
     volumes:
       - ~/Desktop/docker/resilio:/.sync
       - ~/Desktop/docker/backups:/var/lib/resilio-folders
+  plex:
+    volumes:
+      - plex-config:/config
 
 volumes:
   sharelatex-data:
@@ -32,4 +35,6 @@ volumes:
   mongodb-data:
     external: true
   mysql-data:
+    external: true
+  plex:
     external: true
