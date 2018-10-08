@@ -4,18 +4,6 @@ include ../docker.make
 PLEX_PUBLIC_PORT:=32400
 
 
-setup: mount-volumes
-
-
-.PHONY: mount-volumes
-mount-volumes:
-	mkdir -p /mnt/downloads /mnt/tv-shows
-	sudo umount /mnt/downloads || true
-	sudo umount /mnt/tv-shows || true
-	sudo mount -t cifs //192.168.0.25/Downloads /mnt/downloads -o user=Aleem
-	sudo mount -t cifs //192.168.0.25/TV\ Shows /mnt/tv-shows -o user=Aleem
-
-
 # Set up port forwarding for Plex. If there's already a device on the network
 #   that owns these 
 #
