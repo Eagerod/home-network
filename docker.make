@@ -45,6 +45,10 @@ setup: test-environment
 .PHONY: test-environment
 test-environment:
 	@if [ ! -z "$(REQUIRED_ENV_VARS)" ]; then \
+		if [ ! -f .env ]; then \
+			echo >&2 "Environment file '.env' for service $(DOCKER_IMAGE_NAME) not found"; \
+			exit -1; \
+		fi; \
 		source .env && for var in $(REQUIRED_ENV_VARS); do \
 			if ! printenv $$var > /dev/null; then \
 				echo >&2 "Environment variable '$$var' for service $(DOCKER_IMAGE_NAME) is not set."; \
