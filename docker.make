@@ -38,6 +38,16 @@ setup: test-environment
 	date -u '+%Y-%m-%dT%H:%M:%SZ' > setup
 
 
+.PHONY: env-template
+env-template:
+	if [ ! -f .env ]; then \
+		if [ "$(REQUIRED_ENV_VARS)" != "" ]; then \
+			touch .env; \
+			$(foreach e,$(REQUIRED_ENV_VARS),echo export $(e)= >> .env;) \
+		fi; \
+	fi
+
+
 # Helper to verify that all required environment variables are configured in a
 #   .env file within a given service's directory. This should help with any
 #   deployment to make sure that the required configurations are actually

@@ -120,6 +120,11 @@ show-config: $(COMPOSE_ENVIRONMENT_FILES)
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) config
 
 
+.PHONY: env-templates
+env-templates:
+	$(foreach d,$(DOCKER_CONTAINERS),make -C $(d) env-template;)
+
+
 .PHONY: kill
 kill: compose-down
 
