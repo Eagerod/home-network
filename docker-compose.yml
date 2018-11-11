@@ -41,8 +41,10 @@ services:
     build: unifi
     hostname: unifi
     ports:
-      - "8083:8080"
+      - "8084:8080"
       - "8443:8443"
+      - "8880:8880"
+      - "6789:6789"
       - "3478:3478/udp"
       - "10001:10001/udp"
     depends_on:
