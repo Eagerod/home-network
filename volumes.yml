@@ -1,0 +1,11 @@
+volumes:
+  - type: cifs
+    remote: //192.168.0.25/TV Shows
+    local: /mnt/tv-shows
+    container: /data/tv-shows
+    extras: user=Aleem
+  - type: cifs
+    remote: //192.168.0.25/Downloads
+    local: /mnt/downloads
+    container: /data/downloads
+    extras: user=Aleem

@@ -14,7 +14,7 @@ else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 DOCKER_COMPOSE_IMAGE_PREFIX=$(shell basename $(realpath $(CURDIR)/..))
 endif
 DOCKER_COMPOSE_IMAGE_NAME:=$(DOCKER_COMPOSE_IMAGE_PREFIX)_$(DOCKER_IMAGE_NAME)
-RUNNING_CONTAINER_NAME=$$($(DOCKER) ps | awk '{if ($$2 == "$(DOCKER_COMPOSE_IMAGE_NAME)") print $$NF;}') 2> /dev/null
+RUNNING_CONTAINER_NAME=$$($(DOCKER) ps --filter name=$(DOCKER_COMPOSE_IMAGE_NAME) -q)
 
 REQUIRED_ENV_VARS:=
 
@@ -38,6 +38,16 @@ setup: test-environment
 	date -u '+%Y-%m-%dT%H:%M:%SZ' > setup
 
 
+.PHONY: env-template
+env-template:
+	if [ ! -f .env ]; then \
+		if [ "$(REQUIRED_ENV_VARS)" != "" ]; then \
+			touch .env; \
+			$(foreach e,$(REQUIRED_ENV_VARS),echo export $(e)= >> .env;) \
+		fi; \
+	fi
+
+
 # Helper to verify that all required environment variables are configured in a
 #   .env file within a given service's directory. This should help with any
 #   deployment to make sure that the required configurations are actually
@@ -45,6 +55,10 @@ setup: test-environment
 .PHONY: test-environment
 test-environment:
 	@if [ ! -z "$(REQUIRED_ENV_VARS)" ]; then \
+		if [ ! -f .env ]; then \
+			echo >&2 "Environment file '.env' for service $(DOCKER_IMAGE_NAME) not found"; \
+			exit -1; \
+		fi; \
 		source .env && for var in $(REQUIRED_ENV_VARS); do \
 			if ! printenv $$var > /dev/null; then \
 				echo >&2 "Environment variable '$$var' for service $(DOCKER_IMAGE_NAME) is not set."; \

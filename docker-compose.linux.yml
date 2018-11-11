@@ -28,3 +28,6 @@ services:
     volumes:
       - /var/lib/.sync:/.sync
       - /var/lib/backups:/var/lib/resilio-folders
+  plex:
+    volumes:
+      - /var/lib/plex:/config
