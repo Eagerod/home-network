@@ -94,7 +94,7 @@ $(DOCKER_CONTAINERS): $(ANY_CONTAINER_BUILD_DEPS)
 #   set it up with std_in available, so even if it's a bash command the
 #   container's running, it can still be attached to.
 .INTERMEDIATE: $(CONTAINER_DEBUG_FILES)
-PHONY: $(CONTAINER_DEBUG_TARGETS)
+.PHONY: $(CONTAINER_DEBUG_TARGETS)
 $(CONTAINER_DEBUG_TARGETS):
 	printf "version: '3'\nservices:\n  %s:\n    stdin_open: true\n" $$(basename $@) > "$$(basename $@)/debug.yml"
 	DOCKER_COMPOSE_EXTRAS="-f $$(basename $@)/debug.yml" $(MAKE) $$(basename $@)
