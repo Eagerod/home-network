@@ -3,6 +3,8 @@
 # This should be included in whatever Makefiles are written inside this project.
 # It was introduced to keep as many definitions consistent as possible.
 
+DOCKER_COMPOSE_PROJECT_NAME:=homenetwork
+
 # Try to go over different processes and attempt to avoid needing to ask the
 #   user for their password.
 ifeq ($(shell docker ps > /dev/null 2> /dev/null && echo "pass"),pass)
