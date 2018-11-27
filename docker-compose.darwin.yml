@@ -6,9 +6,6 @@ services:
   mongodb:
     volumes:
       - 'mongodb-data:/db/data'
-  unifi:
-    volumes:
-      - ~/Desktop/docker/unifi/data:/unifi/data
   mysql:
     volumes:
       - 'mysql-data:/var/lib/data'
