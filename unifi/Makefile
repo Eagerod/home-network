@@ -12,14 +12,15 @@ setup: initialize
 .PHONY: initialize
 initialize:
 	source .env && if [ ! -f "$${UNIFI_CONFIGURATION_PATH}" ]; then \
-	    echo >&2 "Failed to find UniFi backup at $${UNIFI_CONFIGURATION_PATH}."; \
-	    echo >&2 "Use 'make wizard' to configure a new controller."; \
-    else \
+		echo >&2 "Failed to find UniFi backup at $${UNIFI_CONFIGURATION_PATH}."; \
+		echo >&2 "Use 'make wizard' to configure a new controller."; \
+	else \
 		DOCKER_COMPOSE_EXTRAS='-f unifi/build.yml' $(MAKE) -C .. $(DOCKER_IMAGE_NAME); \
 		source .env && $(DOCKER) cp $${UNIFI_CONFIGURATION_PATH} $(RUNNING_CONTAINER_NAME):/backup.unf; \
 		$(DOCKER) exec -it $(RUNNING_CONTAINER_NAME) java -Xmx1024M -jar /usr/lib/unifi/lib/ace.jar restore /backup.unf; \
 		$(MAKE) kill; \
 	fi
+
 
 # If there's no configuration at all for this deployment, create a compose yml
 #   file that will let the user go through the wizard process to create their
