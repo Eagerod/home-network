@@ -39,10 +39,13 @@ services:
 
   unifi:
     build: unifi
+    env_file: unifi/compose.env
     hostname: unifi
     ports:
-      - "8084:8080"
       - "8443:8443"
+      - "8843:8843"
+      - "8084:8084"
+      - "8085:8081"
       - "8880:8880"
       - "6789:6789"
       - "3478:3478/udp"
