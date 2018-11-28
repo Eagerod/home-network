@@ -27,6 +27,49 @@ It includes docker images, or host-modifying make commands that will allow any m
 [//]: # ()
 [//]: # (- [ ] Something that should be fixed with the current configuration/usage of the service)
 
+# Volumes/Mounts
+
+This project involves keeping a lot of docker containers running, and ensuring that their contents are appropriately organized so that they can be backed up.
+The project currently doesn't have an especially functional method of managing volumes, or their backups, especially across containers or shares.
+See the todos for volumes and backups for a little more on that.
+
+In order for docker and network shares to behave nicely, and still follow some reasonable conventions, network shares are mounted to `/mnt` on the host machine, and symlinked to a more appropriate place on the host.
+They're then mounted to containers, usually in the same place as on the host.
+
+This system assumes there is a centralized storage server that all network shares are hosted from.
+Other options may be considered in the future if need be.
+
+## Network Shares
+
+Network shares are divided out into groupings of services.
+Individual directories within the mount points can be symlinked as needed.
+
+| Name          | Network Mount      | Mount Point      |
+| ============= | ================== | ================ |
+| Backups       | `/share/backups`   | `/mnt/backups`   |
+| Databases     | `/share/db`        | `/mnt/db`        |
+| Downloads     | `/share/downloads` | `/mnt/downloads` |
+| Other Storage | `/share/storage`   | `/mnt/storage`   |
+
+## Host Symlinks
+
+The host machines will add the symlinks they need to the directories within their mounts that they need to access resources.
+
+| Mount Path                      | Host Path                   | Description
+| =============================== | =========================== | =============
+| `/mnt/backups`                  | `/var/lib/backups`          | All backups from any containers.
+| `/mnt/db/mysql`                 | `/var/lib/mysql`            | MySQL storage.
+| `/mnt/db/mongodb`               | `/var/lib/mongodb`          | MongoDB storage.
+| `/mnt/downloads/oss`            | `/var/lib/downloads/oss`    | Open source software downloads.
+| `/mnt/storage/sharelatex`       | `/var/lib/sharelatex`       | ShareLaTeX files not included in DB.
+| `/mnt/storage/resliosync`       | `/var/lib/.sync`            | ReslioSync metadata.
+| `/mnt/storage/plex`             | `/var/lib/plex`             | Plex metadata.
+| `/mnt/storage/transmission-oss` | `/var/lib/transmission-oss` | Transmission metadata for open source software.
+| `/mnt/storage/git`              | `/var/lib/git`              | Git repositories.
+
+## Container Mounts
+
+
 # Major ToDos
 
 - [ ] Properly create users that can cross the VM boundary with OS X/Windows where possible. 
