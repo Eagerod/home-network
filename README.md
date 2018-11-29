@@ -1,5 +1,7 @@
 # Home network configuration templates
 
+**Note** In interest of brevity, where not otherwise explicitly stated, this readme should be read as though it strictly focuses on running on Linux.
+
 This repo holds configurations for my home network.
 It includes docker images, or host-modifying make commands that will allow any machine to be turned into a home network host without needing to configure much else.
 
@@ -68,6 +70,22 @@ The host machines will add the symlinks they need to the directories within thei
 | `/mnt/storage/git`              | `/var/lib/git`              | Git repositories.
 
 ## Container Mounts
+
+Each container may mount host paths wherever they need to.
+These are documented here so that they can be grokked easily.
+
+| Host Path                   | Container          | Container Path
+| =========================== | ================== | ==========================
+| `/var/lib/backups`          | `util`             | `/var/lib/backups`
+| `/var/lib/backups`          | `resilio-server`   | `/var/lib/resilio-folders`
+| `/var/lib/mysql`            | `mysql`            | `/var/lib/data`
+| `/var/lib/mongodb`          | `mongodb`          | `/data/db`
+| `/var/lib/downloads/oss`    | `transmission-oss` | `/var/lib/downloads`
+| `/var/lib/sharelatex`       | `sharelatex`       | `/var/lib/sharelatex`
+| `/var/lib/.sync`            | `resilio-sync`     | `/.sync`
+| `/var/lib/plex`             | `plex`             | `/config`
+| `/var/lib/transmission-oss` | `transmission-oss` | `/var/lib/transmission`
+| `/var/lib/git`              | `util`             | `/var/lib/git`
 
 
 # Major ToDos
