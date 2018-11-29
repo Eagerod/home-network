@@ -64,7 +64,7 @@ The host machines will add the symlinks they need to the directories within thei
 | `/mnt/db/mongodb`               | `/var/lib/mongodb`          | MongoDB storage.
 | `/mnt/downloads/oss`            | `/var/lib/downloads/oss`    | Open source software downloads.
 | `/mnt/storage/sharelatex`       | `/var/lib/sharelatex`       | ShareLaTeX files not included in DB.
-| `/mnt/storage/resliosync`       | `/var/lib/.sync`            | ReslioSync metadata.
+| `/mnt/storage/resliosync`       | `/var/lib/.sync`            | Reslio Sync metadata.
 | `/mnt/storage/plex`             | `/var/lib/plex`             | Plex metadata.
 | `/mnt/storage/transmission-oss` | `/var/lib/transmission-oss` | Transmission metadata for open source software.
 | `/mnt/storage/git`              | `/var/lib/git`              | Git repositories.
