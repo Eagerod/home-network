@@ -43,6 +43,8 @@ Other options may be considered in the future if need be.
 
 ## Network Shares
 
+This section applies 
+
 Network shares are divided out into groupings of services.
 Individual directories within the mount points can be symlinked as needed.
 
@@ -51,7 +53,7 @@ Individual directories within the mount points can be symlinked as needed.
 | Backups       | `/share/backups`   | `/mnt/backups`   |
 | Databases     | `/share/db`        | `/mnt/db`        |
 | Downloads     | `/share/downloads` | `/mnt/downloads` |
-| Other Storage | `/share/storage`   | `/mnt/storage`   |
+| Other Storage | `/share/appdata`   | `/mnt/appdata`   |
 
 ## Host Symlinks
 
@@ -59,15 +61,15 @@ The host machines will add the symlinks they need to the directories within thei
 
 | Mount Path                      | Host Path                   | Description
 | =============================== | =========================== | =============
+| `/mnt/appdata/git`              | `/var/lib/git`              | Git repositories.
+| `/mnt/appdata/plex`             | `/var/lib/plex`             | Plex metadata.
+| `/mnt/appdata/resliosync`       | `/var/lib/.sync`            | Reslio Sync metadata.
+| `/mnt/appdata/sharelatex`       | `/var/lib/sharelatex`       | ShareLaTeX files not included in DB.
+| `/mnt/appdata/transmission-oss` | `/var/lib/transmission-oss` | Transmission metadata for open source software.
 | `/mnt/backups`                  | `/var/lib/backups`          | All backups from any containers.
-| `/mnt/db/mysql`                 | `/var/lib/mysql`            | MySQL storage.
 | `/mnt/db/mongodb`               | `/var/lib/mongodb`          | MongoDB storage.
+| `/mnt/db/mysql`                 | `/var/lib/mysql`            | MySQL storage.
 | `/mnt/downloads/oss`            | `/var/lib/downloads/oss`    | Open source software downloads.
-| `/mnt/storage/sharelatex`       | `/var/lib/sharelatex`       | ShareLaTeX files not included in DB.
-| `/mnt/storage/resliosync`       | `/var/lib/.sync`            | Reslio Sync metadata.
-| `/mnt/storage/plex`             | `/var/lib/plex`             | Plex metadata.
-| `/mnt/storage/transmission-oss` | `/var/lib/transmission-oss` | Transmission metadata for open source software.
-| `/mnt/storage/git`              | `/var/lib/git`              | Git repositories.
 
 ## Container Mounts
 
@@ -76,16 +78,16 @@ These are documented here so that they can be grokked easily.
 
 | Host Path                   | Container          | Container Path
 | =========================== | ================== | ==========================
-| `/var/lib/backups`          | `util`             | `/var/lib/backups`
-| `/var/lib/backups`          | `resilio-server`   | `/var/lib/resilio-folders`
-| `/var/lib/mysql`            | `mysql`            | `/var/lib/data`
-| `/var/lib/mongodb`          | `mongodb`          | `/data/db`
-| `/var/lib/downloads/oss`    | `transmission-oss` | `/var/lib/downloads`
-| `/var/lib/sharelatex`       | `sharelatex`       | `/var/lib/sharelatex`
 | `/var/lib/.sync`            | `resilio-sync`     | `/.sync`
-| `/var/lib/plex`             | `plex`             | `/config`
-| `/var/lib/transmission-oss` | `transmission-oss` | `/var/lib/transmission`
+| `/var/lib/backups`          | `resilio-server`   | `/var/lib/resilio-folders`
+| `/var/lib/backups`          | `util`             | `/var/lib/backups`
+| `/var/lib/downloads/oss`    | `transmission-oss` | `/var/lib/downloads`
 | `/var/lib/git`              | `util`             | `/var/lib/git`
+| `/var/lib/mongodb`          | `mongodb`          | `/data/db`
+| `/var/lib/mysql`            | `mysql`            | `/var/lib/data`
+| `/var/lib/plex`             | `plex`             | `/config`
+| `/var/lib/sharelatex`       | `sharelatex`       | `/var/lib/sharelatex`
+| `/var/lib/transmission-oss` | `transmission-oss` | `/var/lib/transmission`
 
 
 # Major ToDos
