@@ -11,10 +11,8 @@ services:
       - '/var/lib/mysql:/var/lib/data'
   transmission-oss:
     volumes:
-      - '/var/lib/transmission-oss/downloads:/var/lib/transmission-daemon/downloads'
-      - '/var/lib/transmission-oss/watch:/var/lib/transmission-daemon/watch'
-      - '/var/lib/transmission-oss/info/resume:/var/lib/transmission-daemon/info/resume'
-      - '/var/lib/transmission-oss/info/torrents:/var/lib/transmission-daemon/info/torrents'
+      - '/var/lib/downloads/oss:/var/lib/transmission-daemon/downloads'
+      - '/var/lib/transmission-oss:/var/lib/transmission-daemon'
   util:
     volumes:
       - '/var/lib/backups:/var/lib/backups'

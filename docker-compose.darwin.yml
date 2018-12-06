@@ -11,10 +11,8 @@ services:
       - 'mysql-data:/var/lib/data'
   transmission-oss:
     volumes:
-      - ~/Desktop/docker/transmission/downloads:/var/lib/transmission-daemon/downloads
-      - ~/Desktop/docker/transmission/watch:/var/lib/transmission-daemon/watch
-      - ~/Desktop/docker/transmission/info/resume:/var/lib/transmission-daemon/info/resume
-      - ~/Desktop/docker/transmission/info/torrents:/var/lib/transmission-daemon/info/torrents
+      - ~/Desktop/docker/downloads:/var/lib/transmission-daemon/downloads
+      - ~/Desktop/docker/transmission-oss:/var/lib/transmission-daemon
   util:
     volumes:
       - '~/Desktop/docker/backups:/var/lib/backups'
