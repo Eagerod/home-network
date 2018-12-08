@@ -122,7 +122,7 @@ show-config: $(COMPOSE_ENVIRONMENT_FILES)
 
 .PHONY: env-templates
 env-templates:
-	$(foreach d,$(DOCKER_CONTAINERS),make -C $(d) env-template;)
+	$(foreach d,$(DOCKER_CONTAINERS),make -C $(d) .env;)
 
 
 .PHONY: kill
@@ -136,6 +136,7 @@ install:
 	else \
 		echo >&2 "The script is already installed"; \
 	fi
+
 
 .PHONY: clean
 clean:
