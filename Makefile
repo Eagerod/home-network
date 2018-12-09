@@ -13,7 +13,7 @@ PLATFORM_DOCKER_COMPOSE=$(DOCKER_COMPOSE) -p $(DOCKER_COMPOSE_PROJECT_NAME) -f $
 COMPOSE_ENVIRONMENT_FILES=$(foreach c,$(DOCKER_CONTAINERS),$(c)/compose.env)
 SETUP_FILES:=$(foreach c,$(DOCKER_CONTAINERS),$(c)/setup)
 COMPOSE_ARGUMENTS_FILES:=$(shell find . -iname ".args")
-SOURCE_BUILD_ARGS=source $(COMPOSE_ARGUMENTS_FILES)
+SOURCE_BUILD_ARGS=$(shell if [ -z "$(COMPOSE_ARGUMENTS_FILES)" ]; then echo true; else echo source $(COMPOSE_ARGUMENTS_FILES); fi)
 
 CONTAINER_DEBUG_TARGETS:=$(foreach c,$(DOCKER_CONTAINERS),debug/$(c))
 
@@ -122,7 +122,7 @@ show-config: $(COMPOSE_ENVIRONMENT_FILES)
 
 .PHONY: env-templates
 env-templates:
-	$(foreach d,$(DOCKER_CONTAINERS),make -C $(d) env-template;)
+	$(foreach d,$(DOCKER_CONTAINERS),make -C $(d) .env;)
 
 
 .PHONY: kill
@@ -136,6 +136,7 @@ install:
 	else \
 		echo >&2 "The script is already installed"; \
 	fi
+
 
 .PHONY: clean
 clean:

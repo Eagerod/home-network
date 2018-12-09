@@ -33,14 +33,14 @@ setup: test-environment
 	date -u '+%Y-%m-%dT%H:%M:%SZ' > setup
 
 
-.PHONY: env-template
-env-template:
-	if [ ! -f .env ]; then \
-		if [ "$(REQUIRED_ENV_VARS)" != "" ]; then \
-			touch .env; \
-			$(foreach e,$(REQUIRED_ENV_VARS),echo export $(e)= >> .env;) \
-		fi; \
-	fi
+# `touch` must be present to make this a valid shell script when no required
+#   environment variables exist, and a `.env` file doesn't exist either (the
+#   behaviour expected when there are no required environment variables) 
+.env:
+	@if [ "$(REQUIRED_ENV_VARS)" != "" ]; then \
+		touch $@; \
+		$(foreach e,$(REQUIRED_ENV_VARS),echo export $(e)= >> $@;) \
+	fi; \
 
 
 # Helper to verify that all required environment variables are configured in a
