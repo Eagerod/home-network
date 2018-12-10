@@ -53,16 +53,16 @@ setup: test-environment
 backup: check-cron-available $(BACKUP_CRON_LOCATION)
 
 
-$(BACKUP_CRON_LOCATION): backup.sh
-	@echo "$(CRON_SCHEDULE) root bash $(CONTAINER_ROOT_DIR)/backup.sh > $(BACKUP_CRON_STDOUT_LOG) 2> $(BACKUP_CRON_STDERR_LOG)" > $(BACKUP_CRON_LOCATION)
-
-
 .PHONY: check-cron-available
 check-cron-available:
 	@if ! test $(CRON_BASE_PATH); then \
 		echo >&2 "Failed to find CRON_BASE_PATH for this platform."; \
 		exit -1; \
 	fi
+
+
+$(BACKUP_CRON_LOCATION): backup.sh
+	@echo "$(CRON_SCHEDULE) root bash $(CONTAINER_ROOT_DIR)/backup.sh > $(BACKUP_CRON_STDOUT_LOG) 2> $(BACKUP_CRON_STDERR_LOG)" > $(BACKUP_CRON_LOCATION)
 
 
 # `touch` must be present to make this a valid shell script when no required
