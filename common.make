@@ -4,6 +4,7 @@
 # It was introduced to keep as many definitions consistent as possible.
 
 DOCKER_COMPOSE_PROJECT_NAME:=homenetwork
+LOGS_DIRECTORY:=/var/log/$(DOCKER_COMPOSE_PROJECT_NAME)
 
 # Try to go over different processes and attempt to avoid needing to ask the
 #   user for their password.
