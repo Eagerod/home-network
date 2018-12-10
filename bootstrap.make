@@ -17,7 +17,8 @@ BOOTSTRAP_TARGETS:=\
 	verify-root \
 	install-dependencies \
 	create-environment \
-	configure-ssh-server
+	configure-ssh-server \
+	create-plex-volumes
 
 PIHOLE_BOOTSTRAP_TARGETS:=$(BOOTSTRAP_TARGETS) disable-system-dns
 
@@ -83,3 +84,11 @@ configure-ssh-server:
 			echo "$${pubkey}" >> $(SSH_AUTHORIZED_KEYS); \
 		fi; \
 	done
+
+
+# The Plex server set up process requires that a `volumes.txt` exists so that
+#   a `plex-volumes.yml` can be created.
+create-plex-volumes:
+	if [ ! -f $(PROJECT_ROOT_DIRECTORY)/plex/volumes.txt ]; then \
+		echo "/dev/null /data/nothing" >> $(PROJECT_ROOT_DIRECTORY)/plex/volumes.txt; \
+	fi
