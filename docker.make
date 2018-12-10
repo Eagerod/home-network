@@ -40,7 +40,7 @@ setup: test-environment
 	@if [ "$(REQUIRED_ENV_VARS)" != "" ]; then \
 		touch $@; \
 		$(foreach e,$(REQUIRED_ENV_VARS),echo export $(e)= >> $@;) \
-	fi; \
+	fi
 
 
 # Helper to verify that all required environment variables are configured in a
