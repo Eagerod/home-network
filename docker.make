@@ -62,6 +62,7 @@ check-cron-available:
 
 
 $(BACKUP_CRON_LOCATION): backup.sh
+	@mkdir -p $(LOGS_DIRECTORY)
 	@echo "$(CRON_SCHEDULE) root bash $(CONTAINER_ROOT_DIR)/backup.sh > $(BACKUP_CRON_STDOUT_LOG) 2> $(BACKUP_CRON_STDERR_LOG)" > $(BACKUP_CRON_LOCATION)
 
 
