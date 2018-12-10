@@ -18,10 +18,12 @@ SOURCE_BUILD_ARGS=$(shell if [ -z "$(COMPOSE_ARGUMENTS_FILES)" ]; then echo true
 CONTAINER_DEBUG_TARGETS:=$(foreach c,$(DOCKER_CONTAINERS),debug/$(c))
 
 CRON_BASE_PATH:=/etc/cron.d
-INSTALLED_CRON_PATH:=$(CRON_BASE_PATH)/docker-home-network
+INSTALLED_CRON_PATH:=$(CRON_BASE_PATH)/$(DOCKER_COMPOSE_PROJECT_NAME)
 MYSQL_BACKUP_CRON_PATH:=$(CRON_BASE_PATH)/mysql-backup
 
-INSTALLED_CRON_LOG_BASE:=/var/log/docker-network-init
+LOGS_DIRECTORY:=/var/log/$(DOCKER_COMPOSE_PROJECT_NAME)
+INSTALLED_CRON_STDOUT_LOG:=$(LOGS_DIRECTORY)/startup.stdout.log
+INSTALLED_CRON_STDERR_LOG:=$(LOGS_DIRECTORY)/startup.stderr.log
 
 NGINX_REVERSE_PROXY_TEMPLATE_FILE:=nginx/reverse-proxy.template.conf
 NGINX_REVERSE_PROXY_FILE:=nginx/reverse-proxy.conf
@@ -129,13 +131,12 @@ env-templates:
 kill: compose-down
 
 
-.PHONY: install
-install:
-	@if ! sudo [ -f $(INSTALLED_CRON_PATH) ]; then \
-		sudo sh -c 'echo "@reboot root $(CURDIR)/startup.sh > $(INSTALLED_CRON_LOG_BASE).log 2> $(INSTALLED_CRON_LOG_BASE).error.log" > $(INSTALLED_CRON_PATH)'; \
-	else \
-		echo >&2 "The script is already installed"; \
-	fi
+install: $(INSTALLED_CRON_PATH)
+
+
+$(INSTALLED_CRON_PATH):
+	@mkdir -p $(LOGS_DIRECTORY)
+	@echo '@reboot root bash $(CURDIR)/startup.sh > $(INSTALLED_CRON_STDOUT_LOG) 2> $(INSTALLED_CRON_STDERR_LOG)' > $(INSTALLED_CRON_PATH)
 
 
 .PHONY: clean
@@ -144,6 +145,7 @@ clean:
 	$(DOCKER) image prune -f
 	rm -rf $(COMPOSE_ENVIRONMENT_FILES)
 	rm -rf $(SETUP_FILES)
+
 
 .PHONY: install-backups
 install-backups:
