@@ -8,8 +8,19 @@ SHELL=/bin/bash
 
 DOCKER_IMAGE_NAME:=$(shell basename $(CURDIR))
 
+# Paths needed for setting up crons.
+PROJECT_ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+CONTAINER_ROOT_DIR=$(PROJECT_ROOT_DIR)/$(DOCKER_IMAGE_NAME)
+
 DOCKER_COMPOSE_IMAGE_NAME:=$(DOCKER_COMPOSE_PROJECT_NAME)_$(DOCKER_IMAGE_NAME)
 RUNNING_CONTAINER_NAME=$$($(DOCKER) ps --filter name=$(DOCKER_COMPOSE_IMAGE_NAME) -q)
+
+# Variables provided to make creating backups easy for each service.
+BACKUP_CRON_LOCATION:=$(CRON_BASE_PATH)/$(DOCKER_COMPOSE_PROJECT_NAME)-$(DOCKER_IMAGE_NAME)
+BACKUP_CRON_STDOUT_LOG:=$(LOGS_DIRECTORY)/$(DOCKER_IMAGE_NAME).stdout.log
+BACKUP_CRON_STDERR_LOG:=$(LOGS_DIRECTORY)/$(DOCKER_IMAGE_NAME).stderr.log
+
+CRON_SCHEDULE:=@daily
 
 REQUIRED_ENV_VARS:=
 
@@ -31,6 +42,27 @@ logs:
 #   the setup target to add in functionality needed to configure themselves.
 setup: test-environment
 	date -u '+%Y-%m-%dT%H:%M:%SZ' > setup
+
+
+# The backup target is meant to give each service a way of backing up whatever
+#   content it generates.
+# The only things an individual service/container needs to provide are:
+#   - A `backup.sh` script that will be executed with root permissions.
+#   - Overwrite the `CRON_SCHEDULE` if daily backups are undesirable. 
+.PHONY: backup
+backup: check-cron-available $(BACKUP_CRON_LOCATION)
+
+
+$(BACKUP_CRON_LOCATION): backup.sh
+	@echo "$(CRON_SCHEDULE) root bash $(CONTAINER_ROOT_DIR)/backup.sh > $(BACKUP_CRON_STDOUT_LOG) 2> $(BACKUP_CRON_STDERR_LOG)" > $(BACKUP_CRON_LOCATION)
+
+
+.PHONY: check-cron-available
+check-cron-available:
+	@if ! test $(CRON_BASE_PATH); then \
+		echo >&2 "Failed to find CRON_BASE_PATH for this platform."; \
+		exit -1; \
+	fi
 
 
 # `touch` must be present to make this a valid shell script when no required
