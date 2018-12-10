@@ -131,6 +131,7 @@ env-templates:
 kill: compose-down
 
 
+.PHONY: install
 install: $(INSTALLED_CRON_PATH)
 
 
