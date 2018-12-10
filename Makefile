@@ -135,7 +135,8 @@ install: $(INSTALLED_CRON_PATH)
 
 
 $(INSTALLED_CRON_PATH):
-	echo '@reboot root bash $(CURDIR)/startup.sh > $(INSTALLED_CRON_STDOUT_LOG) 2> $(INSTALLED_CRON_STDERR_LOG)' > $(INSTALLED_CRON_PATH)
+	@mkdir -p $(LOGS_DIRECTORY)
+	@echo '@reboot root bash $(CURDIR)/startup.sh > $(INSTALLED_CRON_STDOUT_LOG) 2> $(INSTALLED_CRON_STDERR_LOG)' > $(INSTALLED_CRON_PATH)
 
 
 .PHONY: clean
