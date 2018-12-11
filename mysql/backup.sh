@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+#
+# Simple script that runs mysqldump sequentially over all MySQL databases and
+#   tables, writing them to a backup directory.
 
 set -e
 
