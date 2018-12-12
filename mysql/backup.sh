@@ -6,7 +6,7 @@
 set -e
 
 script_dir=$(dirname $0)
-container_backup_dir="/var/lib/backup"
+container_backup_dir=/var/lib/backup
 
 source "$script_dir/.env"
 
