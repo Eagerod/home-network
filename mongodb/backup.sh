@@ -8,4 +8,4 @@ set -e
 script_dir=$(dirname $0)
 container_backup_dir=/var/lib/backup
 
-docker exec -u root -it $(docker ps -q --filter name=mongodb) mongodump -o $container_backup_dir
+docker exec -u root $(docker ps -q --filter name=mongodb) mongodump -o $container_backup_dir
