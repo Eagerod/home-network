@@ -17,11 +17,8 @@ SOURCE_BUILD_ARGS=$(shell if [ -z "$(COMPOSE_ARGUMENTS_FILES)" ]; then echo true
 
 CONTAINER_DEBUG_TARGETS:=$(foreach c,$(DOCKER_CONTAINERS),debug/$(c))
 
-CRON_BASE_PATH:=/etc/cron.d
 INSTALLED_CRON_PATH:=$(CRON_BASE_PATH)/$(DOCKER_COMPOSE_PROJECT_NAME)
-MYSQL_BACKUP_CRON_PATH:=$(CRON_BASE_PATH)/mysql-backup
 
-LOGS_DIRECTORY:=/var/log/$(DOCKER_COMPOSE_PROJECT_NAME)
 INSTALLED_CRON_STDOUT_LOG:=$(LOGS_DIRECTORY)/startup.stdout.log
 INSTALLED_CRON_STDERR_LOG:=$(LOGS_DIRECTORY)/startup.stderr.log
 
@@ -148,14 +145,11 @@ clean:
 	rm -rf $(SETUP_FILES)
 
 
-.PHONY: install-backups
-install-backups:
-	mkdir -p /var/lib/backups/mysql
-	@if ! sudo [ -f $(MYSQL_BACKUP_CRON_PATH) ]; then \
-		sudo sh -c 'echo "@hourly root rsync -ahuDH /var/lib/mysql/ /var/lib/backups/mysql" > $(MYSQL_BACKUP_CRON_PATH)' ; \
-	else \
-		echo >&2 "The MySQL backup script is already installed"; \
-	fi
+.PHONY: backups
+backups:
+	@find . -maxdepth 2 -iname "backup.sh" -exec dirname {} \; | while read bak; do \
+		make -C $${bak} backup; \
+	done
 
 
 # Helper to create a new skeleton application template.

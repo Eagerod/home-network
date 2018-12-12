@@ -9,6 +9,7 @@ services:
   mysql:
     volumes:
       - 'mysql-data:/var/lib/data'
+      - '~/Desktop/docker/backups/mysql:/var/lib/backup'
   transmission-oss:
     volumes:
       - ~/Desktop/docker/transmission/downloads:/var/lib/transmission-daemon/downloads
