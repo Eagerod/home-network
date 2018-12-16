@@ -14,6 +14,8 @@ endif
 MYSQL_DAEMON:=/usr/sbin/mysqld
 MYSQL_CLIENT:=/usr/bin/mysql
 
+CRON_SCHEDULE:=@hourly
+
 
 setup: initialize env-password
 

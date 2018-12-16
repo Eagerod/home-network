@@ -9,6 +9,7 @@ services:
   mysql:
     volumes:
       - '/var/lib/mysql:/var/lib/data'
+      - '/var/lib/backups/mysql:/var/lib/backup'
   transmission-oss:
     volumes:
       - '/var/lib/downloads/oss:/var/lib/transmission-daemon/downloads'
