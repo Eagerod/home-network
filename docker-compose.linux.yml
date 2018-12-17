@@ -12,7 +12,7 @@ services:
       - '/var/lib/backups/mysql:/var/lib/backup'
   transmission-oss:
     volumes:
-      - '/var/lib/downloads/oss:/var/lib/transmission-daemon/downloads'
+      - '/var/lib/downloads/oss:/var/lib/downloads'
       - '/var/lib/transmission-oss:/var/lib/transmission-daemon'
   util:
     volumes:

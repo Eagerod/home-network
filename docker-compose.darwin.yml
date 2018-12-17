@@ -12,8 +12,8 @@ services:
       - '~/Desktop/docker/backups/mysql:/var/lib/backup'
   transmission-oss:
     volumes:
-      - ~/Desktop/docker/downloads:/var/lib/transmission-daemon/downloads
-      - ~/Desktop/docker/transmission-oss:/var/lib/transmission-daemon
+      - '~/Desktop/docker/downloads/oss:/var/lib/downloads'
+      - '~/Desktop/docker/transmission-oss:/var/lib/transmission-daemon'
   util:
     volumes:
       - '~/Desktop/docker/backups:/var/lib/backups'
