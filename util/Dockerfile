@@ -1,12 +1,12 @@
-FROM ubuntu:16.04
+FROM ncfgbase
 
-ENV TERM dummy
-ENV DEBIAN_FRONTEND noninteractive
-
-RUN apt-get update
-RUN apt-get upgrade -y
-
-RUN apt-get install -y openssh-server
+# Install all the primary applications to be used/made available on the util
+#   server.
+RUN \
+	apt-get update -y && \
+	apt-get install -y \
+		openssh-server \
+		python-pip
 
 # Privilege separation directory needed by SSH.
 RUN mkdir /var/run/sshd
@@ -18,19 +18,23 @@ RUN sed -i -r 's/^[#\s]*(PermitRootLogin).*$/\1 prohibit-password/' /etc/ssh/ssh
 #   but appears to not be needed, kept around in case it needs to be used
 # RUN sed -i -r 's/(session\s*)required(\s*pam_loginuid.so)/\1optional\2/g' /etc/pam.d/sshd
 
-RUN apt-get install -y \
-	curl \
-	unzip \
-	golang-go \
-	cmake \
-	git
-RUN curl https://aleem.haji.ca/blob/clientlib/installer.sh | bash
+# Install dependencies needed for installing the blob client.
+RUN \
+    apt-get update -y && \
+    apt-get install -y \
+        golang-go \
+        cmake \
+        git
+RUN curl -sfSL https://aleem.haji.ca/blob/clientlib/installer.sh | bash
+
+RUN python -m pip install PyYAML
 
 COPY ./authorized_keys /root/.ssh/authorized_keys
 RUN chmod 700 /root/.ssh
 RUN chmod 500 /root/.ssh/authorized_keys
 
-COPY ./app/* /usr/sbin/
+COPY ./app/mr /usr/sbin/mr
+RUN chmod 755 /usr/sbin/mr
 
 ARG DEFAULT_BLOBSTORE_WRITE_ACL
 ARG DEFAULT_BLOBSTORE_READ_ACL
@@ -44,5 +48,4 @@ RUN sed -i -r "s#(MULTI_REDDIT_SAVED_LOCATION=).*#\1$MULTI_REDDIT_SAVED_LOCATION
 
 EXPOSE 22
 
-CMD ["/usr/sbin/sshd", "-D"]
-
+CMD ["/usr/sbin/sshd", "-D", "-e"]

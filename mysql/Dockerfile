@@ -1,12 +1,11 @@
-FROM ubuntu:16.04
+FROM ncfgbase
 
-ENV TERM dummy
-ENV DEBIAN_FRONTEND noninteractive
+RUN groupadd --system --gid <gid> mysql
+RUN useradd --system --gid <gid> --uid <uid> mysql
 
-RUN apt-get update
-RUN apt-get upgrade -y
-
-RUN apt-get install -y mysql-server
+RUN \
+	apt-get update -y && \
+	apt-get install -y mysql-server
 
 RUN mkdir /var/run/mysqld
 RUN chown mysql:mysql /var/run/mysqld
@@ -19,4 +18,3 @@ RUN chown mysql:mysql /var/lib/mysqld.pid
 USER mysql
 
 CMD  ["/usr/sbin/mysqld", "--datadir=/var/lib/data", "--pid-file=/var/lib/mysqld.pid", "--bind-address=0.0.0.0"]
-
