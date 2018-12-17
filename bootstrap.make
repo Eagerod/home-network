@@ -57,15 +57,15 @@ create-environment:
 		git clone https://github.com/eagerod/home-network; \
 	fi
 	
-	$(MAKE) -C $(PROJECT_ROOT_DIRECTORY) env-templates;
+	@$(MAKE) -C $(PROJECT_ROOT_DIRECTORY) env-templates;
 
 
 # Only disable system DNS if this machine will be hosting the pihole. If it's
 #   not, keep system DNS enabled, or the machine will fail to resolve any DNS
 #   lookups
 disable-system-dns:
-	systemctl disable systemd-resolved.service
-	systemctl stop systemd-resolved
+	@systemctl disable systemd-resolved.service
+	@systemctl stop systemd-resolved
 
 
 configure-ssh-server:
@@ -89,6 +89,6 @@ configure-ssh-server:
 # The Plex server set up process requires that a `volumes.txt` exists so that
 #   a `plex-volumes.yml` can be created.
 create-plex-volumes:
-	if [ ! -f $(PROJECT_ROOT_DIRECTORY)/plex/volumes.txt ]; then \
+	@if [ ! -f $(PROJECT_ROOT_DIRECTORY)/plex/volumes.txt ]; then \
 		echo "/dev/null /data/nothing" >> $(PROJECT_ROOT_DIRECTORY)/plex/volumes.txt; \
 	fi
