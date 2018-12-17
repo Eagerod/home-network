@@ -5,8 +5,13 @@ if [ $EUID -ne 0 ]; then
     exit -1
 fi
 
-while ! docker ps; do
+echo >&2 "Waiting for Docker daemon to start..."
+
+while ! docker ps > /dev/null; do
+    echo >&2 "Docker daemon not ready yet. Sleeping for 5 seconds..."
     sleep 5;
 done
+
+echo >&2 "Docker daemon started. Bringing up services."
 
 make -C $(dirname $0)
