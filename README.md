@@ -37,24 +37,24 @@ The project currently doesn't have an especially functional method of managing v
 See the todos for volumes and backups for a little more on that.
 
 In order for docker and network shares to behave nicely, and still follow some reasonable conventions, network shares are mounted to `/mnt` on the host machine, and symlinked to a more appropriate place on the host.
-They're then mounted to containers, usually in the same place as on the host.
+They're then mounted to containers, sometimes in the same place as on the host, sometimes at other paths, when that's more convenient.
 
 This system assumes there is a centralized storage server that all network shares are hosted from.
 Other options may be considered in the future if need be.
 
 ## Network Shares
 
-This section applies 
-
 Network shares are divided out into groupings of services.
 Individual directories within the mount points can be symlinked as needed.
 
-| Name          | Network Mount      | Mount Point      |
-| ============= | ================== | ================ |
-| Backups       | `/share/backups`   | `/mnt/backups`   |
-| Databases     | `/share/db`        | `/mnt/db`        |
-| Downloads     | `/share/downloads` | `/mnt/downloads` |
-| Other Storage | `/share/appdata`   | `/mnt/appdata`   |
+| Network Mount      | Mount Point      | Description
+| ================== | ================ | =============
+| `/share/appdata`   | `/mnt/appdata`   | Backups
+| `/share/backups`   | `/mnt/backups`   | Databases
+| `/share/db`        | `/mnt/db`        | Downloads
+| `/share/downloads` | `/mnt/downloads` | Other Storage
+
+**Note:** On deployments where everything is local to a single host machine, this section doesn't apply.
 
 ## Host Symlinks
 
@@ -64,13 +64,15 @@ The host machines will add the symlinks they need to the directories within thei
 | =============================== | =========================== | =============
 | `/mnt/appdata/git`              | `/var/lib/git`              | Git repositories.
 | `/mnt/appdata/plex`             | `/var/lib/plex`             | Plex metadata.
-| `/mnt/appdata/resliosync`       | `/var/lib/.sync`            | Reslio Sync metadata.
+| `/mnt/appdata/resilio-sync`     | `/var/lib/.sync`            | Reslio Sync metadata.
 | `/mnt/appdata/sharelatex`       | `/var/lib/sharelatex`       | ShareLaTeX files not included in DB.
 | `/mnt/appdata/transmission-oss` | `/var/lib/transmission-oss` | Transmission metadata for open source software.
 | `/mnt/backups`                  | `/var/lib/backups`          | All backups from any containers.
 | `/mnt/db/mongodb`               | `/var/lib/mongodb`          | MongoDB storage.
 | `/mnt/db/mysql`                 | `/var/lib/mysql`            | MySQL storage.
 | `/mnt/downloads/oss`            | `/var/lib/downloads/oss`    | Open source software downloads.
+
+**Note:** On deployments where everything is local to a single host machine, this section doesn't apply.
 
 ## Container Mounts
 
@@ -88,7 +90,7 @@ These are documented here so that they can be grokked easily.
 | `/var/lib/mysql`            | `mysql`            | `/var/lib/data`
 | `/var/lib/plex`             | `plex`             | `/config`
 | `/var/lib/sharelatex`       | `sharelatex`       | `/var/lib/sharelatex`
-| `/var/lib/transmission-oss` | `transmission-oss` | `/var/lib/transmission`
+| `/var/lib/transmission-oss` | `transmission-oss` | `/var/lib/transmission-daemon`
 
 
 # Major ToDos

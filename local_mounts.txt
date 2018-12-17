@@ -2,7 +2,7 @@
 /mnt/appdata/resilio-sync /var/lib/.sync
 /mnt/appdata/plex /var/lib/plex
 /mnt/appdata/transmission-oss /var/lib/transmission-oss
-/mnt/appdata/git /var/lib/repositories
+/mnt/appdata/git /var/lib/git
 /mnt/backups /var/lib/backups
 /mnt/db/mysql /var/lib/mysql
 /mnt/db/mongodb /var/lib/mongodb
