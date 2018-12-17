@@ -1,6 +1,11 @@
 FROM ncfgbase
 
-RUN apt-get install -y mysql-server
+RUN groupadd --system --gid <gid> mysql
+RUN useradd --system --gid <gid> --uid <uid> mysql
+
+RUN \
+	apt-get update -y && \
+	apt-get install -y mysql-server
 
 RUN mkdir /var/run/mysqld
 RUN chown mysql:mysql /var/run/mysqld
@@ -13,4 +18,3 @@ RUN chown mysql:mysql /var/lib/mysqld.pid
 USER mysql
 
 CMD  ["/usr/sbin/mysqld", "--datadir=/var/lib/data", "--pid-file=/var/lib/mysqld.pid", "--bind-address=0.0.0.0"]
-

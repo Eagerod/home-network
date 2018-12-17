@@ -1,0 +1,5 @@
+root_dir: 
+repositories:
+  - title: Repository Manager
+    name: repositories
+    desc: A listing of repository definitions that should exist on the host where this file is found.

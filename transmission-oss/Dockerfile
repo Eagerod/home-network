@@ -1,13 +1,16 @@
 FROM ncfgbase
 
-RUN apt-get install -y software-properties-common
-RUN add-apt-repository ppa:transmissionbt/ppa
-RUN apt-get update
+RUN \
+	apt-get update -y && \
+	apt-get install -y software-properties-common && \
+	add-apt-repository ppa:transmissionbt/ppa
 
-RUN apt-get install -y \
-	transmission-common \
-	transmission-daemon \
-	transmission-cli
+RUN \
+	apt-get update -y && \
+	apt-get install -y \
+		transmission-common \
+		transmission-daemon \
+		transmission-cli
 
 COPY ./settings.json /var/lib/transmission-daemon/info/settings.json
 
