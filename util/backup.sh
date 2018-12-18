@@ -7,6 +7,7 @@ set -e
 
 script_dir=$(dirname $0)
 git_repositories_dir=/var/lib/git
+git_backup_dir=/var/lib/backups/git
 
 echo >&2 "Starting traversal through repositories directory."
 
@@ -27,3 +28,5 @@ find "$git_repositories_dir" -type d -mindepth 1 -maxdepth 1 -print | while read
 done
 
 echo >&2 "Completed traversal."
+
+rsync -ahuDH --delete --exclude=.sync "${git_repositories_dir}/" "${git_backup_dir}"
