@@ -28,6 +28,9 @@ HOST_SSH_KEY_PATH:=$(HOST_SSH_DIR)/util-server
 HOST_SSH_KEY_COMMENT:=ca.haji.aleem.util/host
 
 
+CRON_SCHEDULE=@hourly
+
+
 setup: initialize
 
 # Create an ssh key for the host machine that the container will accept

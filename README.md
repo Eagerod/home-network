@@ -102,3 +102,4 @@ These are documented here so that they can be grokked easily.
 - [ ] Get health checks set up on the containers where a health check makes sense (probably all of them.)
 - [ ] Figure out a more sustainable way of managing backups/crons.
 - [ ] Volume mounting logic may be a little platform specific and needs help.
+- [ ] Better way of managing passwords and environments that aren't secret. Right now they're managed through `.env` files, and recovering them tends to be a difficult process, and many environments aren't secret, so keeping them easily documented would be nice.
