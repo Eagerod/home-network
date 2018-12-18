@@ -5,4 +5,4 @@
 
 set -e
 
-rsync -ahuDH --delete --exclude=.sync /var/lib/sharelatex/ /var/lib/backups/sharelatex
+rsync -avhuDH --delete --exclude=.sync /var/lib/sharelatex/ /var/lib/backups/sharelatex

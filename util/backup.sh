@@ -29,4 +29,4 @@ done
 
 echo >&2 "Completed traversal."
 
-rsync -ahuDH --delete --exclude=.sync "${git_repositories_dir}/" "${git_backup_dir}"
+rsync -avhuDH --delete --exclude=.sync "${git_repositories_dir}/" "${git_backup_dir}"
