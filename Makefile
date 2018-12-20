@@ -109,6 +109,7 @@ $(COMPOSE_ENVIRONMENT_FILES):
 
 
 # Helper to create all compose environment files.
+.PHONY: env
 env: $(COMPOSE_ENVIRONMENT_FILES)
 
 
