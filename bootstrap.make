@@ -13,7 +13,6 @@ ROOT_HOME=$(shell echo ~root)
 SSH_DIR:=$(ROOT_HOME)/.ssh
 SSH_AUTHORIZED_KEYS:=$(SSH_DIR)/authorized_keys
 FSTAB=/etc/fstab
-FSTAB=~/Desktop/fstab
 
 BOOTSTRAP_TARGETS:=\
 	verify-platform \
