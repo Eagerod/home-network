@@ -230,3 +230,12 @@ search-env:
 			exit -1; \
 		fi \
 	done
+
+# Target added specifically for linux to disable system dns once the pi-hole
+#   tries to bind to port 53. DNS is needed right up until that point, since
+#   everything before then does require looking up/building containers.
+.PHONY: disable-system-dns
+disable-system-dns:
+	@systemctl disable systemd-resolved.service
+	@systemctl stop systemd-resolved
+

@@ -21,14 +21,10 @@ BOOTSTRAP_TARGETS:=\
 	configure-ssh-server \
 	create-plex-volumes
 
-PIHOLE_BOOTSTRAP_TARGETS:=$(BOOTSTRAP_TARGETS) disable-system-dns
 
-
-.PHONY: $(PIHOLE_BOOTSTRAP_TARGETS)
+.PHONY: $(BOOTSTRAP_TARGETS)
 
 all: $(BOOTSTRAP_TARGETS)
-
-all-pihole: $(PIHOLE_BOOTSTRAP_TARGETS)
 
 
 # Bootstrap is currently only set up to work using apt-get, so if this isn't a
@@ -40,7 +36,8 @@ verify-platform:
 	fi
 
 
-# The full bootstrap requires restarting and disabling system services.
+# The full bootstrap requires installing packages and restarting/disabling
+#   system services.
 # Require root privileges to progress. 
 verify-root:
 	@if [ $${EUID} != 0 ]; then \
@@ -68,14 +65,6 @@ create-environment:
 	fi
 	
 	@$(MAKE) -C $(PROJECT_ROOT_DIRECTORY) env-templates;
-
-
-# Only disable system DNS if this machine will be hosting the pihole. If it's
-#   not, keep system DNS enabled, or the machine will fail to resolve any DNS
-#   lookups
-disable-system-dns:
-	@systemctl disable systemd-resolved.service
-	@systemctl stop systemd-resolved
 
 
 configure-ssh-server:
