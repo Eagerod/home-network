@@ -14,6 +14,7 @@ SSH_DIR:=$(ROOT_HOME)/.ssh
 SSH_AUTHORIZED_KEYS:=$(SSH_DIR)/authorized_keys
 
 BOOTSTRAP_TARGETS:=\
+	verify-platform \
 	verify-root \
 	install-dependencies \
 	create-environment \
@@ -28,6 +29,15 @@ PIHOLE_BOOTSTRAP_TARGETS:=$(BOOTSTRAP_TARGETS) disable-system-dns
 all: $(BOOTSTRAP_TARGETS)
 
 all-pihole: $(PIHOLE_BOOTSTRAP_TARGETS)
+
+
+# Bootstrap is currently only set up to work using apt-get, so if this isn't a
+#   linux machine, we're going to have a bad time.
+verify-platform:
+	@if [ "$$(uname)" != "Linux" ]; then \
+		echo >&2 "Bootstrap being run on a $$(uname) machine. Cannot continue."; \
+		exit -1; \
+	fi
 
 
 # The full bootstrap requires restarting and disabling system services.
