@@ -48,7 +48,7 @@ Network shares are divided out into groupings of services.
 Individual directories within the mount points can be symlinked as needed.
 
 | Network Mount      | Mount Point      | Description
-| ================== | ================ | =============
+| ------------------ | ---------------- | -------------
 | `/share/appdata`   | `/mnt/appdata`   | Backups
 | `/share/backups`   | `/mnt/backups`   | Databases
 | `/share/db`        | `/mnt/db`        | Downloads
@@ -61,7 +61,7 @@ Individual directories within the mount points can be symlinked as needed.
 The host machines will add the symlinks they need to the directories within their mounts that they need to access resources.
 
 | Mount Path                      | Host Path                   | Description
-| =============================== | =========================== | =============
+| ------------------------------- | --------------------------- | -------------
 | `/mnt/appdata/git`              | `/var/lib/git`              | Git repositories.
 | `/mnt/appdata/plex`             | `/var/lib/plex`             | Plex metadata.
 | `/mnt/appdata/resilio-sync`     | `/var/lib/.sync`            | Reslio Sync metadata.
@@ -80,7 +80,7 @@ Each container may mount host paths wherever they need to.
 These are documented here so that they can be grokked easily.
 
 | Host Path                   | Container          | Container Path
-| =========================== | ================== | ==========================
+| --------------------------- | ------------------ | --------------------------
 | `/var/lib/.sync`            | `resilio-sync`     | `/.sync`
 | `/var/lib/backups`          | `resilio-server`   | `/var/lib/resilio-folders`
 | `/var/lib/backups`          | `util`             | `/var/lib/backups`
