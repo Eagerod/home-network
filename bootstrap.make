@@ -12,6 +12,8 @@ SSHD_CONFIG:=/etc/ssh/sshd_config
 ROOT_HOME=$(shell echo ~root)
 SSH_DIR:=$(ROOT_HOME)/.ssh
 SSH_AUTHORIZED_KEYS:=$(SSH_DIR)/authorized_keys
+FSTAB=/etc/fstab
+FSTAB=~/Desktop/fstab
 
 BOOTSTRAP_TARGETS:=\
 	verify-platform \
@@ -96,24 +98,24 @@ configure-network-shares:
 		exit 1; \
 	fi
 	
-	@cat $(PROJECT_ROOT_DIRECTORY)/nfs_volumes.txt | while read share; do \
+	@set -e && cat $(PROJECT_ROOT_DIRECTORY)/nfs_volumes.txt | while read share; do \
 		remote=$$(echo $${share} | cut -d' ' -f1); \
 		local=$$(echo $${share} | cut -d' ' -f2); \
-		if grep -q "$${NFS_HOST}:$${remote}" /etc/fstab; then \
+		if grep -q "$${NFS_HOST}:$${remote}" $(FSTAB) 2> /dev/null; then \
 			continue; \
 		fi; \
 		mkdir -p $${local}; \
-		remote=$${NFS_HOST}:$${remote} local=$${local} sh -c 'echo "$${remote} $${local} nfs rsize=8192,wsize=8192,timeo=14,intr 0 0" >> /etc/fstab'; \
+		echo "$${NFS_HOST}:$${remote} $${local} nfs rsize=8192,wsize=8192,timeo=14,intr 0 0" >> $(FSTAB); \
 	done
 	
-	@sudo mount -a
+	@mount -a
 	
 
 # If the destination path already exists, don't try to link again. If the 
 #   destination path exists, and it's a directory, this would just add a 
 #   symlink into the directory containing itself, which isn't very clean.
 configure-local-symlinks:
-	@cat $(PROJECT_ROOT_DIRECTORY)/local_mounts.txt | while read localmount; do \
+	@set -e && cat $(PROJECT_ROOT_DIRECTORY)/local_mounts.txt | while read localmount; do \
 		mount=$$(echo $${localmount} | cut -d' ' -f1); \
 		path=$$(echo $${localmount} | cut -d' ' -f2); \
 		if [ ! -d $${path} ]; then \
