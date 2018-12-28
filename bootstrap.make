@@ -12,6 +12,7 @@ SSHD_CONFIG:=/etc/ssh/sshd_config
 ROOT_HOME=$(shell echo ~root)
 SSH_DIR:=$(ROOT_HOME)/.ssh
 SSH_AUTHORIZED_KEYS:=$(SSH_DIR)/authorized_keys
+FSTAB=/etc/fstab
 
 BOOTSTRAP_TARGETS:=\
 	verify-platform \
@@ -19,6 +20,8 @@ BOOTSTRAP_TARGETS:=\
 	install-dependencies \
 	create-environment \
 	configure-ssh-server \
+	configure-network-shares \
+	configure-local-symlinks \
 	create-plex-volumes
 
 
@@ -52,7 +55,8 @@ install-dependencies:
 		docker.io \
 		docker-compose \
 		git \
-		openssh-server
+		openssh-server \
+		nfs-common
 
 
 # Check if this directory is the directory that the git repo lives in, and if
@@ -81,6 +85,45 @@ configure-ssh-server:
 	@cat $(PROJECT_ROOT_DIRECTORY)/util-servers.pub | while read pubkey; do \
 		if ! grep -q "$${pubkey}" $(SSH_AUTHORIZED_KEYS); then \
 			echo "$${pubkey}" >> $(SSH_AUTHORIZED_KEYS); \
+		fi; \
+	done
+
+
+# Make sure /etc/fstab supplies the correct mounts, and attempt to remount
+#   everything that isn't yet mounted.
+configure-network-shares:
+	@if [ -z "$${NFS_HOST}" ]; then \
+		echo >&2 "Must include an NFS_HOST to set up mounts"; \
+		exit 1; \
+	fi
+	
+	@set -e && cat $(PROJECT_ROOT_DIRECTORY)/nfs_volumes.txt | while read share; do \
+		remote=$$(echo $${share} | cut -d' ' -f1); \
+		local=$$(echo $${share} | cut -d' ' -f2); \
+		if grep -q "$${NFS_HOST}:$${remote}" $(FSTAB) 2> /dev/null; then \
+			continue; \
+		fi; \
+		mkdir -p $${local}; \
+		echo "$${NFS_HOST}:$${remote} $${local} nfs rsize=8192,wsize=8192,timeo=14,intr 0 0" >> $(FSTAB); \
+	done
+	
+	@mount -a
+	
+
+# If the destination path already exists, don't try to link again. If the 
+#   destination path exists, and it's a directory, this would just add a 
+#   symlink into the directory containing itself, which isn't very clean.
+configure-local-symlinks:
+	@set -e && cat $(PROJECT_ROOT_DIRECTORY)/local_mounts.txt | while read localmount; do \
+		mount=$$(echo $${localmount} | cut -d' ' -f1); \
+		path=$$(echo $${localmount} | cut -d' ' -f2); \
+		if [ ! -d $${path} ]; then \
+			mkdir -p $${mount}; \
+			mkdir -p $$(dirname $${path}); \
+			ln -s $${mount} $${path}; \
+		elif [ "$$(readlink $${path})" != "$${mount}" ]; then \
+			echo "$${path} is poorly configured, and may already contain data."; \
+			exit -1; \
 		fi; \
 	done
 
