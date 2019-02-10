@@ -28,3 +28,6 @@ services:
   plex:
     volumes:
       - /var/lib/plex:/config
+  trilium:
+    volumes:
+      - /var/lib/trilium:/var/lib/trilium

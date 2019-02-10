@@ -28,6 +28,9 @@ services:
   plex:
     volumes:
       - plex-config:/config
+  trilium:
+    volumes:
+      - D:/DockerTrilium:/var/lib/trilium
 
 volumes:
   sharelatex-data:

@@ -26,4 +26,6 @@ RUN rm -r node_modules/electron* && \
     rm -r node_modules/sqlite3/lib/binding/* && \
     cp -r bin/deps/linux-x64/sqlite/node* node_modules/sqlite3/lib/binding/
 
+ENV TRILIUM_DATA_DIR /var/lib/trilium/
+
 CMD ["node", "src/www"]
