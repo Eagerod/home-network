@@ -106,6 +106,12 @@ services:
     ports:
       - 8888:8888
 
+  trilium:
+    build: trilium
+    hostname: trilium
+    ports:
+      - 8083:8080
+
   plex:
     build: plex
     environment:
