@@ -7,9 +7,6 @@ RUN \
     apt-get install -y \
         nodejs
 
-# Installation process expects a `node` executable on the system path
-# RUN ln -s $(which nodejs) /usr/bin/node
-
 ENV TRILIUM_VER 0.28.3
 RUN \
     curl -sSL https://github.com/zadam/trilium/archive/v${TRILIUM_VER}.zip -o trilium.zip && \
