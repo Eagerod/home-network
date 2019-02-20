@@ -9,15 +9,15 @@ services:
   mongodb:
     volumes:
       - 'mongodb-data:/db/data'
+      - '~/Desktop/docker/backups/mongodb:/var/lib/backup'
   mysql:
     volumes:
       - 'mysql-data:/var/lib/data'
+      - '~/Desktop/docker/backups/mysql:/var/lib/backup'
   transmission-oss:
     volumes:
-      - ~/Desktop/docker/transmission/downloads:/var/lib/transmission-daemon/downloads
-      - ~/Desktop/docker/transmission/watch:/var/lib/transmission-daemon/watch
-      - ~/Desktop/docker/transmission/info/resume:/var/lib/transmission-daemon/info/resume
-      - ~/Desktop/docker/transmission/info/torrents:/var/lib/transmission-daemon/info/torrents
+      - '~/Desktop/docker/downloads/oss:/var/lib/downloads'
+      - '~/Desktop/docker/transmission-oss:/var/lib/transmission-daemon'
   util:
     volumes:
       - '~/Desktop/docker/backups:/var/lib/backups'
@@ -28,6 +28,9 @@ services:
     volumes:
       - ~/Desktop/docker/resilio:/.sync
       - ~/Desktop/docker/backups:/var/lib/resilio-folders
+  plex:
+    volumes:
+      - plex-config:/config
 
 volumes:
   sharelatex-data:
@@ -35,6 +38,8 @@ volumes:
   mongodb-data:
     external: true
   mysql-data:
+    external: true
+  plex-config:
     external: true
   openvpn-as-data:
     external: true

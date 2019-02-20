@@ -23,8 +23,12 @@ endif
 
 HOST_REPO_REPO:=$(BACKUPS_HOST_GIT_DIR)/repositories.git
 
-HOST_SSH_KEY_PATH:=~/.ssh/util-server
+HOST_SSH_DIR:=~/.ssh
+HOST_SSH_KEY_PATH:=$(HOST_SSH_DIR)/util-server
 HOST_SSH_KEY_COMMENT:=ca.haji.aleem.util/host
+
+
+CRON_SCHEDULE=@hourly
 
 
 setup: initialize
@@ -43,6 +47,7 @@ ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 endif
 
 $(HOST_SSH_KEY_PATH):
+	mkdir -p $(HOST_SSH_DIR)
 	ssh-keygen -t rsa -b 4096 -C "$(HOST_SSH_KEY_COMMENT)" -f $(HOST_SSH_KEY_PATH)
 
 # The repository manager lives on the host in the repository root directory

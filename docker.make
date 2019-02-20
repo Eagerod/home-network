@@ -8,13 +8,19 @@ SHELL=/bin/bash
 
 DOCKER_IMAGE_NAME:=$(shell basename $(CURDIR))
 
-ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
-DOCKER_COMPOSE_IMAGE_PREFIX=$(subst -,,$(shell basename $(realpath $(CURDIR)/..)))
-else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
-DOCKER_COMPOSE_IMAGE_PREFIX=$(shell basename $(realpath $(CURDIR)/..))
-endif
-DOCKER_COMPOSE_IMAGE_NAME:=$(DOCKER_COMPOSE_IMAGE_PREFIX)_$(DOCKER_IMAGE_NAME)
-RUNNING_CONTAINER_NAME=$$($(DOCKER) ps | awk '{if ($$2 == "$(DOCKER_COMPOSE_IMAGE_NAME)") print $$NF;}') 2> /dev/null
+# Paths needed for setting up crons.
+PROJECT_ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+CONTAINER_ROOT_DIR=$(PROJECT_ROOT_DIR)/$(DOCKER_IMAGE_NAME)
+
+DOCKER_COMPOSE_IMAGE_NAME:=$(DOCKER_COMPOSE_PROJECT_NAME)_$(DOCKER_IMAGE_NAME)
+RUNNING_CONTAINER_NAME=$$($(DOCKER) ps --filter name=$(DOCKER_COMPOSE_IMAGE_NAME) -q)
+
+# Variables provided to make creating backups easy for each service.
+BACKUP_CRON_LOCATION:=$(CRON_BASE_PATH)/$(DOCKER_COMPOSE_PROJECT_NAME)-$(DOCKER_IMAGE_NAME)
+BACKUP_CRON_STDOUT_LOG:=$(LOGS_DIRECTORY)/$(DOCKER_IMAGE_NAME).stdout.log
+BACKUP_CRON_STDERR_LOG:=$(LOGS_DIRECTORY)/$(DOCKER_IMAGE_NAME).stderr.log
+
+CRON_SCHEDULE:=@daily
 
 REQUIRED_ENV_VARS:=
 
@@ -38,6 +44,38 @@ setup: test-environment
 	date -u '+%Y-%m-%dT%H:%M:%SZ' > setup
 
 
+# The backup target is meant to give each service a way of backing up whatever
+#   content it generates.
+# The only things an individual service/container needs to provide are:
+#   - A `backup.sh` script that will be executed with root permissions.
+#   - Overwrite the `CRON_SCHEDULE` if daily backups are undesirable. 
+.PHONY: backup
+backup: check-cron-available $(BACKUP_CRON_LOCATION)
+
+
+.PHONY: check-cron-available
+check-cron-available:
+	@if ! test $(CRON_BASE_PATH); then \
+		echo >&2 "Failed to find CRON_BASE_PATH for this platform."; \
+		exit -1; \
+	fi
+
+
+$(BACKUP_CRON_LOCATION): backup.sh
+	@mkdir -p $(LOGS_DIRECTORY)
+	@echo "$(CRON_SCHEDULE) root bash $(CONTAINER_ROOT_DIR)/backup.sh > $(BACKUP_CRON_STDOUT_LOG) 2> $(BACKUP_CRON_STDERR_LOG)" > $(BACKUP_CRON_LOCATION)
+
+
+# `touch` must be present to make this a valid shell script when no required
+#   environment variables exist, and a `.env` file doesn't exist either (the
+#   behaviour expected when there are no required environment variables) 
+.env:
+	@if [ "$(REQUIRED_ENV_VARS)" != "" ]; then \
+		touch $@; \
+		$(foreach e,$(REQUIRED_ENV_VARS),echo export $(e)= >> $@;) \
+	fi
+
+
 # Helper to verify that all required environment variables are configured in a
 #   .env file within a given service's directory. This should help with any
 #   deployment to make sure that the required configurations are actually
@@ -45,6 +83,10 @@ setup: test-environment
 .PHONY: test-environment
 test-environment:
 	@if [ ! -z "$(REQUIRED_ENV_VARS)" ]; then \
+		if [ ! -f .env ]; then \
+			echo >&2 "Environment file '.env' for service $(DOCKER_IMAGE_NAME) not found"; \
+			exit -1; \
+		fi; \
 		source .env && for var in $(REQUIRED_ENV_VARS); do \
 			if ! printenv $$var > /dev/null; then \
 				echo >&2 "Environment variable '$$var' for service $(DOCKER_IMAGE_NAME) is not set."; \

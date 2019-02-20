@@ -20,6 +20,7 @@ RUN tlmgr install scheme-medium
 RUN tlmgr install \
     bezos \
     datetime2 \
+    enumitem \
     ly1 \
     mathdesign \
     marginnote \

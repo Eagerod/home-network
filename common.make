@@ -3,6 +3,9 @@
 # This should be included in whatever Makefiles are written inside this project.
 # It was introduced to keep as many definitions consistent as possible.
 
+DOCKER_COMPOSE_PROJECT_NAME:=homenetwork
+LOGS_DIRECTORY:=/var/log/$(DOCKER_COMPOSE_PROJECT_NAME)
+
 # Try to go over different processes and attempt to avoid needing to ask the
 #   user for their password.
 ifeq ($(shell docker ps > /dev/null 2> /dev/null && echo "pass"),pass)
@@ -65,6 +68,7 @@ else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 SED_INLINE:=sed -i
 ATTACHED_DOCKER:=$(DOCKER)
 COMPOSE_PLATFORM_FILE:=docker-compose.linux.yml
+CRON_BASE_PATH:=/etc/cron.d
 else ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
 SED_INLINE:=sed -i
 ATTACHED_DOCKER:=winpty $(DOCKER)
