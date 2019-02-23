@@ -25,6 +25,13 @@ services:
       - 9443:9443/tcp
     environment:
       INTERFACE: eth0
+    cap_add:
+      - NET_ADMIN
+
+  openvpn-ca:
+    build: openvpn-ca
+    hostname: openvpn-ca
+    env_file: openvpn-ca/compose.env
 
   pi-hole:
     build: pi-hole

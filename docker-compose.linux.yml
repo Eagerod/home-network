@@ -6,6 +6,9 @@ services:
   openvpn-as:
     volumes:
       - '/var/lib/openvpn-as:/config/etc/db'
+  openvpn-ca:
+    volumes:
+      - '/var/lib/openvpn-ca:/var/lib/openvpn-ca/keys'
   mongodb:
     volumes:
       - '/var/lib/mongodb/data:/data/db'
