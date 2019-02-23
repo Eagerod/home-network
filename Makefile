@@ -37,7 +37,9 @@ SAVE_ENV_VARS=\
 	MYSQL_DATABASE\
 	FF_APP_ENV\
 	RESILIO_SERVER_USERNAME\
-	ADVERTISE_IP
+	ADVERTISE_IP\
+	KEY_COUNTRY\
+	KEY_PROVINCE
 
 # Docker Compose has some odd conditions that require all containers to be
 #   properly configured, even if you're only trying to start one. Because of
