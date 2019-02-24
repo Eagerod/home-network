@@ -126,5 +126,6 @@ services:
   factorio-server:
     build: factorio-server
     hostname: factorio
+    env_file: factorio-server/compose.env
     ports:
       - 34197:34197/udp

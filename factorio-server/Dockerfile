@@ -3,8 +3,7 @@ FROM ncfgbase
 RUN \
     apt-get update -y && \
     apt-get install -y \
-        xz-utils \
-        uuid-runtime
+        xz-utils
 
 ENV FACTORIO_SERVER_VERSION 0.16.51
 
