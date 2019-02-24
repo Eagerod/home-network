@@ -1,5 +1,8 @@
 include ../docker.make
 
+
+CRON_SCHEDULE=@hourly
+
 # Note: Have to mount the entire sharelatex directory, even though `./data` is
 #   really the only important directory. A temp directory can be created as well
 #   but because of sharelatex implementing the temp directory with a `rename`

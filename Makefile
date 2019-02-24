@@ -109,6 +109,7 @@ $(COMPOSE_ENVIRONMENT_FILES):
 
 
 # Helper to create all compose environment files.
+.PHONY: env
 env: $(COMPOSE_ENVIRONMENT_FILES)
 
 
@@ -204,14 +205,6 @@ $(PLEX_VOLUMES_COMPOSE_FILE):
 	awk '{print "      - "$$2":"$$1}' plex/volumes.txt >> $(PLEX_VOLUMES_COMPOSE_FILE)
 
 
-# Because this system will likely be run on a host that isn't the same one disks
-#   are physically attached to, there needs to be a mechanism to mount disks
-#   from other devices on the network.
-.PHONY: mount-volumes
-mount-volumes:
-	sudo python .scripts/mount_disks.py volumes.yml
-
-
 .git/hooks/pre-push:
 	# For whatever reason, this can choose to run despite the file already
 	#   existing and having no dependencies. Possibly an issue with having a
@@ -229,3 +222,12 @@ search-env:
 			exit -1; \
 		fi \
 	done
+
+# Target added specifically for linux to disable system dns once the pi-hole
+#   tries to bind to port 53. DNS is needed right up until that point, since
+#   everything before then does require looking up/building containers.
+.PHONY: disable-system-dns
+disable-system-dns:
+	@systemctl disable systemd-resolved.service
+	@systemctl stop systemd-resolved
+

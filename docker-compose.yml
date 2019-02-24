@@ -108,6 +108,8 @@ services:
 
   plex:
     build: plex
+    environment:
+      - ALLOWED_NETWORKS=192.168.1.0/24
     hostname: plex
     env_file: plex/compose.env
     ports:
