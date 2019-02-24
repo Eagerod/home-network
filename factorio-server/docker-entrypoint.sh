@@ -2,7 +2,6 @@
 
 set -e
 
-: ${SAVE_GAME=$(uuidgen)}
 : ${SERVER_TOKEN=''}
 : ${GAME_PUBLIC=false}
 : ${AUTH_REQUIRED=false}
