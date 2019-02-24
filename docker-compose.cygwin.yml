@@ -6,6 +6,7 @@ services:
   openvpn-as:
     volumes:
       - 'openvpn-as-data:/config/etc/db'
+      - 'D:/DockerVPNCA:/var/lib/keys'
   openvpn-ca:
     volumes:
       - 'D:/DockerVPNCA:/var/lib/openvpn-ca/keys'
