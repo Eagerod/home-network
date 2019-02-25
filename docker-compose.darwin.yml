@@ -35,6 +35,9 @@ services:
   plex:
     volumes:
       - plex-config:/config
+  factorio-server:
+    volumes:
+      - ~/Desktop/docker/factorio:/var/lib/factorio/saves
 
 volumes:
   sharelatex-data:

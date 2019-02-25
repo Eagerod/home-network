@@ -35,3 +35,6 @@ services:
   plex:
     volumes:
       - /var/lib/plex:/config
+  factorio-server:
+    volumes:
+      - /var/lib/factorio:/var/lib/factorio/saves
