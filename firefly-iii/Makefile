@@ -18,6 +18,11 @@ setup: initialize
 initialize:
 	$(MAKE) -C .. mysql/setup
 	$(MAKE) -C .. mysql
+	
+	# Give mysql a little time to finish booting and getting itself created in
+	#   case this is the first time it being run.
+	sleep 2
+
 	source ./.env && source $(CURDIR)/../mysql/.env && $(MAKE) -C $(CURDIR)/../mysql create-user
 	source ./.env && source $(CURDIR)/../mysql/.env && $(MAKE) -C $(CURDIR)/../mysql grant-database
 
