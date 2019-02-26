@@ -5,7 +5,7 @@ services:
       - '/var/lib/sharelatex:/var/lib/sharelatex'
   openvpn-as:
     volumes:
-      - '/var/lib/openvpn-as:/config/etc/db'
+      - '/var/lib/openvpn-as:/config'
       - '/var/lib/openvpn-ca:/var/lib/keys'
   openvpn-ca:
     volumes:

@@ -5,7 +5,7 @@ services:
       - 'sharelatex-data:/var/lib/sharelatex'
   openvpn-as:
     volumes:
-      - 'openvpn-as-data:/config/etc/db'
+      - 'openvpn-as-data:/config'
       - 'D:/DockerVPNCA:/var/lib/keys'
   openvpn-ca:
     volumes:
