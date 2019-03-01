@@ -39,7 +39,8 @@ SAVE_ENV_VARS=\
 	RESILIO_SERVER_USERNAME\
 	ADVERTISE_IP\
 	KEY_COUNTRY\
-	KEY_PROVINCE
+	KEY_PROVINCE\
+	OPENVPN_PRIMARY_USERNAME
 
 # Docker Compose has some odd conditions that require all containers to be
 #   properly configured, even if you're only trying to start one. Because of

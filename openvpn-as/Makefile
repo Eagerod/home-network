@@ -2,7 +2,12 @@ include ../docker.make
 
 REQUIRED_ENV_VARS:=\
 	SERVER_IP\
-	SERVER_SUBNET_START
+	SERVER_SUBNET_START\
+	OPENVPN_PRIMARY_USERNAME\
+	OPENVPN_PRIMARY_USERPASS
+
+SACLI_PATH:=/usr/local/openvpn_as/scripts/sacli
+
 
 setup: config
 
@@ -15,17 +20,21 @@ config:
 	$(MAKE) -C .. openvpn-as
 	sleep 2
 
-	$(DOCKER) cp $(RUNNING_CONTAINER_NAME):/config/etc/db/config.db ./config.db
+	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --key vpn.daemon.0.client.netmask_bits --value 24 ConfigPut
+	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --key vpn.daemon.0.listen.ip_address --value all ConfigPut
 
-	sqlite3 config.db 'update config set value=24 where profile_id=1 and name="vpn.daemon.0.client.netmask_bits";'
-	sqlite3 config.db 'update config set value="all" where profile_id=1 and name="vpn.daemon.0.listen.ip_address";'
+	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --key vpn.server.routing.private_network.0 --value $${SERVER_SUBNET_START}/24 ConfigPut
+	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --key vpn.daemon.0.client.network --value $${SERVER_SUBNET_START} ConfigPut
+	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --key host.name --value $${SERVER_IP} ConfigPut
 
-	source .env && sqlite3 config.db 'update config set value="'$${SERVER_SUBNET_START}'/24" where profile_id=1 and name="vpn.server.routing.private_network.0";'
-	source .env && sqlite3 config.db 'update config set value="'$${SERVER_SUBNET_START}'" where profile_id=1 and name="vpn.daemon.0.client.network";'
-	source .env && sqlite3 config.db 'update config set value="'$${SERVER_IP}'" where profile_id=1 and name="host.name";'
+	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --user $${OPENVPN_PRIMARY_USERNAME} --key "type" --value "user_connect" UserPropPut
+	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --user $${OPENVPN_PRIMARY_USERNAME} --key "prop_superuser" --value "true" UserPropPut
+	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --user $${OPENVPN_PRIMARY_USERNAME} --new_pass $${OPENVPN_PRIMARY_USERPASS} SetLocalPassword
 
-	$(DOCKER) cp ./config.db $(RUNNING_CONTAINER_NAME):/config/etc/db/config.db
+	# Delete the admin user at the suggestion of linuxserver.io's dockerhub page
+	#  https://hub.docker.com/r/linuxserver/openvpn-as/
+	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --user admin UserPropDelAll || true
+	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) sed -i 's/^boot_pam_users.0=admin/# boot_pam_users.0=admin/' /config/etc/as.conf
 
-	# Access Server will have to be restarted for changes to take effect.
-	$(MAKE) kill
-	rm config.db
+	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) Reset
+
