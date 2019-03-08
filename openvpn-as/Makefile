@@ -50,11 +50,16 @@ config:
 	source .env && if [ -z "$$($(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} UserPropGet | grep '"pvt_google_auth_secret"' | awk '{print $$2}' | tr -cd '[[:alnum:]]')" ]; then \
 		$(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} GoogleAuthRegen; \
 		$(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} --lock 1 GoogleAuthLock; \
+		\
+		echo "User account has been created and password, and MFA have been set."; \
+		echo "The user $${OPENVPN_PRIMARY_USERNAME}'s MFA code can be scanned here:"; \
+		\
+		$(MAKE) get-2fa; \
 	fi
 
 	$(EXEC_SACLI) Reset
 
-	@echo "User account has been created and password, and MFA have been set."
-	@echo "The user $${OPENVPN_PRIMARY_USERNAME}'s MFA code can be scanned here:"
 
+.PHONY: get-2fa
+get-2fa:
 	@source .env && echo 'https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=otpauth%3A//totp/'$${OPENVPN_PRIMARY_USERNAME}'%2540OpenVPN%3Fsecret%3D'$$($(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} UserPropGet | grep '"pvt_google_auth_secret"' | awk '{print $$2}' | tr -cd '[[:alnum:]]')'&choe=UTF-8'
