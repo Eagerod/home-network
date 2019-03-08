@@ -21,6 +21,7 @@ services:
     privileged: true
     ports:
       - 943:943/tcp
+      - 944:944/tcp
       - 1194:1194/udp
       - 9443:9443/tcp
     environment:
