@@ -14,9 +14,9 @@ setup: config
 
 .PHONY: config
 config:
-	# Start up the openvpn server to copy configurations. Make sure it has time
-	#   to populate its configs. Copy using a platform agnostic approach, even
-	#   though it may be a little less efficient on Linux.
+	@# Start up the openvpn server to copy configurations. Make sure it has time
+	@#   to populate its configs. Copy using a platform agnostic approach, even
+	@#   though it may be a little less efficient on Linux.
 	$(MAKE) -C .. openvpn-as
 	sleep 2
 
@@ -25,8 +25,8 @@ config:
 	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --key vpn.daemon.0.listen.ip_address --value all ConfigPut
 	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --key vpn.server.google_auth.enable --value true ConfigPut
 
-	# Host the client UI on a different port, so the client interface can be
-	#   exposed publicly without the admin interface.
+	@# Host the client UI on a different port, so the client interface can be
+	@#   exposed publicly without the admin interface.
 	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --key cs.https.port --value 944 ConfigPut
 
 	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --key vpn.server.routing.private_network.0 --value $${SERVER_SUBNET_START}/24 ConfigPut
@@ -37,8 +37,8 @@ config:
 	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --user $${OPENVPN_PRIMARY_USERNAME} --new_pass $${OPENVPN_PRIMARY_USERPASS} SetLocalPassword
 	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --user $${OPENVPN_PRIMARY_USERNAME} --lock 1 GoogleAuthLock
 
-	# Delete the admin user at the suggestion of linuxserver.io's dockerhub page
-	#  https://hub.docker.com/r/linuxserver/openvpn-as/
+	@# Delete the admin user at the suggestion of linuxserver.io's dockerhub page
+	@#  https://hub.docker.com/r/linuxserver/openvpn-as/
 	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --user admin UserPropDelAll || true
 	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --user openvpn UserPropDelAll || true
 	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) sed -i 's/^boot_pam_service=openvpnas/# boot_pam_service=openvpnas/' /config/etc/as.conf
