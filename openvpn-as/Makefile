@@ -25,6 +25,10 @@ config:
 	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --key vpn.daemon.0.listen.ip_address --value all ConfigPut
 	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --key vpn.server.google_auth.enable --value true ConfigPut
 
+	# Host the client UI on a different port, so the client interface can be
+	#   exposed publicly without the admin interface.
+	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --key cs.https.port --value 944 ConfigPut
+
 	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --key vpn.server.routing.private_network.0 --value $${SERVER_SUBNET_START}/24 ConfigPut
 	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH) --key host.name --value $${SERVER_IP} ConfigPut
 
