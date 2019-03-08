@@ -6,10 +6,6 @@ services:
   openvpn-as:
     volumes:
       - 'openvpn-as-data:/config'
-      - 'D:/DockerVPNCA:/var/lib/keys'
-  openvpn-ca:
-    volumes:
-      - 'D:/DockerVPNCA:/var/lib/openvpn-ca/keys'
   mongodb:
     volumes:
       - 'mongodb-data:/db/data'

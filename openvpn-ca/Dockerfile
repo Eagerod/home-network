@@ -1,6 +1,0 @@
-FROM ncfgbase
-
-RUN \
-    apt-get update -y && \
-    apt-get install -y easy-rsa
-

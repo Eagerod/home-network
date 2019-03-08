@@ -28,11 +28,6 @@ services:
     cap_add:
       - NET_ADMIN
 
-  openvpn-ca:
-    build: openvpn-ca
-    hostname: openvpn-ca
-    env_file: openvpn-ca/compose.env
-
   pi-hole:
     build: pi-hole
     env_file: pi-hole/compose.env
