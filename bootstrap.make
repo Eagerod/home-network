@@ -68,7 +68,7 @@ create-environment:
 		git clone https://github.com/eagerod/home-network; \
 	fi
 	
-	@$(MAKE) -C $(PROJECT_ROOT_DIRECTORY) env-templates;
+	@$(MAKE) -C $(PROJECT_ROOT_DIRECTORY) env;
 
 
 configure-ssh-server:

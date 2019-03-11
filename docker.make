@@ -66,14 +66,19 @@ $(BACKUP_CRON_LOCATION): backup.sh
 	@echo "$(CRON_SCHEDULE) root bash $(CONTAINER_ROOT_DIR)/backup.sh > $(BACKUP_CRON_STDOUT_LOG) 2> $(BACKUP_CRON_STDERR_LOG)" > $(BACKUP_CRON_LOCATION)
 
 
-# `touch` must be present to make this a valid shell script when no required
-#   environment variables exist, and a `.env` file doesn't exist either (the
-#   behaviour expected when there are no required environment variables) 
+# Force the removal of the original .env file if one is present. Don't put any
+#    prerequisites so it never replaces a self-defined file.
 .env:
+	@rm -rf $@;
+	@touch $@
 	@if [ "$(REQUIRED_ENV_VARS)" != "" ]; then \
-		touch $@; \
+		true; \
 		$(foreach e,$(REQUIRED_ENV_VARS),echo export $(e)= >> $@;) \
 	fi
+
+
+compose.env: .env
+	@source .env && grep -o "^\s*export \w*" .env | sed -e 's/^[[:space:]]*//' | sort | uniq | sed -e 's/export \(.*\)/\1/g' | awk '{print $$1"="ENVIRON[$$1]}' >> $@
 
 
 # Helper to verify that all required environment variables are configured in a
