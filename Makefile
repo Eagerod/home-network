@@ -100,12 +100,11 @@ $(CONTAINER_DEBUG_TARGETS):
 	rm -rf  "$$(basename $@)/debug.yml"
 
 
-# Source each file, and loop over the environments that should have been set,
-#   and write those out to the compose env file.
+# Treat the compose files as phony, so the individual service Makefiles can
+#   manage prerequisites.
+.PHONY: $(COMPOSE_ENVIRONMENT_FILES)
 $(COMPOSE_ENVIRONMENT_FILES):
-	@if [ -f $(@D)/.env ]; then \
-		source $(@D)/.env && grep -o "^\s*export \w*" $(@D)/.env | sed -e 's/^[[:space:]]*//' | sort | uniq | sed -e 's/export \(.*\)/\1/g' | awk '{print $$1"="ENVIRON[$$1]}' >> $@; \
-	fi
+	$(MAKE) -C $(@D) compose.env
 
 
 # Helper to create all compose environment files.
@@ -118,11 +117,6 @@ env: $(COMPOSE_ENVIRONMENT_FILES)
 .PHONY: show-config
 show-config: $(COMPOSE_ENVIRONMENT_FILES)
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) config
-
-
-.PHONY: env-templates
-env-templates:
-	$(foreach d,$(DOCKER_CONTAINERS),make -C $(d) .env;)
 
 
 .PHONY: kill
