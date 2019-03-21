@@ -24,8 +24,6 @@ services:
       - 944:944/tcp
       - 1194:1194/udp
       - 9443:9443/tcp
-    environment:
-      INTERFACE: eth0
     cap_add:
       - NET_ADMIN
 

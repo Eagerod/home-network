@@ -19,11 +19,10 @@ config:
 	@#   to populate its configs. Copy using a platform agnostic approach, even
 	@#   though it may be a little less efficient on Linux.
 	$(MAKE) -C .. openvpn-as
-	sleep 2
+	while ! $(EXEC_SACLI) status; do sleep 1; done
 
 	$(EXEC_SACLI) --key vpn.daemon.0.client.network --value 172.27.224.0 ConfigPut
 	$(EXEC_SACLI) --key vpn.daemon.0.client.netmask_bits --value 24 ConfigPut
-	$(EXEC_SACLI) --key vpn.daemon.0.listen.ip_address --value all ConfigPut
 	$(EXEC_SACLI) --key vpn.server.google_auth.enable --value true ConfigPut
 	$(EXEC_SACLI) --key vpn.server.port_share.enable --value false ConfigPut
 	$(EXEC_SACLI) --key vpn.server.port_share.service --value custom ConfigPut
@@ -31,7 +30,6 @@ config:
 	@# Host the client UI on a different port, so the client interface can be
 	@#   exposed publicly without the admin interface.
 	$(EXEC_SACLI) --key cs.https.port --value 944 ConfigPut
-	$(EXEC_SACLI) --key cs.https.ip_address --value all ConfigPut
 
 	source .env && $(EXEC_SACLI) --key vpn.server.routing.private_network.0 --value $${SERVER_SUBNET_START}/24 ConfigPut
 	source .env && $(EXEC_SACLI) --key host.name --value $${SERVER_IP} ConfigPut
@@ -40,13 +38,6 @@ config:
 	source .env && $(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} --key prop_superuser --value true UserPropPut
 	source .env && $(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} --new_pass $${OPENVPN_PRIMARY_USERPASS} SetLocalPassword
 
-	@# Delete the admin user at the suggestion of linuxserver.io's dockerhub page
-	@#  https://hub.docker.com/r/linuxserver/openvpn-as/
-	source .env && $(EXEC_SACLI) --user admin UserPropDelAll || true
-	source .env && $(EXEC_SACLI) --user openvpn UserPropDelAll || true
-	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) sed -i 's/^boot_pam_service=openvpnas/# boot_pam_service=openvpnas/' /config/etc/as.conf
-	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) sed -i 's/^boot_pam_users.0=admin/# boot_pam_users.0=admin/' /config/etc/as.conf
-	
 	source .env && if [ -z "$$($(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} UserPropGet | grep '"pvt_google_auth_secret"' | awk '{print $$2}' | tr -cd '[[:alnum:]]')" ]; then \
 		$(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} GoogleAuthRegen; \
 		$(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} --lock 1 GoogleAuthLock; \
@@ -56,8 +47,6 @@ config:
 		\
 		$(MAKE) get-2fa; \
 	fi
-
-	$(EXEC_SACLI) Reset
 
 
 .PHONY: get-2fa
