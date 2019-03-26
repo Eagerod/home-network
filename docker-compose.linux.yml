@@ -16,9 +16,6 @@ services:
       - '/var/lib/downloads/oss:/var/lib/downloads'
       - '/var/lib/transmission-oss:/var/lib/transmission-daemon'
   util:
-    volumes:
-      - '/var/lib/backups:/var/lib/backups'
-      - '/var/lib/git:/var/lib/git'
     ports:
       - '22:22'
   resilio-server:

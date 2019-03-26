@@ -16,9 +16,6 @@ services:
       - 'D:/DockerDownloads/oss:/var/lib/downloads'
       - 'D:/DockerTransmissionOss:/var/lib/transmission-daemon'
   util:
-    volumes:
-      - 'D:/DockerBackups:/var/lib/backups'
-      - 'D:/DockerGit:/var/lib/git'
     ports:
       - '22:22'
   resilio-server:

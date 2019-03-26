@@ -98,6 +98,9 @@ services:
         DEFAULT_BLOBSTORE_READ_ACL: ${DEFAULT_BLOBSTORE_READ_ACL}
         MULTI_REDDIT_SUBS_LOCATION: ${MULTI_REDDIT_SUBS_LOCATION}
         MULTI_REDDIT_SAVED_LOCATION: ${MULTI_REDDIT_SAVED_LOCATION}
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups:/var/lib/backups'
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/git:/var/lib/git'
 
   resilio-server:
     build: resilio-server
