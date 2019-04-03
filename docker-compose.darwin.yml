@@ -11,19 +11,12 @@ services:
     volumes:
       - 'mysql-data:/var/lib/data'
       - '~/Desktop/docker/backups/mysql:/var/lib/backup'
-  transmission-oss:
-    volumes:
-      - '~/Desktop/docker/downloads/oss:/var/lib/downloads'
-      - '~/Desktop/docker/transmission-oss:/var/lib/transmission-daemon'
   util:
     ports:
       - '2000:22'
   plex:
     volumes:
       - plex-config:/config
-  factorio-server:
-    volumes:
-      - ~/Desktop/docker/factorio:/var/lib/factorio/saves
 
 volumes:
   sharelatex-data:

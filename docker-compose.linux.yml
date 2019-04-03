@@ -11,16 +11,9 @@ services:
     volumes:
       - '/var/lib/mysql:/var/lib/data'
       - '/var/lib/backups/mysql:/var/lib/backup'
-  transmission-oss:
-    volumes:
-      - '/var/lib/downloads/oss:/var/lib/downloads'
-      - '/var/lib/transmission-oss:/var/lib/transmission-daemon'
   util:
     ports:
       - '22:22'
   plex:
     volumes:
       - /var/lib/plex:/config
-  factorio-server:
-    volumes:
-      - /var/lib/factorio:/var/lib/factorio/saves

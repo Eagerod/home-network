@@ -88,6 +88,9 @@ services:
     hostname: transmission-oss
     ports:
       - 9091:9091
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/downloads/oss:/var/lib/downloads'
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/transmission-oss:/var/lib/transmission-daemon'
 
   util:
     hostname: util
@@ -135,3 +138,5 @@ services:
     env_file: factorio-server/compose.env
     ports:
       - 34197:34197/udp
+    volumes:
+      - ${HOST_DATA_DIR?HOST_DATA_DIR}/factorio:/var/lib/factorio/saves
