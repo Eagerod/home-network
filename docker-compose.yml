@@ -108,6 +108,9 @@ services:
     env_file: resilio-server/compose.env
     ports:
       - 8888:8888
+    volumes:
+      - ${HOST_DATA_DIR?HOST_DATA_DIR}/.sync:/.sync
+      - ${HOST_DATA_DIR?HOST_DATA_DIR}/backups:/var/lib/resilio-folders
 
   plex:
     build: plex

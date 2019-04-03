@@ -18,10 +18,6 @@ services:
   util:
     ports:
       - '22:22'
-  resilio-server:
-    volumes:
-      - /var/lib/.sync:/.sync
-      - /var/lib/backups:/var/lib/resilio-folders
   plex:
     volumes:
       - /var/lib/plex:/config

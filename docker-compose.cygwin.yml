@@ -18,10 +18,6 @@ services:
   util:
     ports:
       - '22:22'
-  resilio-server:
-    volumes:
-      - D:/DockerResilioSync/settings/.sync:/.sync
-      - D:/DockerBackups:/var/lib/resilio-folders
   plex:
     volumes:
       - plex-config:/config
