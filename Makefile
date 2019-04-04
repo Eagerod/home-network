@@ -104,7 +104,7 @@ $(CONTAINER_DEBUG_TARGETS):
 #   manage prerequisites.
 .PHONY: $(COMPOSE_ENVIRONMENT_FILES)
 $(COMPOSE_ENVIRONMENT_FILES):
-	$(MAKE) -C $(@D) compose.env
+	@$(MAKE) -C $(@D) compose.env > /dev/null
 
 
 # Helper to create all compose environment files.
@@ -116,7 +116,7 @@ env: $(COMPOSE_ENVIRONMENT_FILES)
 #   bring up the whole system.
 .PHONY: show-config
 show-config: $(COMPOSE_ENVIRONMENT_FILES)
-	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) config
+	@$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) config
 
 
 .PHONY: kill
