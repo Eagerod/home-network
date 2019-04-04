@@ -64,16 +64,16 @@ ifeq ($(PLATFORM),$(PLATFORM_MACOS))
 SED_INLINE:=sed -i ''
 ATTACHED_DOCKER:=$(DOCKER)
 DOCKER_COMPOSE_ENV:=HOST_DATA_DIR=~/Desktop/docker
-COMPOSE_PLATFORM_FILE:=docker-compose.darwin.yml
+COMPOSE_PLATFORM_FILE:=docker-compose.virtualized.yml
 else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 SED_INLINE:=sed -i
 ATTACHED_DOCKER:=$(DOCKER)
 DOCKER_COMPOSE_ENV:=HOST_DATA_DIR=/var/lib
-COMPOSE_PLATFORM_FILE:=docker-compose.linux.yml
+COMPOSE_PLATFORM_FILE:=docker-compose.local.yml
 CRON_BASE_PATH:=/etc/cron.d
 else ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
 SED_INLINE:=sed -i
 ATTACHED_DOCKER:=winpty $(DOCKER)
 DOCKER_COMPOSE_ENV:=HOST_DATA_DIR=D:
-COMPOSE_PLATFORM_FILE:=docker-compose.cygwin.yml
+COMPOSE_PLATFORM_FILE:=docker-compose.virtualized.yml
 endif

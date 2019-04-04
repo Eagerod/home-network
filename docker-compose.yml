@@ -116,8 +116,8 @@ services:
     ports:
       - 8888:8888
     volumes:
-      - ${HOST_DATA_DIR?HOST_DATA_DIR}/.sync:/.sync
-      - ${HOST_DATA_DIR?HOST_DATA_DIR}/backups:/var/lib/resilio-folders
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/.sync:/.sync'
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups:/var/lib/resilio-folders'
 
   plex:
     build: plex
@@ -143,4 +143,4 @@ services:
     ports:
       - 34197:34197/udp
     volumes:
-      - ${HOST_DATA_DIR?HOST_DATA_DIR}/factorio:/var/lib/factorio/saves
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/factorio:/var/lib/factorio/saves'
