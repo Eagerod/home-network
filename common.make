@@ -12,8 +12,8 @@ ifeq ($(shell docker ps > /dev/null 2> /dev/null && echo "pass"),pass)
 DOCKER:=docker
 DOCKER_COMPOSE:=$(DOCKER_COMPOSE_ENV) docker-compose
 else ifeq ($(shell type docker-machine > /dev/null && echo "pass"),pass)
-DOCKER:=eval $$(docker-machine env $(shell docker-machine ls -q)) && docker
-DOCKER_COMPOSE:=eval $$(docker-machine env $(shell docker-machine ls -q)) && $(DOCKER_COMPOSE_ENV) docker-compose
+DOCKER:=eval $$(docker-machine env $$(docker-machine ls -q)) && docker
+DOCKER_COMPOSE:=eval $$(docker-machine env $$(docker-machine ls -q)) && $(DOCKER_COMPOSE_ENV) docker-compose
 else ifeq ($(shell sudo docker ps > /dev/null && echo "pass"),pass)
 DOCKER:=sudo docker
 DOCKER_COMPOSE:=$(DOCKER_COMPOSE_ENV) sudo -E docker-compose
