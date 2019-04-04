@@ -6,11 +6,9 @@ services:
   mongodb:
     volumes:
       - 'mongodb-data:/db/data'
-      - 'D:/DockerBackups/mongodb:/var/lib/backup'
   mysql:
     volumes:
       - 'mysql-data:/var/lib/data'
-      - 'D:/DockerBackups/mysql:/var/lib/backup'
   util:
     ports:
       - '22:22'
