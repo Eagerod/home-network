@@ -124,7 +124,6 @@ services:
     hostname: trilium
     ports:
       - 8083:8080
-  trilium:
     volumes:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/trilium:/var/lib/trilium'
 
