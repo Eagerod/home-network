@@ -225,3 +225,9 @@ disable-system-dns:
 	@systemctl disable systemd-resolved.service
 	@systemctl stop systemd-resolved
 
+# When updating the system, somelines the system DNS needs to be enabled
+# again, because the pi-hole has been shut down.
+.PHONY: enable-system-dns
+enable-system-dns:
+	@systemctl enable systemd-resolved.service
+	@systemctl start systemd-resolved.service
