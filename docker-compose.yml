@@ -144,3 +144,10 @@ services:
       - 34197:34197/udp
     volumes:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/factorio:/var/lib/factorio/saves'
+
+  slack-bot:
+    build: slack-bot
+    hostname: slack-bot
+    env_file: slack-bot/compose.env
+    ports:
+      - 8086:8080

@@ -1,0 +1,5 @@
+include ../docker.make
+
+REQUIRED_ENV_VARS:=\
+	SLACK_API_KEY\
+	DEFAULT_CHANNEL
