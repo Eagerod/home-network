@@ -96,7 +96,7 @@ $(DOCKER_CONTAINERS): $(ANY_CONTAINER_BUILD_DEPS)
 .PHONY: $(CONTAINER_DEBUG_TARGETS)
 $(CONTAINER_DEBUG_TARGETS):
 	printf "version: '3'\nservices:\n  %s:\n    stdin_open: true\n" $$(basename $@) > "$$(basename $@)/debug.yml"
-	DOCKER_COMPOSE_EXTRAS="-f $$(basename $@)/debug.yml" $(MAKE) $$(basename $@)
+	DOCKER_COMPOSE_EXTRAS="-f $$(basename $@)/debug.yml $(DOCKER_COMPOSE_EXTRAS)" $(MAKE) $$(basename $@)
 	rm -rf  "$$(basename $@)/debug.yml"
 
 
