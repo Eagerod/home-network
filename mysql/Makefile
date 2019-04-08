@@ -106,11 +106,18 @@ endif
 password: validate-mysql-root-password
 	$(SED_INLINE) 's?"/usr/sbin/mysqld", ?"/usr/sbin/mysqld", "--skip-grant-tables", ?g' Dockerfile
 	$(MAKE) -C .. mysql
+
 	while ! $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -e "select 1;" > /dev/null; do \
 		echo >&2 "MySQL server not up yet. Waiting 1 second..."; \
 		sleep 1; \
 	done
-	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "FLUSH PRIVILEGES; SET PASSWORD FOR root@'localhost' = PASSWORD('$${MYSQL_ROOT_PASSWORD}'); FLUSH PRIVILEGES;"
+
+	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
+		FLUSH PRIVILEGES;\
+		SET PASSWORD FOR root@'localhost' = PASSWORD('$${MYSQL_ROOT_PASSWORD}');\
+		FLUSH PRIVILEGES;\
+	"
+
 	$(SED_INLINE) 's?"/usr/sbin/mysqld", "--skip-grant-tables", ?"/usr/sbin/mysqld", ?g' Dockerfile
 
 # Create a bash session on a running mysql container to start a root mysql
