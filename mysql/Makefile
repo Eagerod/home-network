@@ -161,3 +161,22 @@ build.yml:
 .INTERMEDIATE: daemonless.yml
 daemonless.yml:
 	@printf "version: '3'\nservices:\n  mysql:\n    command: bash\n" > $@
+
+.PHONY: restore
+restore: verify-mysql-root-password verify-mysql-database
+	@if [ -z "$${MYSQL_BACKUP}" ]; then \
+		echo >&2 "Must provide a MYSQL_BACKUP dir."; \
+		exit -1; \
+	fi
+
+	$(MAKE) -C .. mysql
+	while ! source .env && $(DOCKER) exec -it -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "select 1;" > /dev/null; do \
+		echo >&2 "MySQL server not up yet. Waiting 1 second..."; \
+		sleep 1; \
+	done
+	find $${MYSQL_BACKUP} -iname "*.sql" -print | while read filename; do \
+		$(DOCKER) cp $${filename} $(RUNNING_CONTAINER_NAME):tmprestore.sql; \
+		$(ATTACHED_DOCKER) exec -u 0 $(RUNNING_CONTAINER_NAME) chmod 644 tmprestore.sql; \
+		source .env && $(ATTACHED_DOCKER) exec -e MYSQL_DATABASE=$${MYSQL_DATABASE} -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) \
+			sh -c "$(MYSQL_CLIENT) -u root --database=$${MYSQL_DATABASE} < ./tmprestore.sql;"; \
+	done
