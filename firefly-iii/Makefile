@@ -23,8 +23,8 @@ initialize:
 	#   case this is the first time it being run.
 	sleep 2
 
-	source ./.env && source $(CURDIR)/../mysql/.env && $(MAKE) -C $(CURDIR)/../mysql create-user
-	source ./.env && source $(CURDIR)/../mysql/.env && $(MAKE) -C $(CURDIR)/../mysql grant-database
+	source ./.env && $(MAKE) -C $(CURDIR)/../mysql create-user
+	source ./.env && $(MAKE) -C $(CURDIR)/../mysql grant-database
 
 	$(MAKE) -C .. $(DOCKER_IMAGE_NAME)
 	$(DOCKER) exec -dit $(RUNNING_CONTAINER_NAME) php artisan migrate
