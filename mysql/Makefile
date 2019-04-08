@@ -107,7 +107,7 @@ password: validate-mysql-root-password
 	$(SED_INLINE) 's?"/usr/sbin/mysqld", ?"/usr/sbin/mysqld", "--skip-grant-tables", ?g' Dockerfile
 	$(MAKE) -C .. mysql
 
-	while ! $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -e "select 1;" > /dev/null; do \
+	while ! $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -e "select 1;" > /dev/null 2> /dev/null; do \
 		echo >&2 "MySQL server not up yet. Waiting 1 second..."; \
 		sleep 1; \
 	done
