@@ -63,7 +63,7 @@ verify-mysql-database:
 # Creates a mysql-ready container running bash, and submits the mysqld
 #   initialize command to it with the appropriate parameters.
 .PHONY: initialize
-initialize:
+initialize: daemonless.yml
 ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
 	$(SED_INLINE) 's/^RUN groupadd/# RUN groupadd/g' Dockerfile 
 	$(SED_INLINE) 's/^RUN useradd/# RUN useradd/g' Dockerfile 
@@ -83,8 +83,7 @@ else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 	sudo chown mysql:mysql $(MYSQL_HOST_DATA_DIR)
 endif
 
-	$(SED_INLINE) 's/^CMD/# CMD/g' Dockerfile
-	$(MAKE) -C .. debug/mysql
+	DOCKER_COMPOSE_EXTRAS='-f mysql/daemonless.yml' $(MAKE) -C .. debug/mysql
 	sleep 1
 ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
 	$(ATTACHED_DOCKER) exec -it -u 0 $(RUNNING_CONTAINER_NAME) chown -R mysql:mysql $(MYSQL_CONTAINER_DATA_DIR)
@@ -92,7 +91,6 @@ endif
 	if [ -z "$$($(ATTACHED_DOCKER) exec -it $(RUNNING_CONTAINER_NAME) ls $(MYSQL_CONTAINER_DATA_DIR))" ]; then \
 		$(ATTACHED_DOCKER) exec -it $(RUNNING_CONTAINER_NAME) $(MYSQL_DAEMON) --datadir=$(MYSQL_CONTAINER_DATA_DIR) --pid-file=/var/lib/mysqld.pid --initialize; \
 	fi
-	$(SED_INLINE) 's/^# CMD/CMD/g' Dockerfile
 	$(MAKE) kill
 
 # Set the root password on my MySQL database to the value provided in the
@@ -159,3 +157,7 @@ endif
 .INTERMEDIATE: build.yml
 build.yml:
 	@printf "version: '3'\nservices:\n  mysql:\n    command: $(MYSQL_DAEMON) --skip-grant-tables --datadir=$(MYSQL_CONTAINER_DATA_DIR) --pid-file=/var/lib/mysqld.pid --bind-address=0.0.0.0\n" > $@
+
+.INTERMEDIATE: daemonless.yml
+daemonless.yml:
+	@printf "version: '3'\nservices:\n  mysql:\n    command: bash\n" > $@
