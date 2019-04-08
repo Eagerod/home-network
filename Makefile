@@ -143,7 +143,7 @@ clean:
 .PHONY: backups
 backups:
 	@find . -maxdepth 2 -iname "backup.sh" -exec dirname {} \; | while read bak; do \
-		make -C $${bak} backup; \
+		$(MAKE) -C $${bak} backup; \
 	done
 
 
