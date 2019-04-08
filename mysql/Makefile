@@ -22,7 +22,7 @@ setup: initialize password
 
 .PHONY: verify-mysql-root-password
 verify-mysql-root-password:
-	@if [ -z "$${MYSQL_ROOT_PASSWORD}" ]; then \
+	@source .env && if [ -z "$${MYSQL_ROOT_PASSWORD}" ]; then \
 		echo >&2 "Root password missing. A root password must be provided"; \
 		exit -1; \
 	fi
@@ -98,7 +98,7 @@ endif
 # Only works if the root password is at least 16 characters long.
 .PHONY: password
 password: build.yml
-	source .env && $(MAKE) validate-mysql-root-password
+	$(MAKE) validate-mysql-root-password
 	DOCKER_COMPOSE_EXTRAS='-f mysql/build.yml' $(MAKE) -C .. mysql
 
 	while ! $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -e "select 1;" > /dev/null 2> /dev/null; do \
@@ -121,7 +121,7 @@ password: build.yml
 #   statement.
 .PHONY: root-shell
 root-shell: verify-mysql-root-password
-	$(ATTACHED_DOCKER) exec -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" -it $(RUNNING_CONTAINER_NAME) /bin/bash
+	source .env && $(ATTACHED_DOCKER) exec -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" -it $(RUNNING_CONTAINER_NAME) /bin/bash
 
 # Because docker (possibly only in windows with winpty?) seems to have issues
 #   with starting up interactive subshells within an exec environment, this is
@@ -130,7 +130,7 @@ root-shell: verify-mysql-root-password
 #   to start up interactive shell, which seems to have some issues on its own.
 .PHONY: create-user
 create-user: verify-mysql-root-password verify-mysql-user verify-mysql-password
-	$(ATTACHED_DOCKER) exec -it -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
+	source .env && $(ATTACHED_DOCKER) exec -it -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
 		CREATE USER IF NOT EXISTS $${MYSQL_USER}@'%';\
 		SET PASSWORD FOR $${MYSQL_USER}@'%' = PASSWORD('$${MYSQL_PASSWORD}');\
 	"
@@ -139,7 +139,7 @@ create-user: verify-mysql-root-password verify-mysql-user verify-mysql-password
 #   access to a table defined in another environment variable.
 .PHONY: grant-database
 grant-database: verify-mysql-root-password verify-mysql-user verify-mysql-database
-	$(ATTACHED_DOCKER) exec -it -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
+	source .env && $(ATTACHED_DOCKER) exec -it -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
 		CREATE DATABASE IF NOT EXISTS $${MYSQL_DATABASE}; \
 		GRANT ALL ON $${MYSQL_DATABASE}.* TO $${MYSQL_USER}@'%';\
 	"
