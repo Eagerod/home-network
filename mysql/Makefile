@@ -17,11 +17,7 @@ MYSQL_CLIENT:=/usr/bin/mysql
 CRON_SCHEDULE:=@hourly
 
 
-setup: initialize env-password
-
-
-env-password:
-	source .env && $(MAKE) password
+setup: initialize password
 
 
 .PHONY: verify-mysql-root-password
@@ -103,22 +99,22 @@ endif
 #   `MYSQL_ROOT_PASSWORD` environment variable.
 # Only works if the root password is at least 16 characters long.
 .PHONY: password
-password: validate-mysql-root-password
-	$(SED_INLINE) 's?"/usr/sbin/mysqld", ?"/usr/sbin/mysqld", "--skip-grant-tables", ?g' Dockerfile
-	$(MAKE) -C .. mysql
+password: build.yml
+	source .env && $(MAKE) validate-mysql-root-password
+	DOCKER_COMPOSE_EXTRAS='-f mysql/build.yml' $(MAKE) -C .. mysql
 
 	while ! $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -e "select 1;" > /dev/null 2> /dev/null; do \
 		echo >&2 "MySQL server not up yet. Waiting 1 second..."; \
 		sleep 1; \
 	done
 
-	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
+	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -e "\
 		FLUSH PRIVILEGES;\
 		SET PASSWORD FOR root@'localhost' = PASSWORD('$${MYSQL_ROOT_PASSWORD}');\
 		FLUSH PRIVILEGES;\
 	"
 
-	$(SED_INLINE) 's?"/usr/sbin/mysqld", "--skip-grant-tables", ?"/usr/sbin/mysqld", ?g' Dockerfile
+	$(MAKE) kill
 
 # Create a bash session on a running mysql container to start a root mysql
 #   session.
@@ -158,3 +154,8 @@ ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 		exit -1; \
 	fi
 endif
+
+
+.INTERMEDIATE: build.yml
+build.yml:
+	@printf "version: '3'\nservices:\n  mysql:\n    command: $(MYSQL_DAEMON) --skip-grant-tables --datadir=$(MYSQL_CONTAINER_DATA_DIR) --pid-file=/var/lib/mysqld.pid --bind-address=0.0.0.0\n" > $@
