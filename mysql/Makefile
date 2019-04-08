@@ -17,16 +17,12 @@ MYSQL_CLIENT:=/usr/bin/mysql
 CRON_SCHEDULE:=@hourly
 
 
-setup: initialize env-password
-
-
-env-password:
-	source .env && $(MAKE) password
+setup: initialize password
 
 
 .PHONY: verify-mysql-root-password
 verify-mysql-root-password:
-	@if [ -z "$${MYSQL_ROOT_PASSWORD}" ]; then \
+	@source .env && if [ -z "$${MYSQL_ROOT_PASSWORD}" ]; then \
 		echo >&2 "Root password missing. A root password must be provided"; \
 		exit -1; \
 	fi
@@ -67,7 +63,7 @@ verify-mysql-database:
 # Creates a mysql-ready container running bash, and submits the mysqld
 #   initialize command to it with the appropriate parameters.
 .PHONY: initialize
-initialize:
+initialize: daemonless.yml
 ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
 	$(SED_INLINE) 's/^RUN groupadd/# RUN groupadd/g' Dockerfile 
 	$(SED_INLINE) 's/^RUN useradd/# RUN useradd/g' Dockerfile 
@@ -87,8 +83,7 @@ else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 	sudo chown mysql:mysql $(MYSQL_HOST_DATA_DIR)
 endif
 
-	$(SED_INLINE) 's/^CMD/# CMD/g' Dockerfile
-	$(MAKE) -C .. debug/mysql
+	DOCKER_COMPOSE_EXTRAS='-f mysql/daemonless.yml' $(MAKE) -C .. debug/mysql
 	sleep 1
 ifeq ($(PLATFORM),$(filter $(PLATFORM),$(PLATFORM_MACOS) $(PLATFORM_WINDOWS)))
 	$(ATTACHED_DOCKER) exec -it -u 0 $(RUNNING_CONTAINER_NAME) chown -R mysql:mysql $(MYSQL_CONTAINER_DATA_DIR)
@@ -96,19 +91,28 @@ endif
 	if [ -z "$$($(ATTACHED_DOCKER) exec -it $(RUNNING_CONTAINER_NAME) ls $(MYSQL_CONTAINER_DATA_DIR))" ]; then \
 		$(ATTACHED_DOCKER) exec -it $(RUNNING_CONTAINER_NAME) $(MYSQL_DAEMON) --datadir=$(MYSQL_CONTAINER_DATA_DIR) --pid-file=/var/lib/mysqld.pid --initialize; \
 	fi
-	$(SED_INLINE) 's/^# CMD/CMD/g' Dockerfile
 	$(MAKE) kill
 
 # Set the root password on my MySQL database to the value provided in the
 #   `MYSQL_ROOT_PASSWORD` environment variable.
 # Only works if the root password is at least 16 characters long.
 .PHONY: password
-password: validate-mysql-root-password
-	$(SED_INLINE) 's?"/usr/sbin/mysqld", ?"/usr/sbin/mysqld", "--skip-grant-tables", ?g' Dockerfile
-	$(MAKE) -C .. mysql
-	sleep 1
-	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "FLUSH PRIVILEGES; SET PASSWORD FOR root@'localhost' = PASSWORD('$${MYSQL_ROOT_PASSWORD}'); FLUSH PRIVILEGES;"
-	$(SED_INLINE) 's?"/usr/sbin/mysqld", "--skip-grant-tables", ?"/usr/sbin/mysqld", ?g' Dockerfile
+password: build.yml
+	$(MAKE) validate-mysql-root-password
+	DOCKER_COMPOSE_EXTRAS='-f mysql/build.yml' $(MAKE) -C .. mysql
+
+	while ! $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -e "select 1;" > /dev/null 2> /dev/null; do \
+		echo >&2 "MySQL server not up yet. Waiting 1 second..."; \
+		sleep 1; \
+	done
+
+	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -e "\
+		FLUSH PRIVILEGES;\
+		SET PASSWORD FOR root@'localhost' = PASSWORD('$${MYSQL_ROOT_PASSWORD}');\
+		FLUSH PRIVILEGES;\
+	"
+
+	$(MAKE) kill
 
 # Create a bash session on a running mysql container to start a root mysql
 #   session.
@@ -117,7 +121,7 @@ password: validate-mysql-root-password
 #   statement.
 .PHONY: root-shell
 root-shell: verify-mysql-root-password
-	$(ATTACHED_DOCKER) exec -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" -it $(RUNNING_CONTAINER_NAME) /bin/bash
+	source .env && $(ATTACHED_DOCKER) exec -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" -it $(RUNNING_CONTAINER_NAME) /bin/bash
 
 # Because docker (possibly only in windows with winpty?) seems to have issues
 #   with starting up interactive subshells within an exec environment, this is
@@ -126,7 +130,7 @@ root-shell: verify-mysql-root-password
 #   to start up interactive shell, which seems to have some issues on its own.
 .PHONY: create-user
 create-user: verify-mysql-root-password verify-mysql-user verify-mysql-password
-	$(ATTACHED_DOCKER) exec -it -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
+	source .env && $(ATTACHED_DOCKER) exec -it -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
 		CREATE USER IF NOT EXISTS $${MYSQL_USER}@'%';\
 		SET PASSWORD FOR $${MYSQL_USER}@'%' = PASSWORD('$${MYSQL_PASSWORD}');\
 	"
@@ -135,7 +139,7 @@ create-user: verify-mysql-root-password verify-mysql-user verify-mysql-password
 #   access to a table defined in another environment variable.
 .PHONY: grant-database
 grant-database: verify-mysql-root-password verify-mysql-user verify-mysql-database
-	$(ATTACHED_DOCKER) exec -it -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
+	source .env && $(ATTACHED_DOCKER) exec -it -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "\
 		CREATE DATABASE IF NOT EXISTS $${MYSQL_DATABASE}; \
 		GRANT ALL ON $${MYSQL_DATABASE}.* TO $${MYSQL_USER}@'%';\
 	"
@@ -148,3 +152,31 @@ ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 		exit -1; \
 	fi
 endif
+
+
+.INTERMEDIATE: build.yml
+build.yml:
+	@printf "version: '3'\nservices:\n  mysql:\n    command: $(MYSQL_DAEMON) --skip-grant-tables --datadir=$(MYSQL_CONTAINER_DATA_DIR) --pid-file=/var/lib/mysqld.pid --bind-address=0.0.0.0\n" > $@
+
+.INTERMEDIATE: daemonless.yml
+daemonless.yml:
+	@printf "version: '3'\nservices:\n  mysql:\n    command: bash\n" > $@
+
+.PHONY: restore
+restore: verify-mysql-root-password verify-mysql-database
+	@if [ -z "$${MYSQL_BACKUP}" ]; then \
+		echo >&2 "Must provide a MYSQL_BACKUP dir."; \
+		exit -1; \
+	fi
+
+	$(MAKE) -C .. mysql
+	while ! source .env && $(DOCKER) exec -it -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) $(MYSQL_CLIENT) -u root -e "select 1;" > /dev/null; do \
+		echo >&2 "MySQL server not up yet. Waiting 1 second..."; \
+		sleep 1; \
+	done
+	find $${MYSQL_BACKUP} -iname "*.sql" -print | while read filename; do \
+		$(DOCKER) cp $${filename} $(RUNNING_CONTAINER_NAME):tmprestore.sql; \
+		$(ATTACHED_DOCKER) exec -u 0 $(RUNNING_CONTAINER_NAME) chmod 644 tmprestore.sql; \
+		source .env && $(ATTACHED_DOCKER) exec -e MYSQL_DATABASE=$${MYSQL_DATABASE} -e MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" $(RUNNING_CONTAINER_NAME) \
+			sh -c "$(MYSQL_CLIENT) -u root --database=$${MYSQL_DATABASE} < ./tmprestore.sql;"; \
+	done
