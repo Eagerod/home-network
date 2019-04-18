@@ -96,19 +96,19 @@ $(DOCKER_CONTAINERS): $(ANY_CONTAINER_BUILD_DEPS)
 .PHONY: $(CONTAINER_DEBUG_TARGETS)
 $(CONTAINER_DEBUG_TARGETS):
 	printf "version: '3'\nservices:\n  %s:\n    stdin_open: true\n" $$(basename $@) > "$$(basename $@)/debug.yml"
-	DOCKER_COMPOSE_EXTRAS="-f $$(basename $@)/debug.yml" $(MAKE) $$(basename $@)
+	DOCKER_COMPOSE_EXTRAS="-f $$(basename $@)/debug.yml $(DOCKER_COMPOSE_EXTRAS)" $(MAKE) $$(basename $@)
 	rm -rf  "$$(basename $@)/debug.yml"
 
 
-# Source each file, and loop over the environments that should have been set,
-#   and write those out to the compose env file.
+# Treat the compose files as phony, so the individual service Makefiles can
+#   manage prerequisites.
+.PHONY: $(COMPOSE_ENVIRONMENT_FILES)
 $(COMPOSE_ENVIRONMENT_FILES):
-	@if [ -f $(@D)/.env ]; then \
-		source $(@D)/.env && grep -o "^\s*export \w*" $(@D)/.env | sed -e 's/^[[:space:]]*//' | sort | uniq | sed -e 's/export \(.*\)/\1/g' | awk '{print $$1"="ENVIRON[$$1]}' >> $@; \
-	fi
+	@$(MAKE) -C $(@D) compose.env > /dev/null
 
 
 # Helper to create all compose environment files.
+.PHONY: env
 env: $(COMPOSE_ENVIRONMENT_FILES)
 
 
@@ -116,12 +116,7 @@ env: $(COMPOSE_ENVIRONMENT_FILES)
 #   bring up the whole system.
 .PHONY: show-config
 show-config: $(COMPOSE_ENVIRONMENT_FILES)
-	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) config
-
-
-.PHONY: env-templates
-env-templates:
-	$(foreach d,$(DOCKER_CONTAINERS),make -C $(d) .env;)
+	@$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) config
 
 
 .PHONY: kill
@@ -148,7 +143,7 @@ clean:
 .PHONY: backups
 backups:
 	@find . -maxdepth 2 -iname "backup.sh" -exec dirname {} \; | while read bak; do \
-		make -C $${bak} backup; \
+		$(MAKE) -C $${bak} backup; \
 	done
 
 
@@ -204,14 +199,6 @@ $(PLEX_VOLUMES_COMPOSE_FILE):
 	awk '{print "      - "$$2":"$$1}' plex/volumes.txt >> $(PLEX_VOLUMES_COMPOSE_FILE)
 
 
-# Because this system will likely be run on a host that isn't the same one disks
-#   are physically attached to, there needs to be a mechanism to mount disks
-#   from other devices on the network.
-.PHONY: mount-volumes
-mount-volumes:
-	sudo python .scripts/mount_disks.py volumes.yml
-
-
 .git/hooks/pre-push:
 	# For whatever reason, this can choose to run despite the file already
 	#   existing and having no dependencies. Possibly an issue with having a
@@ -229,3 +216,18 @@ search-env:
 			exit -1; \
 		fi \
 	done
+
+# Target added specifically for linux to disable system dns once the pi-hole
+#   tries to bind to port 53. DNS is needed right up until that point, since
+#   everything before then does require looking up/building containers.
+.PHONY: disable-system-dns
+disable-system-dns:
+	@systemctl disable systemd-resolved.service
+	@systemctl stop systemd-resolved
+
+# When updating the system, somelines the system DNS needs to be enabled
+# again, because the pi-hole has been shut down.
+.PHONY: enable-system-dns
+enable-system-dns:
+	@systemctl enable systemd-resolved.service
+	@systemctl start systemd-resolved.service

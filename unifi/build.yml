@@ -1,5 +1,0 @@
-version: '3'
-services:
-  unifi:
-    entrypoint: /bin/bash
-    stdin_open: true

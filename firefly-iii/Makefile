@@ -18,8 +18,13 @@ setup: initialize
 initialize:
 	$(MAKE) -C .. mysql/setup
 	$(MAKE) -C .. mysql
-	source ./.env && source $(CURDIR)/../mysql/.env && $(MAKE) -C $(CURDIR)/../mysql create-user
-	source ./.env && source $(CURDIR)/../mysql/.env && $(MAKE) -C $(CURDIR)/../mysql grant-database
+	
+	# Give mysql a little time to finish booting and getting itself created in
+	#   case this is the first time it being run.
+	sleep 2
+
+	source ./.env && $(MAKE) -C $(CURDIR)/../mysql create-user
+	source ./.env && $(MAKE) -C $(CURDIR)/../mysql grant-database
 
 	$(MAKE) -C .. $(DOCKER_IMAGE_NAME)
 	$(DOCKER) exec -dit $(RUNNING_CONTAINER_NAME) php artisan migrate

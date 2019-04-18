@@ -36,6 +36,8 @@ services:
     hostname: mongodb
     ports: 
       - 27017:27017
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups/mongodb:/var/lib/backup'
 
   unifi:
     build: unifi
@@ -71,6 +73,8 @@ services:
     env_file: mysql/compose.env
     ports:
       - 3306:3306
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups/mysql:/var/lib/backup'
 
   firefly-iii:
     build: firefly-iii
@@ -88,6 +92,9 @@ services:
     hostname: transmission-oss
     ports:
       - 9091:9091
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/downloads/oss:/var/lib/downloads'
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/transmission-oss:/var/lib/transmission-daemon'
 
   util:
     hostname: util
@@ -98,6 +105,9 @@ services:
         DEFAULT_BLOBSTORE_READ_ACL: ${DEFAULT_BLOBSTORE_READ_ACL}
         MULTI_REDDIT_SUBS_LOCATION: ${MULTI_REDDIT_SUBS_LOCATION}
         MULTI_REDDIT_SAVED_LOCATION: ${MULTI_REDDIT_SAVED_LOCATION}
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups:/var/lib/backups'
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/git:/var/lib/git'
 
   resilio-server:
     build: resilio-server
@@ -105,9 +115,14 @@ services:
     env_file: resilio-server/compose.env
     ports:
       - 8888:8888
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/.sync:/.sync'
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups:/var/lib/resilio-folders'
 
   plex:
     build: plex
+    environment:
+      - ALLOWED_NETWORKS=192.168.1.0/24
     hostname: plex
     env_file: plex/compose.env
     ports:
@@ -120,3 +135,12 @@ services:
       - 32412:32412/udp
       - 32413:32413/udp
       - 32414:32414/udp
+
+  factorio-server:
+    build: factorio-server
+    hostname: factorio
+    env_file: factorio-server/compose.env
+    ports:
+      - 34197:34197/udp
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/factorio:/var/lib/factorio/saves'
