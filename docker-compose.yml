@@ -144,3 +144,12 @@ services:
       - 34197:34197/udp
     volumes:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/factorio:/var/lib/factorio/saves'
+
+  terraria-server:
+    build: terraria-server
+    hostname: terraria
+    env_file: terraria-server/compose.env
+    ports:
+      - 7777:7777
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/terraria:/var/lib/terraria'
