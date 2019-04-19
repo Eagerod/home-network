@@ -86,6 +86,7 @@ compose-down:
 #   aren't in any way related to the service that's being started.
 .PHONY: $(DOCKER_CONTAINERS)
 $(DOCKER_CONTAINERS): $(ANY_CONTAINER_BUILD_DEPS)
+	$(MAKE) -C $@ test-environment
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) build $@ $$(python .scripts/get_dependencies_from_compose_file.py $@ $(PRIMARY_COMPOSE_FILE))
 	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) up -d $@
 
