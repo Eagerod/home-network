@@ -39,6 +39,7 @@ services:
       - 1880:1880
     links:
       - slack-bot
+      - mysql
     volumes:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/node-red:/root/.node-red'
 
