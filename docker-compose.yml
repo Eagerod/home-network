@@ -31,6 +31,17 @@ services:
     ports:
       - 6379:6379
 
+  node-red:
+    build: node-red
+    env_file: node-red/compose.env
+    hostname: node-red
+    ports:
+      - 1880:1880
+    links:
+      - slack-bot
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/node-red:/root/.node-red'
+
   mongodb:
     build: mongodb
     hostname: mongodb
