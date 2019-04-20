@@ -28,7 +28,10 @@ def receive_internal_message():
     if not rv['ok']:
         # See if this is the server, or the sender's fault.
         if rv['error'] == 'invalid_auth':
-            logging.error('Slack API is incorrectly configured.')
+            logging.error('Slack API key is incorrectly configured.')
+            return '', 500
+        if rv['error'] == 'not_authed':
+            logging.error('Missing Slack API key.')
             return '', 500
 
         error = 'Unknown error from Slack: {}. Blaming the client.'.format(
