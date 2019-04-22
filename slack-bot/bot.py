@@ -16,14 +16,18 @@ default_channel = os.environ['DEFAULT_CHANNEL']
 @app.route('/message', methods=['POST'])
 def receive_internal_message():
     message_body = request.get_data()
+
     if not message_body:
         return 'No message content', 400
 
     channel = request.headers.get('X-SLACK-CHANNEL-ID') or default_channel
 
-    logging.info
-    rv = slack_client.api_call('chat.postMessage',
-                               channel=channel, text=message_body)
+    rv = slack_client.api_call(
+        'chat.postMessage',
+        channel=channel,
+        text=message_body,
+        unfurl_links=True
+    )
 
     if not rv['ok']:
         # See if this is the server, or the sender's fault.
