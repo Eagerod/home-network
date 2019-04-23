@@ -26,13 +26,13 @@ services:
     dns: 127.0.0.1
 
   redis:
-    build: redis
+    image: redis
     hostname: redis
     ports:
       - 6379:6379
 
   mongodb:
-    build: mongodb
+    image: mongo:3.7
     hostname: mongodb
     ports: 
       - 27017:27017
@@ -77,9 +77,13 @@ services:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups/mysql:/var/lib/backup'
 
   firefly-iii:
-    build: firefly-iii
+    image: jc5x/firefly-iii:release-4.7.5.3
     hostname: firefly-iii
     env_file: firefly-iii/compose.env
+    environment:
+      - FF_DB_HOST=mysql
+      - FF_DB_NAME=firefly
+      - FF_DB_USER=firefly
     ports:
       - 8082:80
     links:
@@ -120,7 +124,7 @@ services:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups:/var/lib/resilio-folders'
 
   plex:
-    build: plex
+    image: plexinc/pms-docker
     environment:
       - ALLOWED_NETWORKS=192.168.1.0/24
     hostname: plex
