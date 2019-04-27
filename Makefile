@@ -72,8 +72,7 @@ base-image:
 
 .PHONY: compose-up
 compose-up: $(ANY_CONTAINER_BUILD_DEPS)
-	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) build
-	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) up -d
+	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) up --build -d
 
 .PHONY: compose-down
 compose-down:
@@ -86,8 +85,7 @@ compose-down:
 .PHONY: $(DOCKER_CONTAINERS)
 $(DOCKER_CONTAINERS): $(ANY_CONTAINER_BUILD_DEPS)
 	$(MAKE) -C $@ test-environment
-	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) build $@ $$(python .scripts/get_dependencies_from_compose_file.py $@ $(PRIMARY_COMPOSE_FILE))
-	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) up -d $@
+	$(SOURCE_BUILD_ARGS) && $(PLATFORM_DOCKER_COMPOSE) up --build -d $@
 
 # Debug phony target to start up a container using docker compose, but also to
 #   set it up with std_in available, so even if it's a bash command the
