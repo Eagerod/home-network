@@ -15,8 +15,6 @@ SSH_AUTHORIZED_KEYS:=$(SSH_DIR)/authorized_keys
 FSTAB=/etc/fstab
 
 BOOTSTRAP_TARGETS:=\
-	verify-platform \
-	verify-root \
 	install-dependencies \
 	create-environment \
 	configure-ssh-server \
@@ -49,7 +47,7 @@ verify-root:
 	fi
 
 
-install-dependencies:
+install-dependencies: verify-platform verify-root
 	@apt-get update -y
 	@apt-get install -y \
 		docker.io \
@@ -71,7 +69,7 @@ create-environment:
 	@$(MAKE) -C $(PROJECT_ROOT_DIRECTORY) env;
 
 
-configure-ssh-server:
+configure-ssh-server: verify-platform verify-root
 	@sed -i -r 's/^[#\s]*(PasswordAuthentication).*$$/\1 no/' $(SSHD_CONFIG)
 	@sed -i -r 's/^[#\s]*(PermitRootLogin).*$$/\1 prohibit-password/' $(SSHD_CONFIG)
 	@sed -i -r 's/^[#\s]*(Port).*$$/\1 2222/' $(SSHD_CONFIG)
@@ -91,7 +89,7 @@ configure-ssh-server:
 
 # Make sure /etc/fstab supplies the correct mounts, and attempt to remount
 #   everything that isn't yet mounted.
-configure-network-shares:
+configure-network-shares: verify-platform verify-root
 	@if [ -z "$${NFS_HOST}" ]; then \
 		echo >&2 "Must include an NFS_HOST to set up mounts"; \
 		exit 1; \
@@ -113,7 +111,7 @@ configure-network-shares:
 # If the destination path already exists, don't try to link again. If the 
 #   destination path exists, and it's a directory, this would just add a 
 #   symlink into the directory containing itself, which isn't very clean.
-configure-local-symlinks:
+configure-local-symlinks: verify-platform verify-root
 	@set -e && cat $(PROJECT_ROOT_DIRECTORY)/local_mounts.txt | while read localmount; do \
 		mount=$$(echo $${localmount} | cut -d' ' -f1); \
 		path=$$(echo $${localmount} | cut -d' ' -f2); \
@@ -130,7 +128,7 @@ configure-local-symlinks:
 
 # The Plex server set up process requires that a `volumes.txt` exists so that
 #   a `plex-volumes.yml` can be created.
-create-plex-volumes:
+create-plex-volumes: verify-platform verify-root
 	@if [ ! -f $(PROJECT_ROOT_DIRECTORY)/plex/volumes.txt ]; then \
 		echo "/dev/null /data/nothing" >> $(PROJECT_ROOT_DIRECTORY)/plex/volumes.txt; \
 	fi
