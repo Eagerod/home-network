@@ -98,7 +98,7 @@ configure-network-shares: verify-platform verify-root
 	@set -e && cat $(PROJECT_ROOT_DIRECTORY)/nfs_volumes.txt | while read share; do \
 		remote=$$(echo $${share} | cut -d' ' -f1); \
 		local=$$(echo $${share} | cut -d' ' -f2); \
-		if grep -q "$${NFS_HOST}:$${remote}" $(FSTAB) 2> /dev/null; then \
+		if grep -q $$(echo -e "$${NFS_HOST}:$${remote}") $(FSTAB) 2> /dev/null; then \
 			continue; \
 		fi; \
 		mkdir -p $${local}; \
