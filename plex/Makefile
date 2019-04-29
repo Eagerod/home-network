@@ -34,3 +34,8 @@ else ifeq ($(PLATFORM),$(PLATFORM_LINUX))
 else ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
 	$(error "Can't port forward on windows here yet.")
 endif
+
+
+plex-volumes.yml:
+	printf "version: '3'\nservices:\n  plex:\n    volumes:\n" > $@
+	awk '{print "      - "$$2":"$$1}' volumes.txt >> $@
