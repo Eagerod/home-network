@@ -178,7 +178,7 @@ volumes:
 $(NGINX_REVERSE_PROXY_FILE):
 	@python .scripts/get_hostname_container_webserver_port.py '$(PRIMARY_COMPOSE_FILE)' | while read line; do \
 		arr=($${line[@]}); \
-		sed "s/"'$${HOSTNAME}'"/$${arr[0]}/g; s/"'$${HOSTPORT}'"/$${arr[1]}/g" $(NGINX_REVERSE_PROXY_TEMPLATE_FILE) >> $(NGINX_REVERSE_PROXY_FILE); \
+		sed "s/"'$${HOSTNAME}'"/$${arr[0]}/g; s/"'$${HOSTPORT}'"/$${arr[1]}/g" $(NGINX_REVERSE_PROXY_TEMPLATE_FILE) >> $@; \
 	done
 
 
@@ -187,14 +187,14 @@ $(PIHOLE_LAN_LIST_FILE):
 		python .scripts/get_hostnames.py '$(PRIMARY_COMPOSE_FILE)' | while read line; do \
 			arr=($${line[@]}); \
 			hostname=$${arr[0]}; \
-			printf '$${SERVER_IP}	%s.%s.	%s\n' $$hostname $(domain) $$hostname >> $(PIHOLE_LAN_LIST_FILE); \
+			printf '$${SERVER_IP}	%s.%s.	%s\n' $$hostname $(domain) $$hostname >> $@; \
 		done; \
 	)
 
 
 $(PLEX_VOLUMES_COMPOSE_FILE):
-	printf "version: '3'\nservices:\n  plex:\n    volumes:\n" > $(PLEX_VOLUMES_COMPOSE_FILE)
-	awk '{print "      - "$$2":"$$1}' plex/volumes.txt >> $(PLEX_VOLUMES_COMPOSE_FILE)
+	printf "version: '3'\nservices:\n  plex:\n    volumes:\n" > $@
+	awk '{print "      - "$$2":"$$1}' plex/volumes.txt >> $@
 
 
 .git/hooks/pre-push:
