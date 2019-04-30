@@ -12,7 +12,13 @@ SSHD_CONFIG:=/etc/ssh/sshd_config
 ROOT_HOME=$(shell echo ~root)
 SSH_DIR:=$(ROOT_HOME)/.ssh
 SSH_AUTHORIZED_KEYS:=$(SSH_DIR)/authorized_keys
+
 FSTAB=/etc/fstab
+
+FS_WATCH_LIMIT:=16384
+FS_WATCH_FILE:=/proc/sys/fs/inotify/max_user_watches
+SYSCTL_CONF:=/etc/sysctl.conf
+
 
 BOOTSTRAP_TARGETS:=\
 	install-dependencies \
@@ -20,7 +26,8 @@ BOOTSTRAP_TARGETS:=\
 	configure-ssh-server \
 	configure-network-shares \
 	configure-local-symlinks \
-	create-plex-volumes
+	create-plex-volumes \
+	set-watch-limits
 
 
 .PHONY: $(BOOTSTRAP_TARGETS)
@@ -50,11 +57,12 @@ verify-root:
 install-dependencies: verify-platform verify-root
 	@apt-get update -y
 	@apt-get install -y \
+		apcupsd \
 		docker.io \
 		docker-compose \
 		git \
-		openssh-server \
-		nfs-common
+		nfs-common \
+		openssh-server 
 
 
 # Check if this directory is the directory that the git repo lives in, and if
@@ -132,3 +140,11 @@ create-plex-volumes: verify-platform verify-root
 	@if [ ! -f $(PROJECT_ROOT_DIRECTORY)/plex/volumes.txt ]; then \
 		echo "/dev/null /data/nothing" >> $(PROJECT_ROOT_DIRECTORY)/plex/volumes.txt; \
 	fi
+
+# Increase the number of file system watches that can be allocated.
+# Tons of hosted applications set up watches, and the default limit is easy to
+#   exceed.
+set-watch-limits: verify-platform verify-root
+	@echo $(FS_WATCH_LIMIT) > $(FS_WATCH_FILE)
+	@sed -i "/^fs.inotify.max_user_watches.*/d" $(SYSCTL_CONF)
+	@echo "fs.inotify.max_user_watches=$(FS_WATCH_LIMIT)" >> $(SYSCTL_CONF)
