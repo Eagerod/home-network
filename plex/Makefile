@@ -36,6 +36,6 @@ else ifeq ($(PLATFORM),$(PLATFORM_WINDOWS))
 endif
 
 
-plex-volumes.yml:
+plex-volumes.yml: volumes.txt
 	printf "version: '3'\nservices:\n  plex:\n    volumes:\n" > $@
 	awk '{print "      - "$$2":"$$1}' volumes.txt >> $@
