@@ -22,6 +22,9 @@ services:
   plex:
     volumes:
       - 'plex-config:/config'
+  openvpn-as:
+    volumes:
+      - 'openvpn-as-data:/config'
 
 volumes:
   sharelatex-data:
@@ -31,4 +34,6 @@ volumes:
   mysql-data:
     external: true
   plex-config:
+    external: true
+  openvpn-as-data:
     external: true
