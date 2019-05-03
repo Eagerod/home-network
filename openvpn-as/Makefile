@@ -16,8 +16,7 @@ setup: config
 .PHONY: config
 config:
 	@# Start up the openvpn server to copy configurations. Make sure it has time
-	@#   to populate its configs. Copy using a platform agnostic approach, even
-	@#   though it may be a little less efficient on Linux.
+	@#   to populate its configs.
 	$(MAKE) -C .. openvpn-as
 	while ! $(EXEC_SACLI) status; do sleep 1; done
 
