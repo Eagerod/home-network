@@ -44,8 +44,6 @@ SAVE_ENV_VARS=\
 	FF_APP_ENV\
 	RESILIO_SERVER_USERNAME\
 	ADVERTISE_IP\
-	KEY_COUNTRY\
-	KEY_PROVINCE\
 	OPENVPN_PRIMARY_USERNAME
 
 # Docker Compose has some odd conditions that require all containers to be
