@@ -40,6 +40,9 @@ services:
     links:
       - slack-bot
       - mysql
+    depends_on:
+      - slack-bot
+      - mysql
     volumes:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/node-red:/root/.node-red'
 
