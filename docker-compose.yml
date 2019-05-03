@@ -38,16 +38,18 @@ services:
     dns: 127.0.0.1
 
   redis:
-    build: redis
+    image: redis
     hostname: redis
     ports:
       - 6379:6379
 
   mongodb:
-    build: mongodb
+    image: mongo:3.7
     hostname: mongodb
     ports: 
       - 27017:27017
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups/mongodb:/var/lib/backup'
 
   unifi:
     build: unifi
@@ -83,11 +85,17 @@ services:
     env_file: mysql/compose.env
     ports:
       - 3306:3306
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups/mysql:/var/lib/backup'
 
   firefly-iii:
-    build: firefly-iii
+    image: jc5x/firefly-iii:release-4.7.5.3
     hostname: firefly-iii
     env_file: firefly-iii/compose.env
+    environment:
+      - FF_DB_HOST=mysql
+      - FF_DB_NAME=firefly
+      - FF_DB_USER=firefly
     ports:
       - 8082:80
     links:
@@ -100,6 +108,9 @@ services:
     hostname: transmission-oss
     ports:
       - 9091:9091
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/downloads/oss:/var/lib/downloads'
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/transmission-oss:/var/lib/transmission-daemon'
 
   util:
     hostname: util
@@ -110,6 +121,9 @@ services:
         DEFAULT_BLOBSTORE_READ_ACL: ${DEFAULT_BLOBSTORE_READ_ACL}
         MULTI_REDDIT_SUBS_LOCATION: ${MULTI_REDDIT_SUBS_LOCATION}
         MULTI_REDDIT_SAVED_LOCATION: ${MULTI_REDDIT_SAVED_LOCATION}
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups:/var/lib/backups'
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/git:/var/lib/git'
 
   resilio-server:
     build: resilio-server
@@ -117,9 +131,12 @@ services:
     env_file: resilio-server/compose.env
     ports:
       - 8888:8888
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/.sync:/.sync'
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups:/var/lib/resilio-folders'
 
   plex:
-    build: plex
+    image: plexinc/pms-docker
     environment:
       - ALLOWED_NETWORKS=192.168.1.0/24
     hostname: plex
@@ -141,3 +158,5 @@ services:
     env_file: factorio-server/compose.env
     ports:
       - 34197:34197/udp
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/factorio:/var/lib/factorio/saves'
