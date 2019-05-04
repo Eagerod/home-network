@@ -6,7 +6,11 @@ REQUIRED_ENV_VARS:=\
 	OPENVPN_PRIMARY_USERNAME\
 	OPENVPN_PRIMARY_USERPASS
 
-SACLI_PATH:=/usr/local/openvpn_as/scripts/sacli
+SCRIPTS_PATH:=/usr/local/openvpn_as/scripts
+SACLI_PATH:=$(SCRIPTS_PATH)/sacli
+CERTOOL_PATH:=$(SCRIPTS_PATH)/certool
+CERT_PATH:=/usr/local/openvpn_as/etc/web-ssl
+
 EXEC_SACLI:=$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(SACLI_PATH)
 CONFIG_FILE:=/config/etc/as.conf
 
@@ -34,7 +38,11 @@ config:
 
 	source .env && $(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} --key type --value user_connect UserPropPut
 	source .env && $(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} --key prop_superuser --value true UserPropPut
+	source .env && $(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} --key prop_deny --value false UserPropPut
 	source .env && $(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} --new_pass $${OPENVPN_PRIMARY_USERPASS} SetLocalPassword
+
+	$(EXEC_SACLI) --user __DEFAULT__ --key def_deny --value true UserPropPut
+	$(EXEC_SACLI) --user __DEFAULT__ --key prop_deny --value true UserPropPut
 
 	source .env && if [ -z "$$($(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} UserPropGet | grep '"pvt_google_auth_secret"' | awk '{print $$2}' | tr -cd '[[:alnum:]]')" ]; then \
 		$(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} GoogleAuthRegen; \
@@ -57,8 +65,16 @@ config:
 	$(EXEC_SACLI) --user admin UserPropDelAll || true
 	$(EXEC_SACLI) --user openvpn UserPropDelAll || true
 
+	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) passwd -d openvpn
+
+	@# Regenerate SSL Certs
+	@# By default, these ship with the base image.
+	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(CERTOOL_PATH) -d $(CERT_PATH) --type ca --unique --cn "OpenVpn Aleem Home"
+	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(CERTOOL_PATH) -d $(CERT_PATH) --type server --remove_csr --sn_off --serial 1 --name server --cn $${SERVER_IP}
+
 	@# Killing the service seems to be the only reliable way to have all
 	@#   configurations persist completely.
+	$(EXEC_SACLI) Reset
 	$(MAKE) kill
 
 
