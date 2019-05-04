@@ -48,7 +48,7 @@ config:
 		$(MAKE) get-2fa; \
 	fi
 
-	@# The first time the container is starter, it'll run a configuration init
+	@# The first time the container is started, it'll run a configuration init
 	@#   script that sets up user accounts, and allows access to the VPN that
 	@#   shouldn't exit. Remove those.
 	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) sed -i -r 's/^(boot_pam_service.*)/# \1/g' $(CONFIG_FILE)
@@ -59,8 +59,9 @@ config:
 	$(EXEC_SACLI) --user admin UserPropDelAll || true
 	$(EXEC_SACLI) --user openvpn UserPropDelAll || true
 
-	@# Make sure server restarts to register changes.
-	$(EXEC_SACLI) Reset
+	@# Killing the service seems to be the only reliable way to have all
+	@#   configurations persist completely.
+	$(MAKE) kill
 
 
 .PHONY: get-2fa
