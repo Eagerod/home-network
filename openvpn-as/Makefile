@@ -21,8 +21,6 @@ config:
 	$(MAKE) -C .. openvpn-as
 	while ! $(EXEC_SACLI) status; do sleep 1; done
 
-	$(EXEC_SACLI) --key vpn.daemon.0.client.network --value 172.27.224.0 ConfigPut
-	$(EXEC_SACLI) --key vpn.daemon.0.client.netmask_bits --value 24 ConfigPut
 	$(EXEC_SACLI) --key vpn.server.google_auth.enable --value true ConfigPut
 	$(EXEC_SACLI) --key vpn.server.port_share.enable --value false ConfigPut
 	$(EXEC_SACLI) --key vpn.server.port_share.service --value custom ConfigPut
