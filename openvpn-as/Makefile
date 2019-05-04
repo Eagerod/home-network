@@ -20,8 +20,8 @@ setup: config
 
 .PHONY: config
 config:
-	@# Start up the openvpn server to copy configurations.
-	@# Make sure it has time to finishing its first start routine.
+	@# Make sure openvpn-as has a chance to do it's first start routine before
+	@#   changing configs, or else the first start will overwrite these anyways
 	$(MAKE) -C .. openvpn-as
 	while ! $(EXEC_SACLI) status; do sleep 1; done
 
@@ -44,6 +44,7 @@ config:
 	$(EXEC_SACLI) --user __DEFAULT__ --key def_deny --value true UserPropPut
 	$(EXEC_SACLI) --user __DEFAULT__ --key prop_deny --value true UserPropPut
 
+	# Only recreate 2fa secret if there isn't already one set.
 	source .env && if [ -z "$$($(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} UserPropGet | grep '"pvt_google_auth_secret"' | awk '{print $$2}' | tr -cd '[[:alnum:]]')" ]; then \
 		$(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} GoogleAuthRegen; \
 		$(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} --lock 1 GoogleAuthLock; \
@@ -54,9 +55,7 @@ config:
 		$(MAKE) get-2fa; \
 	fi
 
-	@# The first time the container is started, it'll run a configuration init
-	@#   script that sets up user accounts, and allows access to the VPN that
-	@#   shouldn't exit. Remove those.
+	@# Remove user accounts created during first boot.
 	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) sed -i -r 's/^(boot_pam_service.*)/# \1/g' $(CONFIG_FILE)
 	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) sed -i -r 's/^(boot_pam_users.*)/# \1/g' $(CONFIG_FILE)
 
@@ -69,8 +68,7 @@ config:
 
 	@# Regenerate SSL Certs
 	@# By default, these ship with the base image.
-	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(CERTOOL_PATH) -d $(CERT_PATH) --type ca --unique --cn "OpenVpn Aleem Home"
-	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(CERTOOL_PATH) -d $(CERT_PATH) --type server --remove_csr --sn_off --serial 1 --name server --cn $${SERVER_IP}
+	$(MAKE) recreate-server-certs
 
 	@# Killing the service seems to be the only reliable way to have all
 	@#   configurations persist completely.
@@ -81,3 +79,8 @@ config:
 .PHONY: get-2fa
 get-2fa:
 	@source .env && echo 'https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=otpauth%3A//totp/'$${OPENVPN_PRIMARY_USERNAME}'%2540OpenVPN%3Fsecret%3D'$$($(EXEC_SACLI) --user $${OPENVPN_PRIMARY_USERNAME} UserPropGet | grep '"pvt_google_auth_secret"' | awk '{print $$2}' | tr -cd '[[:alnum:]]')'&choe=UTF-8'
+
+
+.PHONY: recreate-server-certs
+	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(CERTOOL_PATH) -d $(CERT_PATH) --type ca --unique --cn "OpenVpn Aleem Home"
+	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(CERTOOL_PATH) -d $(CERT_PATH) --type server --remove_csr --sn_off --serial 1 --name server --cn $${SERVER_IP}
