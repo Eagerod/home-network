@@ -82,5 +82,6 @@ get-2fa:
 
 
 .PHONY: recreate-server-certs
+recreate-server-certs:
 	$(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(CERTOOL_PATH) -d $(CERT_PATH) --type ca --unique --cn "OpenVpn Aleem Home"
 	source .env && $(DOCKER) exec $(RUNNING_CONTAINER_NAME) $(CERTOOL_PATH) -d $(CERT_PATH) --type server --remove_csr --sn_off --serial 1 --name server --cn $${SERVER_IP}
