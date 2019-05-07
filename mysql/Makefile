@@ -29,7 +29,7 @@ verify-mysql-root-password:
 
 .PHONY: validate-mysql-root-password
 validate-mysql-root-password: verify-mysql-root-password
-	@if [ "$${#MYSQL_ROOT_PASSWORD}" -lt 16 ]; then \
+	@source .env && if [ "$${#MYSQL_ROOT_PASSWORD}" -lt 16 ]; then \
 		echo >&2 "Root password too short, aborting password creation"; \
 		exit -1; \
 	fi
