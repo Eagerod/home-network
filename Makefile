@@ -58,7 +58,8 @@ ANY_CONTAINER_BUILD_DEPS:=\
 	$(PLEX_VOLUMES_COMPOSE_FILE)\
 	base-image\
 	volumes\
-	.git/hooks/pre-push
+	.git/hooks/pre-push\
+	.gitignore
 
 .PHONY: all
 all: setup $(COMPOSE_ENVIRONMENT_FILES) compose-up
@@ -187,6 +188,19 @@ volumes:
 	#   existing and having no dependencies. Possibly an issue with having a
 	#   symlink as a target?
 	ln -sf ${PWD}/.scripts/hooks/pre-push.sh $@
+
+
+.gitignore-extra:
+	@touch $@
+
+
+.gitignore: Makefile .gitignore-extra
+	@rm -f $@
+	@curl -sSL https://raw.githubusercontent.com/github/gitignore/master/Global/macOS.gitignore >> $@
+	@curl -sSL https://raw.githubusercontent.com/github/gitignore/master/Global/Linux.gitignore >> $@
+	@curl -sSL https://raw.githubusercontent.com/github/gitignore/master/Global/SublimeText.gitignore >> $@
+	@curl -sSL https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore >> $@
+	@cat .gitignore-extra >> $@
 
 
 # Search though all .env files, and fail the command if any secret is found
