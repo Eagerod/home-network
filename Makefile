@@ -76,12 +76,30 @@ token:
 
 
 .PHONY: initialize-cluster
-initialize-cluster: .kube/config nginx/nginx-secret.yaml
+initialize-cluster: .kube/config nginx/nginx-secret.yaml nginx/reverse-proxy.conf
 	kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-admin --user=system:serviceaccount:default:default
 	kubectl taint node util1 node-role.kubernetes.io/master:NoSchedule-
 	kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml
 	kubectl apply -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml
+
+	kubectl create configmap nginx-config --from-file nginx/reverse-proxy.conf -o yaml --dry-run | kubectl replace -f -
+	kubectl apply -f nginx/nginx.yaml
+
+
+.INTERMEDIATE: nginx/nginx-secret.yaml
+nginx/nginx-secret.yaml:
+	@sed \
+		-e "s/tls.crt:.*/tls.crt: $$(base64 < domain.crt)/g" \
+		-e "s/tls.key:.*/tls.key: $$(base64 < domain.key)/g" \
+		nginx/nginx-secret-template.yaml > $@
+	kubectl apply -f $@
+
+
+.PHONY: proxy
+proxy:
+	kubectl create configmap nginx-config --from-file nginx/reverse-proxy.conf -o yaml --dry-run | kubectl replace -f -
+	kubectl delete pod $$(kubectl get pods | grep nginx | awk '{print $$1}')
 
 
 .PHONY: all
