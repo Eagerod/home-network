@@ -81,7 +81,9 @@ initialize-cluster: .kube/config nginx/nginx-secret.yaml nginx/reverse-proxy.con
 	kubectl taint node util1 node-role.kubernetes.io/master:NoSchedule-
 	kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml
+
 	kubectl apply -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml
+	kubectl apply -f metallb-config.yaml
 
 	kubectl create configmap nginx-config --from-file nginx/reverse-proxy.conf -o yaml --dry-run | kubectl replace -f -
 	kubectl apply -f nginx/nginx.yaml
@@ -104,6 +106,7 @@ proxy:
 
 .PHONY: all
 all: setup $(COMPOSE_ENVIRONMENT_FILES) compose-up
+
 
 .PHONY: setup
 setup: $(SETUP_FILES)
