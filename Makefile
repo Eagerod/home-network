@@ -89,13 +89,26 @@ initialize-cluster: .kube/config nginx/nginx-secret.yaml nginx/reverse-proxy.con
 	kubectl apply -f nginx/nginx.yaml
 
 
-.INTERMEDIATE: nginx/nginx-secret.yaml
-nginx/nginx-secret.yaml:
+
+domain.crt:
+	kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/fullchain1.pem domain.crt
+
+
+domain.key:
+	kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/privkey1.pem domain.key
+
+
+.INTERMEDIATE: domain.crt domain.key
+nginx/nginx-secret.yaml: domain.crt domain.key
 	@sed \
 		-e "s/tls.crt:.*/tls.crt: $$(base64 < domain.crt)/g" \
 		-e "s/tls.key:.*/tls.key: $$(base64 < domain.key)/g" \
 		nginx/nginx-secret-template.yaml > $@
 	kubectl apply -f $@
+
+.PHONY: secrets
+.INTERMEDIATE: nginx/nginx-secret.yaml
+secrets: nginx/nginx-secret.yaml
 
 
 .PHONY: proxy
