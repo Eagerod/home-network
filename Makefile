@@ -45,7 +45,8 @@ SAVE_ENV_VARS=\
 	MYSQL_DATABASE\
 	FF_APP_ENV\
 	RESILIO_SERVER_USERNAME\
-	ADVERTISE_IP
+	ADVERTISE_IP\
+	DOCKER_REGISTRY_USERNAME
 
 # Docker Compose has some odd conditions that require all containers to be
 #   properly configured, even if you're only trying to start one. Because of
@@ -106,9 +107,23 @@ nginx/nginx-secret.yaml: domain.crt domain.key
 		nginx/nginx-secret-template.yaml > $@
 	kubectl apply -f $@
 
+
+registry/registry-secret.yaml:
+	@source .env && \
+		sed -e "s/htpasswd:.*/htpasswd: $$(htpasswd -nbB -C 10 $${DOCKER_REGISTRY_USERNAME} $${DOCKER_REGISTRY_PASSWORD} | base64 | head -1)/" \
+		registry/registry-secret-template.yaml > $@
+	kubectl apply -f $@
+	@source .env && \
+		kubectl create secret docker-registry registry.internal.aleemhaji.com \
+			--docker-server=registry.internal.aleemhaji.com \
+			--docker-username=$${DOCKER_REGISTRY_USERNAME} \
+			--docker-password=$${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
+		kubectl replace -f -
+
+
 .PHONY: secrets
-.INTERMEDIATE: nginx/nginx-secret.yaml
-secrets: nginx/nginx-secret.yaml
+.INTERMEDIATE: nginx/nginx-secret.yaml registry/registry-secret.yaml
+secrets: nginx/nginx-secret.yaml registry/registry-secret.yaml
 
 
 .PHONY: proxy

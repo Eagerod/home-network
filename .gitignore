@@ -197,3 +197,4 @@ nginx/reverse-proxy.conf
 pi-hole/lan.list
 plex/plex-volumes.yml
 .kube
+registry/registry-secret.yaml
