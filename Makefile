@@ -76,13 +76,14 @@ services: $(KUBERNETES_SERVICES)
 
 .PHONY: initialize-cluster
 initialize-cluster: .kube/config
-	kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-admin --user=system:serviceaccount:default:default
-	kubectl taint node util1 node-role.kubernetes.io/master:NoSchedule-
-	kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml
+	@kubectl taint node util1 node-role.kubernetes.io/master:NoSchedule-
+	@kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+	@kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml
 
-	kubectl apply -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml
-	kubectl apply -f metallb-config.yaml
+	@kubectl apply -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml
+	@kubectl apply -f metallb-config.yaml
+
+	@kubectl apply -f users.yaml
 
 
 .PHONY: network-ip-assignments
@@ -122,7 +123,7 @@ mongodb: keycert.pem
 #   gracefully
 .PHONY: restart-nginx
 restart-nginx:
-	kubectl delete pod $$(kubectl get pods | grep nginx | awk '{print $$1}')
+	@kubectl delete pod $$(kubectl get pods | grep nginx | awk '{print $$1}')
 
 
 $(KUBECONFIG):
@@ -133,29 +134,29 @@ $(KUBECONFIG):
 
 .PHONY: token
 token:
-	kubectl get secret $$(kubectl get serviceaccount default -o jsonpath={.secrets[0].name}) -o jsonpath={.data.token} | base64 -D && echo
+	@kubectl -n kube-system get secret $$(kubectl -n kube-system get serviceaccount aleem -o jsonpath={.secrets[0].name}) -o jsonpath={.data.token} | base64 -D && echo
 
 
 .INTERMEDIATE: domain.crt
 domain.crt:
-	kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/fullchain1.pem domain.crt
+	@kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/fullchain1.pem domain.crt
 
 
 .INTERMEDIATE: domain.key
 domain.key:
-	kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/privkey1.pem domain.key
+	@kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/privkey1.pem domain.key
 
 
 .INTERMEDIATE: keycert.pem
 keycert.pem: domain.key domain.crt
-	cat domain.key domain.crt > keycert.pem
+	@cat domain.key domain.crt > keycert.pem
 
 
 registry/registry-secret.yaml:
 	@source .env && \
 		sed -e "s/htpasswd:.*/htpasswd: $$(htpasswd -nbB -C 10 $${DOCKER_REGISTRY_USERNAME} $${DOCKER_REGISTRY_PASSWORD} | base64 | head -1)/" \
 		registry/registry-secret-template.yaml > $@
-	kubectl apply -f $@
+	@kubectl apply -f $@
 	@source .env && \
 		kubectl create secret docker-registry registry.internal.aleemhaji.com \
 			--docker-server=registry.internal.aleemhaji.com \
