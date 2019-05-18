@@ -20,14 +20,6 @@ services:
       - 53:53/udp
     dns: 127.0.0.1
 
-  mongodb:
-    image: mongo:3.7
-    hostname: mongodb
-    ports: 
-      - 27017:27017
-    volumes:
-      - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups/mongodb:/var/lib/backup'
-
   unifi:
     build: unifi
     env_file: unifi/compose.env
@@ -42,7 +34,7 @@ services:
       - "3478:3478/udp"
       - "10001:10001/udp"
     depends_on:
-      - mongodb
+      - mongo
 
   sharelatex:
     build: sharelatex
@@ -50,10 +42,10 @@ services:
     ports:
       - 8081:80
     links:
-      - mongodb
+      - mongo
       - redis
     depends_on:
-      - mongodb
+      - mongo
       - redis
 
   mysql:
