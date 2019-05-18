@@ -147,7 +147,8 @@ registry/registry-secret.yaml:
 			--docker-server=registry.internal.aleemhaji.com \
 			--docker-username=$${DOCKER_REGISTRY_USERNAME} \
 			--docker-password=$${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
-		kubectl replace -f -
+		kubectl apply -f -
+
 
 
 .PHONY: secrets
