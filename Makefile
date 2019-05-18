@@ -32,7 +32,8 @@ KUBECONFIG=.kube/config
 KUBERNETES_SERVICES= \
 	redis \
 	mongodb \
-	nginx
+	nginx \
+	registry
 
 
 # Each of these rules is forwarded to the Makefiles in the each service's
@@ -117,6 +118,22 @@ mongodb: keycert.pem
 		kubectl apply -f -
 
 
+.PHONY: registry
+registry:
+	@source .env && \
+		kubectl create secret generic registry-htpasswd-secret \
+			--from-literal "htpasswd=$$(htpasswd -nbB -C 10 $${DOCKER_REGISTRY_USERNAME} $${DOCKER_REGISTRY_PASSWORD})" -o yaml --dry-run | \
+		kubectl apply -f -
+	@source .env && \
+		kubectl create secret docker-registry registry.internal.aleemhaji.com \
+			--docker-server registry.internal.aleemhaji.com \
+			--docker-username $${DOCKER_REGISTRY_USERNAME} \
+			--docker-password $${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
+		kubectl apply -f -
+	@sed "s/loadBalancerIP:.*/loadBalancerIP: $$(kubectl get configmap network-ip-assignments -o template="{{.data.registry}}")/" registry/registry.yaml | \
+		kubectl apply -f -
+
+
 # Because of ConfigMap volumes taking their time to reload, can't just run an
 #   `nginx -s restart`, and it's easier to just kill all pods.
 # Newer versions of Kubernetes include an option to cycle all pods more
@@ -150,20 +167,6 @@ domain.key:
 .INTERMEDIATE: keycert.pem
 keycert.pem: domain.key domain.crt
 	@cat domain.key domain.crt > keycert.pem
-
-
-registry/registry-secret.yaml:
-	@source .env && \
-		sed -e "s/htpasswd:.*/htpasswd: $$(htpasswd -nbB -C 10 $${DOCKER_REGISTRY_USERNAME} $${DOCKER_REGISTRY_PASSWORD} | base64 | head -1)/" \
-		registry/registry-secret-template.yaml > $@
-	@kubectl apply -f $@
-	@source .env && \
-		kubectl create secret docker-registry registry.internal.aleemhaji.com \
-			--docker-server=registry.internal.aleemhaji.com \
-			--docker-username=$${DOCKER_REGISTRY_USERNAME} \
-			--docker-password=$${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
-		kubectl apply -f -
-
 
 
 .PHONY: secrets
