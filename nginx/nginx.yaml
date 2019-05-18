@@ -23,6 +23,9 @@ spec:
             - containerPort: 80
           volumeMounts:
             - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - name: nginx-servers
               mountPath: /etc/nginx/conf.d/
             - name: nginx-certs
               mountPath: /etc/ssl/certs/
@@ -30,6 +33,9 @@ spec:
         - name: nginx-config
           configMap:
             name: nginx-config
+        - name: nginx-servers
+          configMap:
+            name: nginx-servers
         - name: nginx-certs
           projected:
             sources:

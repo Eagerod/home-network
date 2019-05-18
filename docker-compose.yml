@@ -10,11 +10,6 @@
 #   account.
 version: '3'
 services:
-  nginx:
-    build: nginx
-    ports:
-      - '80:80'
-
   pi-hole:
     build: pi-hole
     env_file: pi-hole/compose.env

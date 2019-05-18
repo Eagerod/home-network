@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: network-ip-assignments
+data:
+  # Databases + Caching   192.168.2.32/28
+  # Front End Services    192.168.2.48/28
+  nginx: 192.168.2.48
+  # Back End Services     192.168.2.64/28
+  # Daemon-Like Services  192.168.2.80/28
