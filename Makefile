@@ -88,20 +88,33 @@ initialize-cluster: .kube/config
 	@kubectl apply -f users.yaml
 
 
-.PHONY: network-ip-assignments
-network-ip-assignments: $(KUBECONFIG)
+.PHONY: networking
+networking: $(KUBECONFIG)
 	@kubectl apply -f network-ip-assignments.yaml
+	@kubectl apply -f http-services.yaml
+
+
+.INTERMEDIATE: nginx.http.conf
+nginx.http.conf:
+	@kubectl get configmap http-services -o template={{.data.services}} | while read line; do \
+		printf 'upstream %s {\n    server %s:%d;\n}\n\n' \
+			$${line} \
+			$$(kubectl get service $${line} -o template={{.spec.loadBalancerIP}}) \
+			$$(kubectl get service $${line} -o jsonpath='{.spec.ports[0].port}') >> $@; \
+	done
+	@cat nginx/nginx.http.conf >> $@
 
 
 .PHONY: nginx
-nginx: network-ip-assignments domain.crt domain.key
+nginx: networking nginx.http.conf domain.crt domain.key
 	@sed "s/loadBalancerIP:.*/loadBalancerIP: $$(kubectl get configmap network-ip-assignments -o template="{{.data.nginx}}")/" nginx/nginx.yaml | \
 		kubectl apply -f -
 	@kubectl create secret tls nginx-certs --cert domain.crt --key domain.key -o yaml --dry-run | \
 		kubectl apply -f -
 	@kubectl create configmap nginx-config --from-file nginx/nginx.conf -o yaml --dry-run | \
 		kubectl apply -f -
-	@kubectl create configmap nginx-servers --from-file nginx/nginx.http.conf --from-file nginx/nginx.stream.conf -o yaml --dry-run | \
+
+	@kubectl create configmap nginx-servers --from-file nginx.http.conf --from-file nginx/nginx.stream.conf -o yaml --dry-run | \
 		kubectl apply -f -
 
 
