@@ -79,3 +79,34 @@ spec:
   loadBalancerIP: 192.168.2.224
   selector:
     app: certbot
+---
+# EFF recommends running `certbot renew` a couple times per day.
+# Kubernetes doesn't make this kind of pattern very easy.
+# An externally accessible endpoint is needed, and it needs access to the
+#   certificates volume.
+# Run `certbot renew` in an already running certbot pod occasionally.
+# This may or may not work depending on how the persistent volume claim works.
+# Jobs run successfully, but once renewal time comes up, they may fail.
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: certbot-renew
+spec:
+  schedule: "32 4,16 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: certbot
+              image: certbot/certbot
+              args:
+                - renew
+              volumeMounts:
+              - name: certbot-storage
+                mountPath: /etc/letsencrypt
+          volumes:
+            - name: certbot-storage
+              persistentVolumeClaim:
+                claimName: certificates-pv-claim
+          restartPolicy: OnFailure

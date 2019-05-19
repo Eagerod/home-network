@@ -33,7 +33,8 @@ KUBERNETES_SERVICES= \
 	redis \
 	mongodb \
 	nginx \
-	registry
+	registry \
+	certbot
 
 
 # Each of these rules is forwarded to the Makefiles in the each service's
@@ -131,6 +132,12 @@ registry:
 			--docker-password $${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
 		kubectl apply -f -
 	@sed "s/loadBalancerIP:.*/loadBalancerIP: $$(kubectl get configmap network-ip-assignments -o template="{{.data.registry}}")/" registry/registry.yaml | \
+		kubectl apply -f -
+
+
+.PHONY: certbot
+certbot:
+	@sed "s/loadBalancerIP:.*/loadBalancerIP: $$(kubectl get configmap network-ip-assignments -o template="{{.data.certbot}}")/" certbot/certbot.yaml | \
 		kubectl apply -f -
 
 
