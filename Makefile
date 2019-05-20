@@ -157,6 +157,36 @@ certbot:
 		kubectl apply -f -
 
 
+.PHONY: mysql
+mysql:
+	@source .env && \
+		kubectl create secret generic mysql-root-password \
+			--from-literal "value=$${MYSQL_ROOT_PASSWORD}" -o yaml --dry-run | \
+		kubectl apply -f -
+	@sed "s/loadBalancerIP:.*/loadBalancerIP: $$(kubectl get configmap network-ip-assignments -o template="{{.data.mysql}}")/" mysql/mysql.yaml | \
+		kubectl apply -f -
+
+	@while ! kubectl exec $$(kubectl get pod --selector='app=mysql' --field-selector=status.phase=Running -o jsonpath={.items[0].metadata.name}) -- sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -u root -e 'select 1';"; do \
+		echo >&2 "MySQL is not ready yet. Waiting 2 seconds"; \
+		sleep 2; \
+	done
+
+	@kubectl exec -it \
+		$$(kubectl get pod --selector='app=mysql' --field-selector=status.phase=Running -o jsonpath={.items[0].metadata.name}) -- \
+		sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -u root -e 'CREATE USER IF NOT EXISTS root@10.244.0.1;'"
+
+	@kubectl exec -it \
+		$$(kubectl get pod --selector='app=mysql' --field-selector=status.phase=Running -o jsonpath={.items[0].metadata.name}) -- \
+		sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -u root -e 'SET PASSWORD FOR root@10.244.0.1 = PASSWORD(\"'$${MYSQL_ROOT_PASSWORD}'\");'"
+
+	@kubectl exec -it \
+		$$(kubectl get pod --selector='app=mysql' --field-selector=status.phase=Running -o jsonpath={.items[0].metadata.name}) -- \
+		sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -u root -e 'GRANT ALL PRIVILEGES ON *.* TO root@10.244.0.1;'"
+
+	@kubectl create configmap mysql-backup --from-file mysql/mysql-backup.sh -o yaml --dry-run | \
+		kubectl apply -f -
+
+
 # Because of ConfigMap volumes taking their time to reload, can't just run an
 #   `nginx -s restart`, and it's easier to just kill all pods.
 # Newer versions of Kubernetes include an option to cycle all pods more
@@ -164,6 +194,24 @@ certbot:
 .PHONY: restart-nginx
 restart-nginx:
 	@kubectl delete pod $$(kubectl get pods | grep nginx | awk '{print $$1}')
+
+
+.PHONY: mysql-restore
+mysql-restore:
+	@if [ -z "$${RESTORE_MYSQL_DATABASE}" ]; then \
+		echo >&2 "Must supply RESTORE_MYSQL_DATABASE to target restore operation."; \
+		exit 1; \
+	fi
+
+	@kubectl exec -it \
+		$$(kubectl get pod --selector='app=mysql' --field-selector=status.phase=Running -o jsonpath={.items[0].metadata.name}) -- \
+		sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -u root -e 'CREATE DATABASE IF NOT EXISTS '$${RESTORE_MYSQL_DATABASE}';'"
+
+
+	@sed \
+		-e 's/$${JOB_CREATION_TIMESTAMP}/'$$(date -u +%Y%m%d%H%M%S)'/' \
+		-e 's/$${RESTORE_MYSQL_DATABASE}/'$${RESTORE_MYSQL_DATABASE}'/' \
+		 mysql/mysql-restore.yaml | kubectl apply -f -
 
 
 $(KUBECONFIG):
