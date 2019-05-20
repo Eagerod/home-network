@@ -128,10 +128,11 @@ redis:
 
 .PHONY: mongodb
 mongodb: keycert.pem
-	@sed "s/loadBalancerIP:.*/loadBalancerIP: $$(kubectl get configmap network-ip-assignments -o template="{{.data.mongodb}}")/" mongodb/mongodb.yaml | \
-		kubectl apply -f -
 	@kubectl create secret generic mongodb-pem --from-file keycert.pem -o yaml --dry-run | \
 		kubectl apply -f -
+	@sed "s/loadBalancerIP:.*/loadBalancerIP: $$(kubectl get configmap network-ip-assignments -o template="{{.data.mongodb}}")/" mongodb/mongodb.yaml | \
+		kubectl apply -f -
+	@kubectl apply -f mongodb/mongodb-backup.yaml
 
 
 .PHONY: registry
