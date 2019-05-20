@@ -265,61 +265,6 @@ show-config: $(COMPOSE_ENVIRONMENT_FILES)
 kill: compose-down
 
 
-.PHONY: install
-install: $(INSTALLED_CRON_PATH)
-
-
-$(INSTALLED_CRON_PATH):
-	@mkdir -p $(LOGS_DIRECTORY)
-	@echo '@reboot root bash $(CURDIR)/startup.sh > $(INSTALLED_CRON_STDOUT_LOG) 2> $(INSTALLED_CRON_STDERR_LOG)' > $(INSTALLED_CRON_PATH)
-
-
-.PHONY: clean
-clean:
-	$(DOCKER) container prune -f
-	$(DOCKER) image prune -f
-	rm -rf $(COMPOSE_ENVIRONMENT_FILES)
-	rm -rf $(SETUP_FILES)
-
-
-.PHONY: backups
-backups:
-	@find . -maxdepth 2 -iname "backup.sh" -exec dirname {} \; | while read bak; do \
-		$(MAKE) -C $${bak} backup; \
-	done
-
-
-# Helper to create a new skeleton application template.
-.PHONY: app
-app:
-	@if [ -z "$${APP_NAME}" ]; then \
-		echo >&2 "Failed to find environment '\$$APP_NAME'"; \
-		exit -1; \
-	fi
-
-	mkdir -p $${APP_NAME}
-	printf 'include ../docker.make\n' > $${APP_NAME}/Makefile
-	printf 'FROM ncfgbase\n\nRUN apt-get update -y\n\nCMD ["/bin/bash"]\n' > $${APP_NAME}/Dockerfile
-
-
-# Volumes need to be created before docker-compose will let any individual
-#   service start, so if there are volumes defined in any of the compose files
-#   create them before trying to start any containers
-.PHONY: volumes
-volumes:
-	@python .scripts/get_volumes_from_compose_file.py $(PRIMARY_COMPOSE_FILE) | while read line; do \
-		if [ ! -z "$$line" ]; then \
-			$(DOCKER) volume create $$line; \
-		fi \
-	done
-	@python .scripts/get_volumes_from_compose_file.py $(COMPOSE_PLATFORM_FILE) | while read line; do \
-		if [ ! -z "$$line" ]; then \
-			$(DOCKER) volume create $$line; \
-		fi \
-	done
-
-
-
 .git/hooks/pre-push:
 	# For whatever reason, this can choose to run despite the file already
 	#   existing and having no dependencies. Possibly an issue with having a
