@@ -36,6 +36,8 @@ KUBERNETES_SERVICES= \
 	registry \
 	certbot
 
+REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
+
 
 # Each of these rules is forwarded to the Makefiles in the each service's
 #   directory.
@@ -139,8 +141,8 @@ registry:
 			--from-literal "htpasswd=$$(htpasswd -nbB -C 10 $${DOCKER_REGISTRY_USERNAME} $${DOCKER_REGISTRY_PASSWORD})" -o yaml --dry-run | \
 		kubectl apply -f -
 	@source .env && \
-		kubectl create secret docker-registry registry.internal.aleemhaji.com \
-			--docker-server registry.internal.aleemhaji.com \
+		kubectl create secret docker-registry $(REGISTRY_HOSTNAME) \
+			--docker-server $(REGISTRY_HOSTNAME) \
 			--docker-username $${DOCKER_REGISTRY_USERNAME} \
 			--docker-password $${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
 		kubectl apply -f -
