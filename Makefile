@@ -90,10 +90,20 @@ initialize-cluster: .kube/config
 	@kubectl apply -f users.yaml
 
 
+# Set up the ConfigMaps that are needed to hold network information.
 .PHONY: networking
 networking: $(KUBECONFIG)
 	@kubectl apply -f network-ip-assignments.yaml
 	@kubectl apply -f http-services.yaml
+
+
+# Create Secrets for tls certs.
+.PHONY: certificates
+certificates: domain.crt domain.key keycert.pem
+	@kubectl create secret tls certificate-files --cert domain.crt --key domain.key -o yaml --dry-run | \
+		kubectl apply -f -
+	@kubectl create secret generic certificate-file --from-file keycert.pem -o yaml --dry-run | \
+		kubectl apply -f -
 
 
 .INTERMEDIATE: nginx.http.conf
@@ -108,10 +118,8 @@ nginx.http.conf:
 
 
 .PHONY: nginx
-nginx: networking nginx.http.conf domain.crt domain.key
+nginx: networking nginx.http.conf certificates
 	@sed "s/loadBalancerIP:.*/loadBalancerIP: $$(kubectl get configmap network-ip-assignments -o template="{{.data.nginx}}")/" nginx/nginx.yaml | \
-		kubectl apply -f -
-	@kubectl create secret tls nginx-certs --cert domain.crt --key domain.key -o yaml --dry-run | \
 		kubectl apply -f -
 	@kubectl create configmap nginx-config --from-file nginx/nginx.conf -o yaml --dry-run | \
 		kubectl apply -f -
@@ -127,9 +135,7 @@ redis:
 
 
 .PHONY: mongodb
-mongodb: keycert.pem
-	@kubectl create secret generic mongodb-pem --from-file keycert.pem -o yaml --dry-run | \
-		kubectl apply -f -
+mongodb: certificates
 	@sed "s/loadBalancerIP:.*/loadBalancerIP: $$(kubectl get configmap network-ip-assignments -o template="{{.data.mongodb}}")/" mongodb/mongodb.yaml | \
 		kubectl apply -f -
 	@kubectl apply -f mongodb/mongodb-backup.yaml
