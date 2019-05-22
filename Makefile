@@ -38,6 +38,9 @@ KUBERNETES_SERVICES= \
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
+SERVICE_LB_IP = $$(kubectl get configmap network-ip-assignments -o template="{{.data.$(1)}}")
+REPLACE_LB_IP = sed "s/loadBalancerIP:.*/loadBalancerIP: $(call SERVICE_LB_IP,$(1))/" $(1)/$(1).yaml
+
 
 # Each of these rules is forwarded to the Makefiles in the each service's
 #   directory.
@@ -119,8 +122,7 @@ nginx.http.conf:
 
 .PHONY: nginx
 nginx: networking nginx.http.conf certificates
-	@sed "s/loadBalancerIP:.*/loadBalancerIP: $$(kubectl get configmap network-ip-assignments -o template="{{.data.nginx}}")/" nginx/nginx.yaml | \
-		kubectl apply -f -
+	$(call REPLACE_LB_IP,nginx) | kubectl apply -f -
 	@kubectl create configmap nginx-config --from-file nginx/nginx.conf -o yaml --dry-run | \
 		kubectl apply -f -
 
@@ -130,14 +132,12 @@ nginx: networking nginx.http.conf certificates
 
 .PHONY: redis
 redis:
-	@sed "s/loadBalancerIP:.*/loadBalancerIP: $$(kubectl get configmap network-ip-assignments -o template="{{.data.redis}}")/" redis/redis.yaml | \
-		kubectl apply -f -
+	$(call REPLACE_LB_IP,redis) | kubectl apply -f -
 
 
 .PHONY: mongodb
 mongodb: certificates
-	@sed "s/loadBalancerIP:.*/loadBalancerIP: $$(kubectl get configmap network-ip-assignments -o template="{{.data.mongodb}}")/" mongodb/mongodb.yaml | \
-		kubectl apply -f -
+	$(call REPLACE_LB_IP,mongodb) | kubectl apply -f -
 	@kubectl apply -f mongodb/mongodb-backup.yaml
 
 
@@ -153,14 +153,12 @@ registry:
 			--docker-username $${DOCKER_REGISTRY_USERNAME} \
 			--docker-password $${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
 		kubectl apply -f -
-	@sed "s/loadBalancerIP:.*/loadBalancerIP: $$(kubectl get configmap network-ip-assignments -o template="{{.data.registry}}")/" registry/registry.yaml | \
-		kubectl apply -f -
+	$(call REPLACE_LB_IP,registry) | kubectl apply -f -
 
 
 .PHONY: certbot
 certbot:
-	@sed "s/loadBalancerIP:.*/loadBalancerIP: $$(kubectl get configmap network-ip-assignments -o template="{{.data.certbot}}")/" certbot/certbot.yaml | \
-		kubectl apply -f -
+	$(call REPLACE_LB_IP,certbot) | kubectl apply -f -
 
 
 .PHONY: mysql
@@ -169,8 +167,7 @@ mysql:
 		kubectl create secret generic mysql-root-password \
 			--from-literal "value=$${MYSQL_ROOT_PASSWORD}" -o yaml --dry-run | \
 		kubectl apply -f -
-	@sed "s/loadBalancerIP:.*/loadBalancerIP: $$(kubectl get configmap network-ip-assignments -o template="{{.data.mysql}}")/" mysql/mysql.yaml | \
-		kubectl apply -f -
+	$(call REPLACE_LB_IP,mysql) | kubectl apply -f -
 
 	@while ! kubectl exec $$(kubectl get pod --selector='app=mysql' --field-selector=status.phase=Running -o jsonpath={.items[0].metadata.name}) -- sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -u root -e 'select 1';"; do \
 		echo >&2 "MySQL is not ready yet. Waiting 2 seconds"; \
