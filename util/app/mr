@@ -2,12 +2,6 @@
 #
 # mr is an application designed to easily support building out a multi-reddit
 #   tracker using the blob service at https://aleem.haji.ca/blob
-DEFAULT_BLOBSTORE_READ_ACL=''
-DEFAULT_BLOBSTORE_WRITE_ACL=''
-
-MULTI_REDDIT_SUBS_LOCATION=''
-MULTI_REDDIT_SAVED_LOCATION=''
-
 __blob_file_get() {
 	if [ $# -ne 1 ]; then
 		exit -1
