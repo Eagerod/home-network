@@ -191,7 +191,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 compose.env
-.args
 setup
 pi-hole/lan.list
 plex/plex-volumes.yml

@@ -1,5 +1,4 @@
 compose.env
-.args
 setup
 pi-hole/lan.list
 plex/plex-volumes.yml
