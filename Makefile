@@ -190,6 +190,25 @@ mysql:
 		kubectl apply -f -
 
 
+.PHONY: util
+util:
+	$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
+	$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
+
+	source .env && \
+		kubectl create configmap multi-reddit-blob-config \
+			--from-literal "subreddit_path=$${MULTI_REDDIT_SUBS_LOCATION}" \
+			--from-literal "saved_posts_path=$${MULTI_REDDIT_SAVED_LOCATION}" \
+			-o yaml --dry-run | kubectl apply -f -
+	source .env && \
+		kubectl create secret generic multi-reddit-blob-credentials \
+			--from-literal "read_acl=$${DEFAULT_BLOBSTORE_READ_ACL}" \
+			--from-literal "write_acl=$${DEFAULT_BLOBSTORE_WRITE_ACL}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+	$(call REPLACE_LB_IP,util) | kubectl apply -f -
+
+
 # Because of ConfigMap volumes taking their time to reload, can't just run an
 #   `nginx -s restart`, and it's easier to just kill all pods.
 # Newer versions of Kubernetes include an option to cycle all pods more
