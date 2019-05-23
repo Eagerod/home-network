@@ -2,7 +2,7 @@ include common.make
 
 SHELL=/bin/bash
 
-KUBERNETES_KNOWN_HOST:=192.168.1.54
+KUBERNETES_KNOWN_HOST:=192.168.2.10
 
 DOCKER_COMPOSE_EXTRAS:=${DOCKER_COMPOSE_EXTRAS}
 
@@ -80,9 +80,10 @@ all: initialize-cluster $(KUBERNETES_SERVICES)
 services: $(KUBERNETES_SERVICES)
 
 .PHONY: initialize-cluster
-initialize-cluster: .kube/config
+initialize-cluster: $(KUBECONFIG)
 	@kubectl taint node util1 node-role.kubernetes.io/master:NoSchedule-
 	@kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+	@kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
 	@kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml
 
 	@kubectl apply -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml
@@ -152,6 +153,7 @@ registry:
 			--docker-password $${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
 		kubectl apply -f -
 	$(call REPLACE_LB_IP,registry) | kubectl apply -f -
+	$(DOCKER) login --username ${DOCKER_REGISTRY_USERNAME} --password $${DOCKER_REGISTRY_PASSWORD} $(REGISTRY_HOSTNAME)
 
 
 .PHONY: certbot
