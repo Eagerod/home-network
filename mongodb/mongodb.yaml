@@ -60,7 +60,6 @@ spec:
           volumeMounts:
             - name: mongodb-persistent-storage
               mountPath: /data/db
-          volumeMounts:
             - name: mongodb-pem
               mountPath: /etc/ssl/mongodb.pem
               subPath: keycert.pem
