@@ -101,9 +101,13 @@ networking: $(KUBECONFIG)
 
 # Create Secrets for tls certs.
 .PHONY: certificates
-certificates: domain.crt domain.key keycert.pem
-	@kubectl create secret tls certificate-files --cert domain.crt --key domain.key -o yaml --dry-run | \
-		kubectl apply -f -
+certificates: domain.crt domain.rsa.key domain.key keycert.pem
+	@kubectl create secret generic certificate-files \
+		--from-file tls.crt=domain.crt \
+		--from-file tls.key=domain.key \
+		--from-file tls.rsa.key=domain.rsa.key \
+		-o yaml --dry-run | \
+			kubectl apply -f -
 	@kubectl create secret generic certificate-file --from-file keycert.pem -o yaml --dry-run | \
 		kubectl apply -f -
 
@@ -167,24 +171,40 @@ mysql:
 		kubectl create secret generic mysql-root-password \
 			--from-literal "value=$${MYSQL_ROOT_PASSWORD}" -o yaml --dry-run | \
 		kubectl apply -f -
-	$(call REPLACE_LB_IP,mysql) | kubectl apply -f -
 
-	@while ! kubectl exec $$(kubectl get pod --selector='app=mysql' --field-selector=status.phase=Running -o jsonpath={.items[0].metadata.name}) -- sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -u root -e 'select 1';"; do \
-		echo >&2 "MySQL is not ready yet. Waiting 2 seconds"; \
-		sleep 2; \
+	@kubectl apply -f mysql/mysql-volumes.yaml
+
+	# Make sure mysql is torn down
+	@kubectl get services -l 'app=mysql' -o name | xargs kubectl delete
+	@kubectl get deployments -l 'app=mysql' -o name | xargs kubectl delete
+	@kubectl get services -l 'app=mysql-init' -o name | xargs kubectl delete
+	@kubectl get deployments -l 'app=mysql-init' -o name | xargs kubectl delete
+
+	@kubectl apply -f mysql/mysql-init.yaml
+
+	@while [ "$$(kubectl get $$(kubectl get pods -l 'app=mysql-init' -o name) -o template={{.status.phase}})" != "Running" ]; do \
+		echo >&2 "MySQL not up yet. Waiting 1 second..."; \
+		sleep 1; \
 	done
 
-	@kubectl exec -it \
-		$$(kubectl get pod --selector='app=mysql' --field-selector=status.phase=Running -o jsonpath={.items[0].metadata.name}) -- \
-		sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -u root -e 'CREATE USER IF NOT EXISTS root@10.244.0.1;'"
+	@# Set up permissions for localhost, and for other machines on the
+	@#   Kubernetes pod subnet.
+	@# Services should be able to start up jobs that will use root to create
+	@#   users
+	@source .env && kubectl exec -it \
+		$$(kubectl get $$(kubectl get pods -l 'app=mysql-init' -o name) -o template={{.metadata.name}}) -- \
+		mysql -e '\
+			FLUSH PRIVILEGES; \
+			SET PASSWORD FOR root@localhost = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
+			CREATE USER IF NOT EXISTS root@'"'"'10.244.%.%'"'"'; \
+			SET PASSWORD FOR root@'"'"'10.244.%.%'"'"' = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
+			GRANT ALL ON *.* to root@'"'"'10.244.%.%'"'"'; \
+			FLUSH PRIVILEGES;'
 
-	@kubectl exec -it \
-		$$(kubectl get pod --selector='app=mysql' --field-selector=status.phase=Running -o jsonpath={.items[0].metadata.name}) -- \
-		sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -u root -e 'SET PASSWORD FOR root@10.244.0.1 = PASSWORD(\"'$${MYSQL_ROOT_PASSWORD}'\");'"
+	@kubectl get services -l 'app=mysql-init' -o name | xargs kubectl delete
+	@kubectl get deployments -l 'app=mysql-init' -o name | xargs kubectl delete
 
-	@kubectl exec -it \
-		$$(kubectl get pod --selector='app=mysql' --field-selector=status.phase=Running -o jsonpath={.items[0].metadata.name}) -- \
-		sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -u root -e 'GRANT ALL PRIVILEGES ON *.* TO root@10.244.0.1;'"
+	@$(call REPLACE_LB_IP,mysql) | kubectl apply -f -
 
 	@kubectl create configmap mysql-backup --from-file mysql/mysql-backup.sh -o yaml --dry-run | \
 		kubectl apply -f -
@@ -255,6 +275,11 @@ domain.crt:
 .INTERMEDIATE: domain.key
 domain.key:
 	@kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/privkey1.pem domain.key
+
+
+.INTERMEDIATE: domain.rsa.key
+domain.rsa.key: domain.key
+	openssl rsa -in domain.key -out domain.rsa.key
 
 
 .INTERMEDIATE: keycert.pem

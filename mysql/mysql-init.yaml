@@ -1,35 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql-deployment
+  name: mysql-init-deployment
   labels:
-    app: mysql
+    app: mysql-init
 spec:
-  strategy: 
-    type: Recreate
   revisionHistoryLimit: 0
   replicas: 1
   selector:
     matchLabels:
-      app: mysql
+      app: mysql-init
   template:
     metadata:
       labels:
-        app: mysql
+        app: mysql-init
     spec:
       containers:
-        - name: mysql
+        - name: mysql-sgt
           image: mysql:5.7.26
-          ports:
-            - containerPort: 3306
+          args:
+            - --skip-grant-tables
+            - --skip-networking
           volumeMounts:
             - name: mysql-persistent-storage
               mountPath: /var/lib/mysql
-            - name: mysql-certs
-              mountPath: /etc/ssl
-          args:
-            - --ssl-cert=/etc/ssl/tls.crt
-            - --ssl-key=/etc/ssl/tls.rsa.key
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
@@ -40,23 +34,17 @@ spec:
         - name: mysql-persistent-storage
           persistentVolumeClaim:
             claimName: mysql-pv-claim
-        - name: mysql-certs
-          projected:
-            sources:
-              - secret:
-                  name: certificate-files
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysql
+  name: mysql-init
   labels:
-    app: mysql
+    app: mysql-init
 spec:
   ports:
   - port: 3306
     protocol: TCP
-  type: LoadBalancer
-  loadBalancerIP:
+  type: ClusterIP
   selector:
-    app: mysql
+    app: mysql-init
