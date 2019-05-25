@@ -231,6 +231,24 @@ util:
 	$(call REPLACE_LB_IP,util) | kubectl apply -f -
 
 
+.PHONY: firefly
+firefly:
+	@kubectl get jobs -l 'job=firefly-mysql-init' -o name | xargs kubectl delete
+
+	@source .env && \
+		kubectl create configmap firefly-config \
+			--from-literal "mysql_user=$${FIREFLY_MYSQL_USER}" \
+			--from-literal "mysql_database=$${FIREFLY_MYSQL_DATABASE}" \
+			-o yaml --dry-run | kubectl apply -f -
+	@source .env && \
+		kubectl create secret generic firefly-secrets \
+			--from-literal "mysql_password=$${FIREFLY_MYSQL_PASSWORD}" \
+			--from-literal "app_key=$${FIREFLY_APP_KEY}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+	@$(call REPLACE_LB_IP,firefly) | kubectl apply -f -
+
+
 # Because of ConfigMap volumes taking their time to reload, can't just run an
 #   `nginx -s restart`, and it's easier to just kill all pods.
 # Newer versions of Kubernetes include an option to cycle all pods more
