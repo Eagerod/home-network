@@ -3,9 +3,6 @@ services:
   sharelatex:
     volumes:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/sharelatex:/var/lib/sharelatex'
-  mongodb:
-    volumes:
-      - '${HOST_DATA_DIR?HOST_DATA_DIR}/mongodb/data:/data/db'
   mysql:
     volumes:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/mysql:/var/lib/data'
