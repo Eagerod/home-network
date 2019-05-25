@@ -55,7 +55,9 @@ SAVE_ENV_VARS=\
 	FF_APP_ENV\
 	RESILIO_SERVER_USERNAME\
 	ADVERTISE_IP\
-	DOCKER_REGISTRY_USERNAME
+	DOCKER_REGISTRY_USERNAME\
+	FIREFLY_MYSQL_USER\
+	FIREFLY_MYSQL_DATABASE
 
 # Docker Compose has some odd conditions that require all containers to be
 #   properly configured, even if you're only trying to start one. Because of
