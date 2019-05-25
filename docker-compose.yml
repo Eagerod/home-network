@@ -72,14 +72,6 @@ services:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/downloads/oss:/var/lib/downloads'
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/transmission-oss:/var/lib/transmission-daemon'
 
-  util:
-    build: util
-    hostname: util
-    env_file: util/compose.env
-    volumes:
-      - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups:/var/lib/backups'
-      - '${HOST_DATA_DIR?HOST_DATA_DIR}/git:/var/lib/git'
-
   resilio-server:
     build: resilio-server
     hostname: resilio-server

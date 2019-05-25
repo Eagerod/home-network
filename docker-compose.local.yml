@@ -3,9 +3,6 @@ services:
   sharelatex:
     volumes:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/sharelatex:/var/lib/sharelatex'
-  util:
-    ports:
-      - '22:22'
   plex:
     volumes:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/plex:/config'

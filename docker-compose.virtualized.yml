@@ -10,9 +10,6 @@ services:
   sharelatex:
     volumes:
       - 'sharelatex-data:/var/lib/sharelatex'
-  util:
-    ports:
-      - '2000:22'
   plex:
     volumes:
       - 'plex-config:/config'
