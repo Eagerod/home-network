@@ -48,15 +48,6 @@ services:
       - mongo
       - redis
 
-  mysql:
-    build: mysql
-    hostname: mysql
-    env_file: mysql/compose.env
-    ports:
-      - 3306:3306
-    volumes:
-      - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups/mysql:/var/lib/backup'
-
   firefly-iii:
     image: jc5x/firefly-iii:release-4.7.5.3
     hostname: firefly-iii

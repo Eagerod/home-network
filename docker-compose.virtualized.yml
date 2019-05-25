@@ -10,9 +10,6 @@ services:
   sharelatex:
     volumes:
       - 'sharelatex-data:/var/lib/sharelatex'
-  mysql:
-    volumes:
-      - 'mysql-data:/var/lib/data'
   util:
     ports:
       - '2000:22'
@@ -22,8 +19,6 @@ services:
 
 volumes:
   sharelatex-data:
-    external: true
-  mysql-data:
     external: true
   plex-config:
     external: true
