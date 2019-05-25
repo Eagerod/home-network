@@ -81,7 +81,7 @@ services: $(KUBERNETES_SERVICES)
 
 .PHONY: initialize-cluster
 initialize-cluster: $(KUBECONFIG)
-	@kubectl taint node util1 node-role.kubernetes.io/master:NoSchedule-
+	@kubectl taint node util1 node-role.kubernetes.io/master:NoSchedule- || true
 	@kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 	@kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
 	@kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml
@@ -174,7 +174,7 @@ mysql:
 
 	@kubectl apply -f mysql/mysql-volumes.yaml
 
-	# Make sure mysql is torn down
+	@# Make sure mysql is torn down
 	@kubectl get services -l 'app=mysql' -o name | xargs kubectl delete
 	@kubectl get deployments -l 'app=mysql' -o name | xargs kubectl delete
 	@kubectl get services -l 'app=mysql-init' -o name | xargs kubectl delete
@@ -196,9 +196,9 @@ mysql:
 		mysql -e '\
 			FLUSH PRIVILEGES; \
 			SET PASSWORD FOR root@localhost = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
-			CREATE USER IF NOT EXISTS root@'"'"'10.244.%.%'"'"'; \
-			SET PASSWORD FOR root@'"'"'10.244.%.%'"'"' = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
-			GRANT ALL ON *.* to root@'"'"'10.244.%.%'"'"'; \
+			CREATE USER IF NOT EXISTS '"'"'root'"'"'@'"'"'10.244.%.%'"'"'; \
+			SET PASSWORD FOR '"'"'root'"'"'@'"'"'10.244.%.%'"'"' = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
+			GRANT ALL PRIVILEGES ON *.* to '"'"'root'"'"'@'"'"'10.244.%.%'"'"' WITH GRANT OPTION; \
 			FLUSH PRIVILEGES;'
 
 	@kubectl get services -l 'app=mysql-init' -o name | xargs kubectl delete
@@ -254,6 +254,13 @@ mysql-restore:
 		-e 's/$${JOB_CREATION_TIMESTAMP}/'$$(date -u +%Y%m%d%H%M%S)'/' \
 		-e 's/$${RESTORE_MYSQL_DATABASE}/'$${RESTORE_MYSQL_DATABASE}'/' \
 		 mysql/mysql-restore.yaml | kubectl apply -f -
+
+
+.PHONY: mysql-shell
+mysql-shell:
+	source .env && \
+		kubectl exec -it $$(kubectl get pods -l 'app=mysql' | tail -1 | awk '{print $$1}') -- \
+			sh -c 'MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql'
 
 
 $(KUBECONFIG):
