@@ -62,7 +62,7 @@ spec:
   type: LoadBalancer
   loadBalancerIP:
   selector:
-    app: firefly
+    app: firefly-iii
 ---
 apiVersion: batch/v1
 kind: Job
