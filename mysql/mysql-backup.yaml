@@ -38,6 +38,8 @@ metadata:
   name: mysql-backup
 spec:
   schedule: "0 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
       template:

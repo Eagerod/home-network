@@ -38,7 +38,7 @@ metadata:
   name: mongodb-backup
 spec:
   schedule: "0 * * * *"
-  successfulJobsHistoryLimit: 10
+  successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:

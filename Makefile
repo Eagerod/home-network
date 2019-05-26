@@ -205,8 +205,14 @@ registry:
 			--docker-username $${DOCKER_REGISTRY_USERNAME} \
 			--docker-password $${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
 		kubectl apply -f -
-	$(call REPLACE_LB_IP,registry) | kubectl apply -f -
-	$(DOCKER) login --username ${DOCKER_REGISTRY_USERNAME} --password $${DOCKER_REGISTRY_PASSWORD} $(REGISTRY_HOSTNAME)
+
+	@$(call REPLACE_LB_IP,registry) | kubectl apply -f -
+
+	@source .env && \
+		$(DOCKER) login \
+			--username $${DOCKER_REGISTRY_USERNAME}\
+			--password $${DOCKER_REGISTRY_PASSWORD} \
+			$(REGISTRY_HOSTNAME)
 
 
 .PHONY: certbot
