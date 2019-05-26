@@ -137,12 +137,20 @@ certificates: domain.crt domain.rsa.key domain.key keycert.pem
 
 .INTERMEDIATE: nginx.http.conf
 nginx.http.conf:
-	@kubectl get configmap http-services -o template={{.data.services}} | while read line; do \
+	@kubectl get configmap http-services -o template={{.data.default}} | while read line; do \
+		echo "upstream $${line}"; \
 		printf 'upstream %s {\n    server %s:%d;\n}\n\n' \
 			$${line} \
 			$$(kubectl get service $${line} -o template={{.spec.loadBalancerIP}}) \
 			$$(kubectl get service $${line} -o jsonpath='{.spec.ports[0].port}') >> $@; \
 	done
+	@kubectl get configmap http-services -o template={{.data.monitoring}} | while read line; do \
+		printf 'upstream %s {\n    server %s:%d;\n}\n\n' \
+			$${line} \
+			$$(kubectl get service -n monitoring $${line} -o template={{.spec.loadBalancerIP}}) \
+			$$(kubectl get service -n monitoring $${line} -o jsonpath='{.spec.ports[0].port}') >> $@; \
+	done
+
 	@cat nginx/nginx.http.conf >> $@
 
 

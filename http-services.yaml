@@ -3,8 +3,9 @@ kind: ConfigMap
 metadata:
   name: http-services
 data:
-  services: |
+  default: |
     registry
     certbot
     firefly
-    grafana
+  monitoring: |
+    grafana-published
