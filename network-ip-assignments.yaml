@@ -10,6 +10,7 @@ data:
   # Front End Services    192.168.2.48/28
   nginx: 192.168.2.48
   firefly: 192.168.2.49
+  grafana: 192.168.2.50
   # Back End Services     192.168.2.64/28
   registry: 192.168.2.64
   util: 192.168.2.65

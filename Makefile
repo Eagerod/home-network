@@ -3,6 +3,7 @@ include common.make
 SHELL=/bin/bash
 
 KUBERNETES_KNOWN_HOST:=192.168.2.10
+KUBERNETES_PROMETHEUS_VERISON=0.1.0
 
 DOCKER_COMPOSE_EXTRAS:=${DOCKER_COMPOSE_EXTRAS}
 
@@ -93,6 +94,25 @@ initialize-cluster: $(KUBECONFIG)
 
 	@kubectl apply -f users.yaml
 
+	@$(MAKE) prometheus
+	@$(MAKE) grafana
+
+
+.PHONY: prometheus
+prometheus:
+	curl -fsSL https://github.com/coreos/kube-prometheus/archive/v$(KUBERNETES_PROMETHEUS_VERISON).tar.gz | tar xvz
+
+	# https://github.com/coreos/kube-prometheus#quickstart specifically
+	#   asks for this process to set up prometheus from the download bundle.
+	kubectl apply -f kube-prometheus-$(KUBERNETES_PROMETHEUS_VERISON)/manifests/
+
+	# It can take a few seconds for the above 'create manifests' command to fully create the following resources, so verify the resources are ready before proceeding.
+	until kubectl get customresourcedefinitions servicemonitors.monitoring.coreos.com ; do date; sleep 1; echo ""; done
+	until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done
+
+	kubectl apply -f kube-prometheus-$(KUBERNETES_PROMETHEUS_VERISON)/manifests/
+	rm -rf kube-prometheus-$(KUBERNETES_PROMETHEUS_VERISON)
+
 
 # Set up the ConfigMaps that are needed to hold network information.
 .PHONY: networking
@@ -127,7 +147,8 @@ nginx.http.conf:
 
 .PHONY: nginx
 nginx: networking nginx.http.conf certificates
-	$(call REPLACE_LB_IP,nginx) | kubectl apply -f -
+	@$(call REPLACE_LB_IP,nginx) | kubectl apply -f -
+
 	@kubectl create configmap nginx-config --from-file nginx/nginx.conf -o yaml --dry-run | \
 		kubectl apply -f -
 
@@ -165,6 +186,11 @@ registry:
 .PHONY: certbot
 certbot:
 	$(call REPLACE_LB_IP,certbot) | kubectl apply -f -
+
+
+.PHONY: grafana
+grafana:
+	$(call REPLACE_LB_IP,grafana) | kubectl apply -f -
 
 
 .PHONY: mysql
