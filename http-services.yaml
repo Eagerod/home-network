@@ -7,5 +7,6 @@ data:
     registry
     certbot
     firefly
+    trilium
   monitoring: |
     grafana-published

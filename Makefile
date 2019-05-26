@@ -34,7 +34,8 @@ KUBERNETES_SERVICES= \
 	mongodb \
 	nginx \
 	registry \
-	certbot
+	certbot \
+	trilium
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -174,6 +175,14 @@ redis:
 mongodb: certificates
 	$(call REPLACE_LB_IP,mongodb) | kubectl apply -f -
 	@kubectl apply -f mongodb/mongodb-backup.yaml
+
+
+.PHONY: trilium
+trilium:
+	$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
+	$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
+
+	$(call REPLACE_LB_IP,trilium) | kubectl apply -f -
 
 
 .PHONY: registry
