@@ -185,6 +185,14 @@ trilium:
 	$(call REPLACE_LB_IP,trilium) | kubectl apply -f -
 
 
+.PHONY: factorio
+factorio:
+	$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
+	$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
+
+	$(call REPLACE_LB_IP,factorio) | kubectl apply -f -
+
+
 .PHONY: registry
 registry:
 	@source .env && \
