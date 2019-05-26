@@ -67,6 +67,14 @@ services:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/.sync:/.sync'
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups:/var/lib/resilio-folders'
 
+  trilium:
+    build: trilium
+    hostname: trilium
+    ports:
+      - 8083:8080
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/trilium:/var/lib/trilium'
+
   plex:
     image: plexinc/pms-docker
     environment:
