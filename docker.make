@@ -69,7 +69,7 @@ $(BACKUP_CRON_LOCATION): backup.sh
 # Force the removal of the original .env file if one is present. Don't put any
 #    prerequisites so it never replaces a self-defined file.
 .env:
-	@rm -rf $@;
+	@rm -rf $@
 	@touch $@
 	@if [ "$(REQUIRED_ENV_VARS)" != "" ]; then \
 		true; \
@@ -78,7 +78,11 @@ $(BACKUP_CRON_LOCATION): backup.sh
 
 
 compose.env: .env
-	@source .env && grep -o "^\s*export \w*" .env | sed -e 's/^[[:space:]]*//' | sort | uniq | sed -e 's/export \(.*\)/\1/g' | awk '{print $$1"="ENVIRON[$$1]}' >> $@
+	@rm -rf $@
+	@source .env && \
+		grep -o "^\s*export \w*" .env | \
+		sed -e 's/export \(.*\)/\1/g' | \
+		sort | uniq | awk '{print $$1"="ENVIRON[$$1]}' >> $@
 
 
 # Helper to verify that all required environment variables are configured in a

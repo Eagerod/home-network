@@ -8,21 +8,28 @@ SHELL=/bin/bash
 PROJECT_ROOT_DIRECTORY:=$(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 PROJECT_ROOT_DIRECTORY:=$(shell if [ -d .git ]; then echo $(PROJECT_ROOT_DIRECTORY); else echo $(PROJECT_ROOT_DIRECTORY)home-network; fi)
 
+DOCKER_COMPOSE_VERSION:=1.24.0
+
 SSHD_CONFIG:=/etc/ssh/sshd_config
 ROOT_HOME=$(shell echo ~root)
 SSH_DIR:=$(ROOT_HOME)/.ssh
 SSH_AUTHORIZED_KEYS:=$(SSH_DIR)/authorized_keys
+
 FSTAB=/etc/fstab
 
+FS_WATCH_LIMIT:=16384
+FS_WATCH_FILE:=/proc/sys/fs/inotify/max_user_watches
+SYSCTL_CONF:=/etc/sysctl.conf
+
+
 BOOTSTRAP_TARGETS:=\
-	verify-platform \
-	verify-root \
 	install-dependencies \
 	create-environment \
 	configure-ssh-server \
 	configure-network-shares \
 	configure-local-symlinks \
-	create-plex-volumes
+	create-plex-volumes \
+	set-watch-limits
 
 
 .PHONY: $(BOOTSTRAP_TARGETS)
@@ -49,14 +56,17 @@ verify-root:
 	fi
 
 
-install-dependencies:
+install-dependencies: verify-platform verify-root
 	@apt-get update -y
 	@apt-get install -y \
+		apcupsd \
 		docker.io \
-		docker-compose \
 		git \
-		openssh-server \
-		nfs-common
+		nfs-common \
+		openssh-server
+
+	@curl -L "https://github.com/docker/compose/releases/download/$(DOCKER_COMPOSE_VERSION)/docker-compose-$$(uname -s)-$$(uname -m)" -o /usr/bin/docker-compose
+	@chmod 755 /usr/bin/docker-compose
 
 
 # Check if this directory is the directory that the git repo lives in, and if
@@ -71,7 +81,7 @@ create-environment:
 	@$(MAKE) -C $(PROJECT_ROOT_DIRECTORY) env;
 
 
-configure-ssh-server:
+configure-ssh-server: verify-platform verify-root
 	@sed -i -r 's/^[#\s]*(PasswordAuthentication).*$$/\1 no/' $(SSHD_CONFIG)
 	@sed -i -r 's/^[#\s]*(PermitRootLogin).*$$/\1 prohibit-password/' $(SSHD_CONFIG)
 	@sed -i -r 's/^[#\s]*(Port).*$$/\1 2222/' $(SSHD_CONFIG)
@@ -91,7 +101,7 @@ configure-ssh-server:
 
 # Make sure /etc/fstab supplies the correct mounts, and attempt to remount
 #   everything that isn't yet mounted.
-configure-network-shares:
+configure-network-shares: verify-platform verify-root
 	@if [ -z "$${NFS_HOST}" ]; then \
 		echo >&2 "Must include an NFS_HOST to set up mounts"; \
 		exit 1; \
@@ -100,7 +110,7 @@ configure-network-shares:
 	@set -e && cat $(PROJECT_ROOT_DIRECTORY)/nfs_volumes.txt | while read share; do \
 		remote=$$(echo $${share} | cut -d' ' -f1); \
 		local=$$(echo $${share} | cut -d' ' -f2); \
-		if grep -q "$${NFS_HOST}:$${remote}" $(FSTAB) 2> /dev/null; then \
+		if grep -q $$(echo -e "$${NFS_HOST}:$${remote}") $(FSTAB) 2> /dev/null; then \
 			continue; \
 		fi; \
 		mkdir -p $${local}; \
@@ -113,7 +123,7 @@ configure-network-shares:
 # If the destination path already exists, don't try to link again. If the 
 #   destination path exists, and it's a directory, this would just add a 
 #   symlink into the directory containing itself, which isn't very clean.
-configure-local-symlinks:
+configure-local-symlinks: verify-platform verify-root
 	@set -e && cat $(PROJECT_ROOT_DIRECTORY)/local_mounts.txt | while read localmount; do \
 		mount=$$(echo $${localmount} | cut -d' ' -f1); \
 		path=$$(echo $${localmount} | cut -d' ' -f2); \
@@ -130,7 +140,15 @@ configure-local-symlinks:
 
 # The Plex server set up process requires that a `volumes.txt` exists so that
 #   a `plex-volumes.yml` can be created.
-create-plex-volumes:
+create-plex-volumes: verify-platform verify-root
 	@if [ ! -f $(PROJECT_ROOT_DIRECTORY)/plex/volumes.txt ]; then \
 		echo "/dev/null /data/nothing" >> $(PROJECT_ROOT_DIRECTORY)/plex/volumes.txt; \
 	fi
+
+# Increase the number of file system watches that can be allocated.
+# Tons of hosted applications set up watches, and the default limit is easy to
+#   exceed.
+set-watch-limits: verify-platform verify-root
+	@echo $(FS_WATCH_LIMIT) > $(FS_WATCH_FILE)
+	@sed -i "/^fs.inotify.max_user_watches.*/d" $(SYSCTL_CONF)
+	@echo "fs.inotify.max_user_watches=$(FS_WATCH_LIMIT)" >> $(SYSCTL_CONF)
