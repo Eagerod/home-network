@@ -44,6 +44,7 @@ spec:
     spec:
       template:
         spec:
+          restartPolicy: OnFailure
           containers:
             - name: mongo
               image: mongo:3.7
@@ -60,4 +61,3 @@ spec:
             - name: backups
               persistentVolumeClaim:
                 claimName: mongodb-backups-pv-claim
-          restartPolicy: OnFailure
