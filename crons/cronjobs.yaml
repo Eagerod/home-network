@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cronjobs
+data:
+  _keys: |
+    factorio
+    trilium
+  factorio: |
+    CRONJOB_NAME=factorio
+    RSYNC_OPTIONS="-avhuDH --exclude=.sync"
+    SOURCE_NFS_SERVER=192.168.1.42
+    SOURCE_NFS_DIRECTORY=/kubernetes-test/factorio
+    DESTINATION_NFS_SERVER=192.168.1.42
+    DESTINATION_NFS_DIRECTORY=/kubernetes-test/backups/factorio
+    SOURCE_PATH=/
+    DEST_PATH=
+  trilium: |
+    CRONJOB_NAME=trilium
+    RSYNC_OPTIONS="-avhuDH --delete --exclude=.sync"
+    SOURCE_NFS_SERVER=192.168.1.42
+    SOURCE_NFS_DIRECTORY=/kubernetes-test/trilium
+    DESTINATION_NFS_SERVER=192.168.1.42
+    DESTINATION_NFS_DIRECTORY=/kubernetes-test/backups/trilium
+    SOURCE_PATH=/
+    DEST_PATH=

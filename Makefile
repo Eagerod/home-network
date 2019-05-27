@@ -123,6 +123,19 @@ networking: $(KUBECONFIG)
 	@kubectl apply -f http-services.yaml
 
 
+.PHONY: crons
+crons:
+	@$(DOCKER) build crons -t $(REGISTRY_HOSTNAME)/rsync:latest
+	@$(DOCKER) push $(REGISTRY_HOSTNAME)/rsync:latest
+
+	@kubectl apply -f crons/cronjobs.yaml
+
+	@kubectl get configmap cronjobs -o go-template={{.data._keys}} | while read line; do \
+		sh -c "$$(kubectl get configmap cronjobs -o template={{.data.$${line}}} | tr '\n' ' ') envsubst < crons/rsync-cron.yaml" | \
+			kubectl apply -f -; \
+	done
+
+
 # Create Secrets for tls certs.
 .PHONY: certificates
 certificates: domain.crt domain.rsa.key domain.key keycert.pem

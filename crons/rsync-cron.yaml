@@ -1,0 +1,109 @@
+# This is a template CronJob definition that can be used to create an entity
+#   in Kubernetes that will rsync one directory to another.
+# It creates a job that runs one rsync comment between two volumes of choice.
+# It creates a persistent volume and claim for each of the two volumes
+#   specified.
+# Currently only supports NFS shares
+# Assumes the capacity of any volume is 5Gi
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ${CRONJOB_NAME}-source-pv
+  labels:
+    identifier: ${CRONJOB_NAME}-source
+spec:
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 5Gi
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nfsvers=3
+  nfs:
+    path: ${SOURCE_NFS_DIRECTORY}
+    server: ${SOURCE_NFS_SERVER}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ${CRONJOB_NAME}-source-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  selector:
+    matchLabels:
+      identifier: ${CRONJOB_NAME}-source
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ${CRONJOB_NAME}-destination-pv
+  labels:
+    identifier: ${CRONJOB_NAME}-destination
+spec:
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 5Gi
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nfsvers=3
+  nfs:
+    path: ${DESTINATION_NFS_DIRECTORY}
+    server: ${DESTINATION_NFS_SERVER}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ${CRONJOB_NAME}-destination-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  selector:
+    matchLabels:
+      identifier: ${CRONJOB_NAME}-destination
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ${CRONJOB_NAME}-backup
+spec:
+  schedule: "0 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          imagePullSecrets: 
+            - name: registry.internal.aleemhaji.com
+          containers:
+            - name: rsync
+              image: registry.internal.aleemhaji.com/rsync:latest
+              command:
+                - sh
+                - -c
+                - rsync ${RSYNC_OPTIONS} /data/source${SOURCE_PATH} /data/dest${DEST_PATH}
+              volumeMounts:
+                - name: ${CRONJOB_NAME}-source
+                  mountPath: /data/source
+                - name: ${CRONJOB_NAME}-destination
+                  mountPath: /data/dest
+          volumes:
+            - name: ${CRONJOB_NAME}-source
+              persistentVolumeClaim:
+                claimName: ${CRONJOB_NAME}-source-pv-claim
+            - name: ${CRONJOB_NAME}-destination
+              persistentVolumeClaim:
+                claimName: ${CRONJOB_NAME}-destination-pv-claim
