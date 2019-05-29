@@ -1,12 +1,8 @@
-FROM ncfgbase
-
-RUN \
-    apt-get update -y && \
-    apt-get install -y python-pip
+FROM python:3.7-alpine
 
 COPY requirements.txt /var/lib/bot/requirements.txt
 
-RUN python -m pip install -r /var/lib/bot/requirements.txt
+RUN python3 -m pip install -r /var/lib/bot/requirements.txt
 
 COPY bot.py /var/lib/bot/bot.py
 
