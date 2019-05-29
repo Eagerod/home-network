@@ -101,14 +101,9 @@ services:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/transmission-oss:/var/lib/transmission-daemon'
 
   util:
+    build: util
     hostname: util
-    build:
-      context: util
-      args:
-        DEFAULT_BLOBSTORE_WRITE_ACL: ${DEFAULT_BLOBSTORE_WRITE_ACL}
-        DEFAULT_BLOBSTORE_READ_ACL: ${DEFAULT_BLOBSTORE_READ_ACL}
-        MULTI_REDDIT_SUBS_LOCATION: ${MULTI_REDDIT_SUBS_LOCATION}
-        MULTI_REDDIT_SAVED_LOCATION: ${MULTI_REDDIT_SAVED_LOCATION}
+    env_file: util/compose.env
     volumes:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups:/var/lib/backups'
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/git:/var/lib/git'
@@ -122,6 +117,14 @@ services:
     volumes:
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/.sync:/.sync'
       - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups:/var/lib/resilio-folders'
+
+  trilium:
+    build: trilium
+    hostname: trilium
+    ports:
+      - 8083:8080
+    volumes:
+      - '${HOST_DATA_DIR?HOST_DATA_DIR}/trilium:/var/lib/trilium'
 
   plex:
     image: plexinc/pms-docker

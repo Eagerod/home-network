@@ -8,6 +8,8 @@ SHELL=/bin/bash
 PROJECT_ROOT_DIRECTORY:=$(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 PROJECT_ROOT_DIRECTORY:=$(shell if [ -d .git ]; then echo $(PROJECT_ROOT_DIRECTORY); else echo $(PROJECT_ROOT_DIRECTORY)home-network; fi)
 
+DOCKER_COMPOSE_VERSION:=1.24.0
+
 SSHD_CONFIG:=/etc/ssh/sshd_config
 ROOT_HOME=$(shell echo ~root)
 SSH_DIR:=$(ROOT_HOME)/.ssh
@@ -59,10 +61,12 @@ install-dependencies: verify-platform verify-root
 	@apt-get install -y \
 		apcupsd \
 		docker.io \
-		docker-compose \
 		git \
 		nfs-common \
-		openssh-server 
+		openssh-server
+
+	@curl -L "https://github.com/docker/compose/releases/download/$(DOCKER_COMPOSE_VERSION)/docker-compose-$$(uname -s)-$$(uname -m)" -o /usr/bin/docker-compose
+	@chmod 755 /usr/bin/docker-compose
 
 
 # Check if this directory is the directory that the git repo lives in, and if
