@@ -48,15 +48,6 @@ services:
       - mongo
       - redis
 
-  transmission-oss:
-    build: transmission-oss
-    hostname: transmission-oss
-    ports:
-      - 9091:9091
-    volumes:
-      - '${HOST_DATA_DIR?HOST_DATA_DIR}/downloads/oss:/var/lib/downloads'
-      - '${HOST_DATA_DIR?HOST_DATA_DIR}/transmission-oss:/var/lib/transmission-daemon'
-
   resilio-server:
     build: resilio-server
     hostname: resilio-server

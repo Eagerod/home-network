@@ -320,6 +320,14 @@ firefly:
 	@$(call REPLACE_LB_IP,firefly) | kubectl apply -f -
 
 
+.PHONY: transmission
+transmission:
+	$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
+	$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
+
+	@$(call REPLACE_LB_IP,transmission) | kubectl apply -f -
+
+
 # Because of ConfigMap volumes taking their time to reload, can't just run an
 #   `nginx -s restart`, and it's easier to just kill all pods.
 # Newer versions of Kubernetes include an option to cycle all pods more

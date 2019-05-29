@@ -18,3 +18,4 @@ data:
   factorio: 192.168.2.66
   # Daemon-Like Services  192.168.2.80/28
   certbot: 192.168.2.80
+  transmission: 192.168.2.81

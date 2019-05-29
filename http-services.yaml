@@ -8,5 +8,6 @@ data:
     certbot
     firefly
     trilium
+    transmission
   monitoring: |
     grafana-published
