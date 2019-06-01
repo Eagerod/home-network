@@ -149,8 +149,8 @@ certificates: domain.crt domain.rsa.key domain.key keycert.pem
 		kubectl apply -f -
 
 
-.INTERMEDIATE: internal.http.conf
-internal.http.conf:
+.INTERMEDIATE: 00-upstream.http.conf
+00-upstream.http.conf:
 	@kubectl get configmap http-services -o template={{.data.default}} | while read line; do \
 		echo "upstream $${line}"; \
 		printf 'upstream %s {\n    server %s:%d;\n}\n\n' \
@@ -165,18 +165,21 @@ internal.http.conf:
 			$$(kubectl get service -n monitoring $${line} -o jsonpath='{.spec.ports[0].port}') >> $@; \
 	done
 
-	@cat nginx/internal.http.conf >> $@
-
 
 .PHONY: nginx
-nginx: networking internal.http.conf certificates
+nginx: networking 00-upstream.http.conf certificates
 	@$(call REPLACE_LB_IP,nginx) | kubectl apply -f -
 
 	@kubectl create configmap nginx-config --from-file nginx/nginx.conf -o yaml --dry-run | \
 		kubectl apply -f -
 
-	@kubectl create configmap nginx-servers --from-file internal.http.conf --from-file nginx/internal.stream.conf -o yaml --dry-run | \
-		kubectl apply -f -
+	@kubectl create configmap nginx-servers \
+		--from-file 00-upstream.http.conf \
+		--from-file nginx/internal.http.conf \
+		--from-file nginx/internal.stream.conf \
+		--from-file nginx/external.http.conf \
+		--from-file nginx/external.stream.conf \
+		-o yaml --dry-run | kubectl apply -f -
 
 
 .PHONY: redis
