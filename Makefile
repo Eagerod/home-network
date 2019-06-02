@@ -43,6 +43,7 @@ SERVICE_LB_IP = $$(kubectl get configmap network-ip-assignments -o template="{{.
 REPLACE_LB_IP = sed "s/loadBalancerIP:.*/loadBalancerIP: $(call SERVICE_LB_IP,$(1))/" $(1)/$(1).yaml
 
 KUBECTL_JOBS = kubectl get jobs -l 'job=$(1)' -o name
+KUBECTL_APP_PODS = kubectl get pods -l 'app=$(1)' -o name | sed 's:^pod/::'
 
 
 # Each of these rules is forwarded to the Makefiles in the each service's
@@ -279,7 +280,7 @@ mysql: internal-certificates
 
 	@kubectl apply -f mysql/mysql-init.yaml
 
-	@while [ "$$(kubectl get $$(kubectl get pods -l 'app=mysql-init' -o name) -o template={{.status.phase}})" != "Running" ]; do \
+	@while [ "$$(kubectl get $$($(call KUBECTL_APP_PODS,mysql)) -o template={{.status.phase}})" != "Running" ]; do \
 		echo >&2 "MySQL not up yet. Waiting 1 second..."; \
 		sleep 1; \
 	done
@@ -289,7 +290,7 @@ mysql: internal-certificates
 	@# Services should be able to start up jobs that will use root to create
 	@#   users
 	@source .env && kubectl exec -it \
-		$$(kubectl get $$(kubectl get pods -l 'app=mysql-init' -o name) -o template={{.metadata.name}}) -- \
+		$$($(call KUBECTL_APP_PODS,mysql)) -- \
 		mysql -e '\
 			FLUSH PRIVILEGES; \
 			SET PASSWORD FOR root@localhost = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
@@ -377,7 +378,8 @@ remindmebot:
 #   gracefully
 .PHONY: restart-nginx
 restart-nginx:
-	@kubectl delete pod $$(kubectl get pods | grep nginx | awk '{print $$1}')
+	@kubectl scale deployment nginx-deployment --replicas=0
+	@kubectl scale deployment nginx-deployment --replicas=1
 
 
 .PHONY: mysql-restore
@@ -401,7 +403,7 @@ mysql-restore:
 .PHONY: mysql-shell
 mysql-shell:
 	source .env && \
-		kubectl exec -it $$(kubectl get pods -l 'app=mysql' | tail -1 | awk '{print $$1}') -- \
+		kubectl exec -it $$($(call KUBECTL_APP_PODS,mysql)) -- \
 			sh -c 'MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql'
 
 
@@ -418,22 +420,22 @@ token:
 
 .INTERMEDIATE: internal-domain.crt
 internal-domain.crt:
-	@kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/fullchain1.pem $@
+	@kubectl cp $$($(call KUBECTL_APP_PODS,certbot) | head -1):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/fullchain1.pem $@
 
 
 .INTERMEDIATE: internal-domain.key
 internal-domain.key:
-	@kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/privkey1.pem $@
+	@kubectl cp $$($(call KUBECTL_APP_PODS,certbot) | head -1):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/privkey1.pem $@
 
 
 .INTERMEDIATE: external-domain.crt
 external-domain.crt:
-	@kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/aleemhaji.com-0001/fullchain1.pem $@
+	@kubectl cp $$($(call KUBECTL_APP_PODS,certbot) | head -1):/etc/letsencrypt/archive/aleemhaji.com-0001/fullchain1.pem $@
 
 
 .INTERMEDIATE: external-domain.key
 external-domain.key:
-	@kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/aleemhaji.com-0001/privkey1.pem $@
+	@kubectl cp $$($(call KUBECTL_APP_PODS,certbot) | head -1):/etc/letsencrypt/archive/aleemhaji.com-0001/privkey1.pem $@
 
 
 .INTERMEDIATE: internal-domain.rsa.key
