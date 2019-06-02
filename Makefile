@@ -27,10 +27,18 @@ KUBECONFIG=.kube/config
 KUBERNETES_SERVICES= \
 	redis \
 	mongodb \
+	mysql \
 	nginx \
+	firefly \
+	trilium \
 	registry \
+	util \
+	factorio \
+	remindmebot \
 	certbot \
-	trilium
+	transmission
+
+DOCKER_CONTAINERS:=$(filter-out util,$(DOCKER_CONTAINERS))
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -203,29 +211,29 @@ nginx: networking 00-upstream.http.conf certificates
 
 .PHONY: redis
 redis:
-	$(call REPLACE_LB_IP,redis) | kubectl apply -f -
+	@$(call REPLACE_LB_IP,redis) | kubectl apply -f -
 
 
 .PHONY: mongodb
 mongodb: internal-certificates
-	$(call REPLACE_LB_IP,mongodb) | kubectl apply -f -
+	@$(call REPLACE_LB_IP,mongodb) | kubectl apply -f -
 	@kubectl apply -f mongodb/mongodb-backup.yaml
 
 
 .PHONY: trilium
 trilium:
-	$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
-	$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
+	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
+	@$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
 
-	$(call REPLACE_LB_IP,trilium) | kubectl apply -f -
+	@$(call REPLACE_LB_IP,trilium) | kubectl apply -f -
 
 
 .PHONY: factorio
 factorio:
-	$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
-	$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
+	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
+	@$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
 
-	$(call REPLACE_LB_IP,factorio) | kubectl apply -f -
+	@$(call REPLACE_LB_IP,factorio) | kubectl apply -f -
 
 
 .PHONY: registry
@@ -252,12 +260,12 @@ registry:
 
 .PHONY: certbot
 certbot:
-	$(call REPLACE_LB_IP,certbot) | kubectl apply -f -
+	@$(call REPLACE_LB_IP,certbot) | kubectl apply -f -
 
 
 .PHONY: grafana
 grafana:
-	$(call REPLACE_LB_IP,grafana) | kubectl apply -f -
+	@$(call REPLACE_LB_IP,grafana) | kubectl apply -f -
 
 
 .PHONY: mysql
@@ -302,21 +310,21 @@ mysql: internal-certificates
 
 .PHONY: util
 util:
-	$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
-	$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
+	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
+	@$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
 
-	source .env && \
+	@source .env && \
 		kubectl create configmap multi-reddit-blob-config \
 			--from-literal "subreddit_path=$${MULTI_REDDIT_SUBS_LOCATION}" \
 			--from-literal "saved_posts_path=$${MULTI_REDDIT_SAVED_LOCATION}" \
 			-o yaml --dry-run | kubectl apply -f -
-	source .env && \
+	@source .env && \
 		kubectl create secret generic multi-reddit-blob-credentials \
 			--from-literal "read_acl=$${DEFAULT_BLOBSTORE_READ_ACL}" \
 			--from-literal "write_acl=$${DEFAULT_BLOBSTORE_WRITE_ACL}" \
 			-o yaml --dry-run | kubectl apply -f -
 
-	$(call REPLACE_LB_IP,util) | kubectl apply -f -
+	@$(call REPLACE_LB_IP,util) | kubectl apply -f -
 
 
 .PHONY: firefly
@@ -339,8 +347,8 @@ firefly:
 
 .PHONY: transmission
 transmission:
-	$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
-	$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
+	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
+	@$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
 
 	@$(call REPLACE_LB_IP,transmission) | kubectl apply -f -
 
@@ -393,7 +401,7 @@ mysql-restore:
 
 .PHONY: mysql-shell
 mysql-shell:
-	source .env && $(call KUBECTL_APP_EXEC,mysql) -it -- \
+	@source .env && $(call KUBECTL_APP_EXEC,mysql) -it -- \
 		sh -c 'MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql'
 
 
