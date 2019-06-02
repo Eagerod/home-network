@@ -9,5 +9,6 @@ data:
     firefly
     trilium
     transmission
+    remindmebot
   monitoring: |
     grafana-published

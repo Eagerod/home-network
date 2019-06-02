@@ -350,6 +350,25 @@ transmission:
 	@$(call REPLACE_LB_IP,transmission) | kubectl apply -f -
 
 
+# Assumes that remindmebot has already shipped an image of its own to the
+#   registry.
+.PHONY: remindmebot
+remindmebot:
+	@kubectl get jobs -l 'job=remindmebot-init' -o name | xargs kubectl delete
+
+	@source .env && \
+		kubectl create configmap remindmebot-config \
+			--from-literal "bot_username=$${REMINDMEBOT_USERNAME}" \
+			-o yaml --dry-run | kubectl apply -f -
+	@source .env && \
+		kubectl create secret generic remindmebot-secrets \
+			--from-literal "bot_api_key=$${REMINDMEBOT_API_KEY}" \
+			--from-literal "database=$${REMINDMEBOT_DATABASE}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+	@$(call REPLACE_LB_IP,remindmebot) | kubectl apply -f -
+
+
 # Because of ConfigMap volumes taking their time to reload, can't just run an
 #   `nginx -s restart`, and it's easier to just kill all pods.
 # Newer versions of Kubernetes include an option to cycle all pods more
@@ -454,6 +473,9 @@ setup: $(SETUP_FILES)
 .PHONY: base-image
 base-image:
 	$(DOCKER) build . -f BaseUpdatedUbuntuDockerfile -t ncfgbase
+	$(DOCKER) tag ncfgbase $(REGISTRY_HOSTNAME)/ncfgbase:latest
+	$(DOCKER) push $(REGISTRY_HOSTNAME)/ncfgbase:latest
+
 
 .PHONY: compose-up
 compose-up: $(ANY_CONTAINER_BUILD_DEPS)
