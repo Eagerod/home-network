@@ -40,7 +40,7 @@ spec:
           projected:
             sources:
               - secret:
-                  name: certificate-files
+                  name: internal-certificate-files
 ---
 apiVersion: v1
 kind: Service

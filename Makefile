@@ -136,17 +136,36 @@ crons:
 	done
 
 
-# Create Secrets for tls certs.
 .PHONY: certificates
-certificates: domain.crt domain.rsa.key domain.key keycert.pem
-	@kubectl create secret generic certificate-files \
-		--from-file tls.crt=domain.crt \
-		--from-file tls.key=domain.key \
-		--from-file tls.rsa.key=domain.rsa.key \
+certificates: internal-certificates external-certificates
+
+
+.PHONY: internal-certificates
+internal-certificates: internal-domain.crt internal-domain.rsa.key internal-domain.key internal-keycert.pem
+	@kubectl create secret generic internal-certificate-files \
+		--from-file tls.crt=internal-domain.crt \
+		--from-file tls.key=internal-domain.key \
+		--from-file tls.rsa.key=internal-domain.rsa.key \
 		-o yaml --dry-run | \
 			kubectl apply -f -
-	@kubectl create secret generic certificate-file --from-file keycert.pem -o yaml --dry-run | \
-		kubectl apply -f -
+	@kubectl create secret generic internal-certificate-file \
+		--from-file keycert.pem=internal-keycert.pem \
+		-o yaml --dry-run | \
+			kubectl apply -f -
+
+
+.PHONY: external-certificates
+external-certificates: external-domain.crt external-domain.rsa.key external-domain.key external-keycert.pem
+	@kubectl create secret generic external-certificate-files \
+		--from-file tls.crt=external-domain.crt \
+		--from-file tls.key=external-domain.key \
+		--from-file tls.rsa.key=external-domain.rsa.key \
+		-o yaml --dry-run | \
+			kubectl apply -f -
+	@kubectl create secret generic external-certificate-file \
+		--from-file keycert.pem=external-keycert.pem \
+		-o yaml --dry-run | \
+			kubectl apply -f -
 
 
 .INTERMEDIATE: 00-upstream.http.conf
@@ -188,7 +207,7 @@ redis:
 
 
 .PHONY: mongodb
-mongodb: certificates
+mongodb: internal-certificates
 	$(call REPLACE_LB_IP,mongodb) | kubectl apply -f -
 	@kubectl apply -f mongodb/mongodb-backup.yaml
 
@@ -242,7 +261,7 @@ grafana:
 
 
 .PHONY: mysql
-mysql:
+mysql: internal-certificates
 	@source .env && \
 		kubectl create secret generic mysql-root-password \
 			--from-literal "value=$${MYSQL_ROOT_PASSWORD}" -o yaml --dry-run | \
@@ -376,24 +395,44 @@ token:
 	@kubectl -n kube-system get secret $$(kubectl -n kube-system get serviceaccount aleem -o jsonpath={.secrets[0].name}) -o jsonpath={.data.token} | base64 -D && echo
 
 
-.INTERMEDIATE: domain.crt
-domain.crt:
-	@kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/fullchain1.pem domain.crt
+.INTERMEDIATE: internal-domain.crt
+internal-domain.crt:
+	@kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/fullchain1.pem $@
 
 
-.INTERMEDIATE: domain.key
-domain.key:
-	@kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/privkey1.pem domain.key
+.INTERMEDIATE: internal-domain.key
+internal-domain.key:
+	@kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/privkey1.pem $@
 
 
-.INTERMEDIATE: domain.rsa.key
-domain.rsa.key: domain.key
-	openssl rsa -in domain.key -out domain.rsa.key
+.INTERMEDIATE: external-domain.crt
+external-domain.crt:
+	@kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/aleemhaji.com-0001/fullchain1.pem $@
 
 
-.INTERMEDIATE: keycert.pem
-keycert.pem: domain.key domain.crt
-	@cat domain.key domain.crt > keycert.pem
+.INTERMEDIATE: external-domain.key
+external-domain.key:
+	@kubectl cp $$(kubectl get pods | grep certbot | head -1 | awk '{print $$1}'):/etc/letsencrypt/archive/aleemhaji.com-0001/privkey1.pem $@
+
+
+.INTERMEDIATE: internal-domain.rsa.key
+internal-domain.rsa.key: internal-domain.key
+	openssl rsa -in $^ -out $@
+
+
+.INTERMEDIATE: internal-keycert.pem
+internal-keycert.pem: internal-domain.key internal-domain.crt
+	@cat $^ > $@
+
+
+.INTERMEDIATE: external-domain.rsa.key
+external-domain.rsa.key: external-domain.key
+	openssl rsa -in $^ -out $@
+
+
+.INTERMEDIATE: external-keycert.pem
+external-keycert.pem: external-domain.key external-domain.crt
+	@cat $^ > $@
 
 
 .PHONY: secrets

@@ -71,7 +71,7 @@ spec:
           projected:
             sources:
               - secret:
-                  name: certificate-file
+                  name: internal-certificate-file
 ---
 apiVersion: v1
 kind: Service
