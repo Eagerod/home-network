@@ -95,3 +95,28 @@ spec:
                 secretKeyRef:
                   name: remindmebot-secrets
                   key: bot_api_key
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: remindmebot-schedule
+spec:
+  schedule: "* * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          imagePullSecrets: 
+            - name: registry.internal.aleemhaji.com
+          containers:
+            - name: remindmebot-schedule
+              image: registry.internal.aleemhaji.com/ncfgbase:latest
+              command:
+                - curl 
+                - -X
+                - POST
+                - -fsSL
+                - http://remindmebot/schedule
