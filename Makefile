@@ -269,39 +269,35 @@ mysql: internal-certificates
 
 	@kubectl apply -f mysql/mysql-volumes.yaml
 
-	@# Make sure mysql is torn down
-	@kubectl get services -l 'app=mysql' -o name | xargs kubectl delete
-	@kubectl get deployments -l 'app=mysql' -o name | xargs kubectl delete
-	@kubectl get services -l 'app=mysql-init' -o name | xargs kubectl delete
-	@kubectl get deployments -l 'app=mysql-init' -o name | xargs kubectl delete
-
-	@kubectl apply -f mysql/mysql-init.yaml
-
-	@while [ "$$(kubectl get $$($(call KUBECTL_APP_PODS,mysql)) -o template={{.status.phase}})" != "Running" ]; do \
-		echo >&2 "MySQL not up yet. Waiting 1 second..."; \
-		sleep 1; \
-	done
-
-	@# Set up permissions for localhost, and for other machines on the
-	@#   Kubernetes pod subnet.
-	@# Services should be able to start up jobs that will use root to create
-	@#   users
-	@source .env && $(call KUBECTL_APP_EXEC,mysql) -- \
-		mysql -e '\
-			FLUSH PRIVILEGES; \
-			SET PASSWORD FOR root@localhost = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
-			CREATE USER IF NOT EXISTS '"'"'root'"'"'@'"'"'10.244.%.%'"'"'; \
-			SET PASSWORD FOR '"'"'root'"'"'@'"'"'10.244.%.%'"'"' = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
-			GRANT ALL PRIVILEGES ON *.* to '"'"'root'"'"'@'"'"'10.244.%.%'"'"' WITH GRANT OPTION; \
-			FLUSH PRIVILEGES;'
-
-	@kubectl get services -l 'app=mysql-init' -o name | xargs kubectl delete
-	@kubectl get deployments -l 'app=mysql-init' -o name | xargs kubectl delete
-
-	@$(call REPLACE_LB_IP,mysql) | kubectl apply -f -
-
 	@kubectl create configmap mysql-backup --from-file mysql/mysql-backup.sh -o yaml --dry-run | \
 		kubectl apply -f -
+
+	@# Only tear everything down and run mysql-init if the existing service
+	@#   can't be reached for any reason.
+	@# There may be no pods running mysql at all, or there may be issues
+	@#   actually running queries against it.
+	@if [ -z "$$($(call KUBECTL_APP_PODS,mysql))" ] || \
+			! $(call KUBECTL_APP_EXEC,mysql) -- sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -e 'SELECT 1'"; then \
+		kubectl scale deployment mysql-deployment --replicas=0; \
+		kubectl scale deployment mysql-init-deployment --replicas=0; \
+		kubectl apply -f mysql/mysql-init.yaml; \
+		while [ -z "$$($(call KUBECTL_RUNNING_POD,mysql-init))" ]; do \
+			echo >&2 "MySQL not up yet. Waiting 1 second..."; \
+			sleep 1; \
+		done; \
+		source .env && $(call KUBECTL_APP_EXEC,mysql-init) -- \
+			mysql -e '\
+				FLUSH PRIVILEGES; \
+				SET PASSWORD FOR root@localhost = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
+				CREATE USER IF NOT EXISTS '"'"'root'"'"'@'"'"'10.244.%.%'"'"'; \
+				SET PASSWORD FOR '"'"'root'"'"'@'"'"'10.244.%.%'"'"' = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
+				GRANT ALL PRIVILEGES ON *.* to '"'"'root'"'"'@'"'"'10.244.%.%'"'"' WITH GRANT OPTION; \
+				FLUSH PRIVILEGES;'; \
+		kubectl scale deployment mysql-init-deployment --replicas=0; \
+	fi
+
+	@$(call REPLACE_LB_IP,mysql) | kubectl apply -f -
+	@kubectl apply -f mysql/mysql-backup.yaml
 
 
 .PHONY: util

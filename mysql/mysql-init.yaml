@@ -34,17 +34,3 @@ spec:
         - name: mysql-persistent-storage
           persistentVolumeClaim:
             claimName: mysql-pv-claim
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: mysql-init
-  labels:
-    app: mysql-init
-spec:
-  ports:
-  - port: 3306
-    protocol: TCP
-  type: ClusterIP
-  selector:
-    app: mysql-init
