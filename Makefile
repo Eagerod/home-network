@@ -39,6 +39,8 @@ REPLACE_LB_IP = sed "s/loadBalancerIP:.*/loadBalancerIP: $(call SERVICE_LB_IP,$(
 
 KUBECTL_JOBS = kubectl get jobs -l 'job=$(1)' -o name
 KUBECTL_APP_PODS = kubectl get pods -l 'app=$(1)' -o name | sed 's:^pod/::'
+KUBECTL_RUNNING_POD = kubectl get pods --field-selector=status.phase=Running -l 'app=$(1)' -o name | sed 's:^pod/::'
+KUBECTL_APP_EXEC = kubectl exec $$($(call KUBECTL_RUNNING_POD,$(1)))
 
 
 # Each of these rules is forwarded to the Makefiles in the each service's
@@ -284,8 +286,7 @@ mysql: internal-certificates
 	@#   Kubernetes pod subnet.
 	@# Services should be able to start up jobs that will use root to create
 	@#   users
-	@source .env && kubectl exec -it \
-		$$($(call KUBECTL_APP_PODS,mysql)) -- \
+	@source .env && $(call KUBECTL_APP_EXEC,mysql) -- \
 		mysql -e '\
 			FLUSH PRIVILEGES; \
 			SET PASSWORD FOR root@localhost = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
@@ -384,8 +385,7 @@ mysql-restore:
 		exit 1; \
 	fi
 
-	@kubectl exec -it \
-		$$(kubectl get pod --selector='app=mysql' --field-selector=status.phase=Running -o jsonpath={.items[0].metadata.name}) -- \
+	@$(call KUBECTL_APP_EXEC,mysql) -- \
 		sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -u root -e 'CREATE DATABASE IF NOT EXISTS '$${RESTORE_MYSQL_DATABASE}';'"
 
 
@@ -397,9 +397,8 @@ mysql-restore:
 
 .PHONY: mysql-shell
 mysql-shell:
-	source .env && \
-		kubectl exec -it $$($(call KUBECTL_APP_PODS,mysql)) -- \
-			sh -c 'MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql'
+	source .env && $(call KUBECTL_APP_EXEC,mysql) -it -- \
+		sh -c 'MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql'
 
 
 $(KUBECONFIG):
