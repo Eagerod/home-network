@@ -42,6 +42,8 @@ REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 SERVICE_LB_IP = $$(kubectl get configmap network-ip-assignments -o template="{{.data.$(1)}}")
 REPLACE_LB_IP = sed "s/loadBalancerIP:.*/loadBalancerIP: $(call SERVICE_LB_IP,$(1))/" $(1)/$(1).yaml
 
+KUBECTL_JOBS = kubectl get jobs -l 'job=$(1)' -o name
+
 
 # Each of these rules is forwarded to the Makefiles in the each service's
 #   directory.
@@ -326,7 +328,7 @@ util:
 
 .PHONY: firefly
 firefly:
-	@kubectl get jobs -l 'job=firefly-mysql-init' -o name | xargs kubectl delete
+	@$(call KUBECTL_JOBS,firefly-mysql-init) | xargs kubectl delete
 
 	@source .env && \
 		kubectl create configmap firefly-config \
@@ -354,7 +356,7 @@ transmission:
 #   registry.
 .PHONY: remindmebot
 remindmebot:
-	@kubectl get jobs -l 'job=remindmebot-init' -o name | xargs kubectl delete
+	@$(call KUBECTL_JOBS,remindmebot-init) | xargs kubectl delete
 
 	@source .env && \
 		kubectl create configmap remindmebot-config \
