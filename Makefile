@@ -38,6 +38,21 @@ KUBERNETES_SERVICES= \
 	certbot \
 	transmission
 
+# TRIVIAL_SERVICES are the set of services that are deployed by only applying
+#   their yaml files.
+TRIVIAL_SERVICES:=\
+	redis \
+	grafana \
+	certbot
+
+# SIMPLE_SERVICES are the set of services that are deployed by creating a
+#   docker image using the Dockerfile in the service's directory, and pushing
+#   it to the container registry before applying its yaml file.
+SIMPLE_SERVICES:=\
+	trilium \
+	factorio \
+	transmission
+
 DOCKER_CONTAINERS:=$(filter-out util,$(DOCKER_CONTAINERS))
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
@@ -193,6 +208,19 @@ external-certificates: external-domain.crt external-domain.rsa.key external-doma
 	done
 
 
+.PHONY: $(TRIVIAL_SERVICES)
+$(TRIVIAL_SERVICES):
+	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
+
+
+.PHONY: $(SIMPLE_SERVICES)
+$(SIMPLE_SERVICES):
+	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
+	@$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
+
+	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
+
+
 .PHONY: nginx
 nginx: networking 00-upstream.http.conf certificates
 	@$(call REPLACE_LB_IP,nginx) | kubectl apply -f -
@@ -209,31 +237,10 @@ nginx: networking 00-upstream.http.conf certificates
 		-o yaml --dry-run | kubectl apply -f -
 
 
-.PHONY: redis
-redis:
-	@$(call REPLACE_LB_IP,redis) | kubectl apply -f -
-
-
 .PHONY: mongodb
 mongodb: internal-certificates
 	@$(call REPLACE_LB_IP,mongodb) | kubectl apply -f -
 	@kubectl apply -f mongodb/mongodb-backup.yaml
-
-
-.PHONY: trilium
-trilium:
-	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
-	@$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
-
-	@$(call REPLACE_LB_IP,trilium) | kubectl apply -f -
-
-
-.PHONY: factorio
-factorio:
-	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
-	@$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
-
-	@$(call REPLACE_LB_IP,factorio) | kubectl apply -f -
 
 
 .PHONY: registry
@@ -256,16 +263,6 @@ registry:
 			--username $${DOCKER_REGISTRY_USERNAME}\
 			--password $${DOCKER_REGISTRY_PASSWORD} \
 			$(REGISTRY_HOSTNAME)
-
-
-.PHONY: certbot
-certbot:
-	@$(call REPLACE_LB_IP,certbot) | kubectl apply -f -
-
-
-.PHONY: grafana
-grafana:
-	@$(call REPLACE_LB_IP,grafana) | kubectl apply -f -
 
 
 .PHONY: mysql
@@ -343,14 +340,6 @@ firefly:
 			-o yaml --dry-run | kubectl apply -f -
 
 	@$(call REPLACE_LB_IP,firefly) | kubectl apply -f -
-
-
-.PHONY: transmission
-transmission:
-	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
-	@$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
-
-	@$(call REPLACE_LB_IP,transmission) | kubectl apply -f -
 
 
 # Assumes that remindmebot has already shipped an image of its own to the
@@ -459,10 +448,6 @@ external-keycert.pem: external-domain.key external-domain.crt
 .PHONY: secrets
 .INTERMEDIATE: registry/registry-secret.yaml
 secrets: registry/registry-secret.yaml
-
-
-.PHONY: all
-all: setup $(COMPOSE_ENVIRONMENT_FILES) compose-up
 
 
 .PHONY: setup
