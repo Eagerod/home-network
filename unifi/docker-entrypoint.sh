@@ -2,6 +2,8 @@
 #
 # Replace IP address with host IP, so the controller will tell the APs to 
 #   inform to the right IP.
-sed -i "s/"'${SERVER_IP}'"/${SERVER_HOST_IP}/g" /usr/lib/unifi/data/system.properties
+IS_DEFAULT=${IS_DEFAULT:-false}
+
+echo "is_default=${IS_DEFAULT}" >> /usr/lib/unifi/data/system.properties
 
 exec /init

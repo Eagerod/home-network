@@ -10,5 +10,6 @@ data:
     trilium
     transmission
     remindmebot
+    unifi-tcp
   monitoring: |
     grafana-published

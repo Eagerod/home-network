@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unifi-restore
+  labels:
+    app: unifi-restore
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: unifi-restore
+  template:
+    metadata:
+      name: unifi-restore
+      labels:
+        app: unifi-restore
+    spec:
+      imagePullSecrets: 
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: unifi-restore
+          image: registry.internal.aleemhaji.com/unifi:latest
+          command:
+            - sleep
+            - '1000'

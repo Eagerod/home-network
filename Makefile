@@ -51,9 +51,11 @@ TRIVIAL_SERVICES:=\
 SIMPLE_SERVICES:=\
 	trilium \
 	factorio \
-	transmission
+	transmission \
+	unifi
 
 DOCKER_CONTAINERS:=$(filter-out util,$(DOCKER_CONTAINERS))
+DOCKER_CONTAINERS:=$(filter-out unifi,$(DOCKER_CONTAINERS))
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -65,6 +67,7 @@ KUBECTL_APP_PODS = kubectl get pods -l 'app=$(1)' -o name | sed 's:^pod/::'
 KUBECTL_RUNNING_POD = kubectl get pods --field-selector=status.phase=Running -l 'app=$(1)' -o name | sed 's:^pod/::'
 KUBECTL_APP_EXEC = kubectl exec $$($(call KUBECTL_RUNNING_POD,$(1)))
 
+KUBECTL_WAIT_FOR_POD = while [ -z "$$($(call KUBECTL_RUNNING_POD,$(1)))" ]; do echo >&2 "$(1) not up yet. Waiting 1 second..."; sleep 1; done
 
 # Each of these rules is forwarded to the Makefiles in the each service's
 #   directory.
@@ -386,6 +389,25 @@ mysql-restore:
 		-e 's/$${JOB_CREATION_TIMESTAMP}/'$$(date -u +%Y%m%d%H%M%S)'/' \
 		-e 's/$${RESTORE_MYSQL_DATABASE}/'$${RESTORE_MYSQL_DATABASE}'/' \
 		 mysql/mysql-restore.yaml | kubectl apply -f -
+
+
+.PHONY: unifi-restore
+unifi-restore:
+	@if [ ! -f backup.unf ]; then \
+		echo >&2 "Can't find backup.unf. Aborting"; \
+		exit 1; \
+	fi
+
+	kubectl scale deployment unifi-deployment --replicas=0
+	kubectl apply -f unifi/unifi-restore.yaml
+
+	$(call KUBECTL_WAIT_FOR_POD,unifi-restore)
+
+	kubectl cp backup.unf $$($(call KUBECTL_APP_PODS,unifi-restore) | head -1):/backup.unf
+	$(call KUBECTL_APP_EXEC,unifi-restore) -it -- java -Xmx1024M -jar /usr/lib/unifi/lib/ace.jar restore /backup.unf
+
+	kubectl scale deployment unifi-restore --replicas=0
+	kubectl scale deployment unifi-deployment --replicas=1
 
 
 .PHONY: mysql-shell

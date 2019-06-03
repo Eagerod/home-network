@@ -20,22 +20,6 @@ services:
       - 53:53/udp
     dns: 127.0.0.1
 
-  unifi:
-    build: unifi
-    env_file: unifi/compose.env
-    hostname: unifi
-    ports:
-      - "8443:8443"
-      - "8843:8843"
-      - "8084:8084"
-      - "8085:8081"
-      - "8880:8880"
-      - "6789:6789"
-      - "3478:3478/udp"
-      - "10001:10001/udp"
-    depends_on:
-      - mongo
-
   sharelatex:
     build: sharelatex
     hostname: sharelatex
