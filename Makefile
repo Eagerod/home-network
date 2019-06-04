@@ -151,7 +151,7 @@ networking: $(KUBECONFIG)
 
 .PHONY: crons
 crons:
-	@$(DOCKER) build crons -t $(REGISTRY_HOSTNAME)/rsync:latest
+	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/rsync:latest
 	@$(DOCKER) push $(REGISTRY_HOSTNAME)/rsync:latest
 
 	@kubectl apply -f crons/cronjobs.yaml
@@ -242,7 +242,7 @@ nginx: networking 00-upstream.http.conf certificates
 
 .PHONY: mongodb
 mongodb: internal-certificates
-	@$(call REPLACE_LB_IP,mongodb) | kubectl apply -f -
+	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 	@kubectl apply -f mongodb/mongodb-backup.yaml
 
 
@@ -259,7 +259,7 @@ registry:
 			--docker-password $${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
 		kubectl apply -f -
 
-	@$(call REPLACE_LB_IP,registry) | kubectl apply -f -
+	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 
 	@source .env && \
 		$(DOCKER) login \
@@ -304,7 +304,7 @@ mysql: internal-certificates
 		kubectl scale deployment mysql-init-deployment --replicas=0; \
 	fi
 
-	@$(call REPLACE_LB_IP,mysql) | kubectl apply -f -
+	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 	@kubectl apply -f mysql/mysql-backup.yaml
 
 
@@ -324,7 +324,7 @@ util:
 			--from-literal "write_acl=$${DEFAULT_BLOBSTORE_WRITE_ACL}" \
 			-o yaml --dry-run | kubectl apply -f -
 
-	@$(call REPLACE_LB_IP,util) | kubectl apply -f -
+	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 
 
 .PHONY: firefly
@@ -342,7 +342,7 @@ firefly:
 			--from-literal "app_key=$${FIREFLY_APP_KEY}" \
 			-o yaml --dry-run | kubectl apply -f -
 
-	@$(call REPLACE_LB_IP,firefly) | kubectl apply -f -
+	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 
 
 # Assumes that remindmebot has already shipped an image of its own to the
@@ -361,7 +361,7 @@ remindmebot:
 			--from-literal "database=$${REMINDMEBOT_DATABASE}" \
 			-o yaml --dry-run | kubectl apply -f -
 
-	@$(call REPLACE_LB_IP,remindmebot) | kubectl apply -f -
+	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 
 
 # Because of ConfigMap volumes taking their time to reload, can't just run an
