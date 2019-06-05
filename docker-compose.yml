@@ -32,16 +32,6 @@ services:
       - mongo
       - redis
 
-  resilio-server:
-    build: resilio-server
-    hostname: resilio-server
-    env_file: resilio-server/compose.env
-    ports:
-      - 8888:8888
-    volumes:
-      - '${HOST_DATA_DIR?HOST_DATA_DIR}/.sync:/.sync'
-      - '${HOST_DATA_DIR?HOST_DATA_DIR}/backups:/var/lib/resilio-folders'
-
   plex:
     image: plexinc/pms-docker
     environment:
