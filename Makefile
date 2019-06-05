@@ -43,7 +43,8 @@ KUBERNETES_SERVICES= \
 TRIVIAL_SERVICES:=\
 	redis \
 	grafana \
-	certbot
+	certbot \
+	nginx
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
 #   docker image using the Dockerfile in the service's directory, and pushing
@@ -52,7 +53,15 @@ SIMPLE_SERVICES:=\
 	trilium \
 	factorio \
 	transmission \
-	unifi
+	unifi \
+	util
+
+# Some services are mostly just basic services, but require an additional
+#   configuration to be pushed before they can properly start.
+# Those services are included above, and additional prerequisites are listed
+#   here.
+nginx: nginx-configurations
+util: util-configurations
 
 DOCKER_CONTAINERS:=$(filter-out util,$(DOCKER_CONTAINERS))
 DOCKER_CONTAINERS:=$(filter-out unifi,$(DOCKER_CONTAINERS))
@@ -224,10 +233,8 @@ $(SIMPLE_SERVICES):
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 
 
-.PHONY: nginx
-nginx: networking 00-upstream.http.conf certificates
-	@$(call REPLACE_LB_IP,nginx) | kubectl apply -f -
-
+.PHONY: nginx-configurations
+nginx-configurations: networking 00-upstream.http.conf certificates
 	@kubectl create configmap nginx-config --from-file nginx/nginx.conf -o yaml --dry-run | \
 		kubectl apply -f -
 
@@ -308,11 +315,8 @@ mysql: internal-certificates
 	@kubectl apply -f mysql/mysql-backup.yaml
 
 
-.PHONY: util
-util:
-	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
-	@$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
-
+.PHONY: util-configurations
+util-configurations:
 	@source .env && \
 		kubectl create configmap multi-reddit-blob-config \
 			--from-literal "subreddit_path=$${MULTI_REDDIT_SUBS_LOCATION}" \
@@ -323,8 +327,6 @@ util:
 			--from-literal "read_acl=$${DEFAULT_BLOBSTORE_READ_ACL}" \
 			--from-literal "write_acl=$${DEFAULT_BLOBSTORE_WRITE_ACL}" \
 			-o yaml --dry-run | kubectl apply -f -
-
-	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 
 
 .PHONY: firefly
