@@ -54,7 +54,8 @@ SIMPLE_SERVICES:=\
 	factorio \
 	transmission \
 	unifi \
-	util
+	util \
+	resilio
 
 # Some services are mostly just basic services, but require an additional
 #   configuration to be pushed before they can properly start.
@@ -364,6 +365,19 @@ remindmebot:
 			-o yaml --dry-run | kubectl apply -f -
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
+
+
+.PHONY: resilio-configs
+resilio: resilio-configs
+resilio-configs:
+	@source .env && \
+		kubectl create configmap resilio-sync-config \
+			--from-literal "username=$${RESILIO_SERVER_USERNAME}" \
+			-o yaml --dry-run | kubectl apply -f -
+	@source .env && \
+		kubectl create secret generic resilio-sync-credentials \
+			--from-literal "password=$${RESILIO_SERVER_PASSWORD}" \
+			-o yaml --dry-run | kubectl apply -f -
 
 
 # Because of ConfigMap volumes taking their time to reload, can't just run an

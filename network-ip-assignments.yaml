@@ -21,3 +21,4 @@ data:
   certbot: 192.168.2.80
   transmission: 192.168.2.81
   unifi: 192.168.2.82
+  resilio: 192.168.2.83

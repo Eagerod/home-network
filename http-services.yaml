@@ -11,5 +11,6 @@ data:
     transmission
     remindmebot
     unifi-tcp
+    resilio
   monitoring: |
     grafana-published
