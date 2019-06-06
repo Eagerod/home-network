@@ -1,4 +1,4 @@
-FROM linuxserver/unifi
+FROM linuxserver/unifi-controller
 
 COPY system.properties /usr/lib/unifi/data/system.properties
 

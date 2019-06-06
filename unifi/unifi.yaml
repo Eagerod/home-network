@@ -27,6 +27,9 @@ spec:
               name: unifi-gui-port
             - containerPort: 8080
               protocol: TCP
+              name: unspecified
+            - containerPort: 8081
+              protocol: TCP
               name: unifi-comms
             - containerPort: 8880
               protocol: TCP
@@ -61,6 +64,9 @@ spec:
     - port: 8080
       protocol: TCP
       name: unifi-comms-port
+    - port: 8081
+      protocol: TCP
+      name: unifi-unspecified-port
     - port: 8880
       protocol: TCP
       name: unifi-http-portal-port
