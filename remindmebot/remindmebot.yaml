@@ -96,27 +96,35 @@ spec:
                   name: remindmebot-secrets
                   key: bot_api_key
 ---
-apiVersion: batch/v1beta1
-kind: CronJob
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: remindmebot-schedule
+  name: remindmebot-scheduler
+  labels:
+    app: remindmebot-scheduler
 spec:
-  schedule: "* * * * *"
-  successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 3
-  jobTemplate:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: remindmebot-scheduler
+  template:
+    metadata:
+      name: remindmebot-scheduler
+      labels:
+        app: remindmebot-scheduler
     spec:
-      template:
-        spec:
-          restartPolicy: OnFailure
-          imagePullSecrets: 
-            - name: registry.internal.aleemhaji.com
-          containers:
-            - name: remindmebot-schedule
-              image: registry.internal.aleemhaji.com/ncfgbase:latest
-              command:
-                - curl 
-                - -X
-                - POST
-                - -fsSL
-                - http://remindmebot/schedule
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: remindmebot-scheduler
+          image: registry.internal.aleemhaji.com/ncfgbase:latest
+          command:
+            - sh
+            - -c
+            - |
+              while true; do \
+                echo "Running scheduler... $(date -u +%Y-%m-%dT%H:%M:%SZ)"; \
+                curl -X POST -fsSL http://remindmebot/schedule; \
+                sleep 60; \
+              done
