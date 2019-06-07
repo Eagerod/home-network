@@ -12,5 +12,6 @@ data:
     remindmebot
     unifi-tcp
     resilio
+    pihole-tcp
   monitoring: |
     grafana-published

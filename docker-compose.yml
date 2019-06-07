@@ -10,16 +10,6 @@
 #   account.
 version: '3'
 services:
-  pi-hole:
-    build: pi-hole
-    env_file: pi-hole/compose.env
-    hostname: pi-hole
-    ports:
-      - 8080:80
-      - 53:53/tcp
-      - 53:53/udp
-    dns: 127.0.0.1
-
   sharelatex:
     build: sharelatex
     hostname: sharelatex

@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pihole-deployment
+  labels:
+    app: pihole
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pihole
+  template:
+    metadata:
+      name: pihole
+      labels:
+        app: pihole
+    spec:
+      initContainers:
+        - name: pihole-config
+          image: busybox
+          volumeMounts:
+            - name: pihole-config
+              mountPath: setupVars.conf
+              subPath: setupVars.conf
+          command:
+            - sh
+            - -c
+            - mkdir -p /etc/pihole && cp setupVars.conf /etc/pihole/setupVars.conf
+      containers:
+        - name: pihole
+          image: pihole/pihole
+          ports:
+            - containerPort: 80
+              protocol: TCP
+            - containerPort: 53
+              protocol: TCP
+            - containerPort: 53
+              protocol: UDP
+          # resources:
+          #   requests:
+          #     memory: "64Mi"
+          #     cpu: "50m"
+          #   limits:
+          #     memory: "128Mi"
+          #     cpu: "100m"
+          volumeMounts:
+            # - name: pihole-config
+            #   mountPath: /etc/pihole/setupVars.conf
+            #   subPath: setupVars.conf
+            - name: pihole-config
+              mountPath: /etc/dnsmasq.d/02-lan.conf
+              subPath: 02-lan.conf
+            - name: pihole-config
+              mountPath: /etc/pihole/lan.list
+              subPath: lan.list
+      volumes:
+        - name: pihole-config
+          configMap:
+            name: pihole-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pihole-tcp
+  labels:
+    app: pihole
+  annotations:
+    metallb.universe.tf/allow-shared-ip: pihole
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      name: webserver
+    - port: 53
+      protocol: TCP
+      name: dns
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: pihole
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pihole-udp
+  labels:
+    app: pihole
+  annotations:
+    metallb.universe.tf/allow-shared-ip: pihole
+spec:
+  ports:
+    - port: 53
+      protocol: UDP
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: pihole
