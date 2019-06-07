@@ -13,5 +13,6 @@ data:
     unifi-tcp
     resilio
     pihole-tcp
+    plex
   monitoring: |
     grafana-published

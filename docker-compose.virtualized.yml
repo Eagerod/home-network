@@ -10,12 +10,7 @@ services:
   sharelatex:
     volumes:
       - 'sharelatex-data:/var/lib/sharelatex'
-  plex:
-    volumes:
-      - 'plex-config:/config'
 
 volumes:
   sharelatex-data:
-    external: true
-  plex-config:
     external: true

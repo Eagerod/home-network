@@ -18,6 +18,7 @@ data:
   factorio: 192.168.2.66
   remindmebot: 192.168.2.67
   pihole: 192.168.2.68
+  plex: 192.168.2.69
   # Daemon-Like Services  192.168.2.80/28
   certbot: 192.168.2.80
   transmission: 192.168.2.81
