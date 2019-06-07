@@ -2,7 +2,8 @@ include common.make
 
 SHELL=/bin/bash
 
-KUBERNETES_KNOWN_HOST:=192.168.2.10
+KUBERNETES_MASTER:=192.168.2.10
+KUBERNETES_HOSTS:=$(shell kubectl get nodes -o jsonpath={.items[*].status.addresses[?\(@.type==\"InternalIP\"\)].address})
 KUBERNETES_PROMETHEUS_VERISON=0.1.0
 
 DOCKER_CONTAINERS:=$(shell find . -iname Makefile -mindepth 2 -type f | awk -F '/' '{print $$2}')
@@ -434,8 +435,21 @@ mysql-shell:
 
 $(KUBECONFIG):
 	@mkdir -p $(@D)
-	@ssh -t util1 "kubectl config view --raw" | sed 's/127.0.0.1/$(KUBERNETES_KNOWN_HOST)/' > $@
+	@ssh -t util1 "kubectl config view --raw" | sed 's/127.0.0.1/$(KUBERNETES_MASTER)/' > $@
 	@cp $@ ~/.kube/config
+
+
+.PHONY: router-config
+router-config:
+	ssh ubnt@192.168.1.1 /bin/vbash -c "'\
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper begin; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set protocols bgp 64512 parameters router-id 192.168.1.1; \
+		$(foreach ip,$(KUBERNETES_HOSTS),/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set protocols bgp 64512 neighbor $(ip) remote-as 64512;) \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set protocols bgp 64512 maximum-paths ibgp 64; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper commit; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper save; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper end; \
+	'"
 
 
 .PHONY: token
