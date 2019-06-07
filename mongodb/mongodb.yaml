@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: mongo-pv
+  name: mongodb-pv
   labels:
     identifier: mongodb
 spec:
@@ -35,9 +35,9 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mongo-deployment
+  name: mongodb-deployment
   labels:
-    app: mongo
+    app: mongodb
 spec:
   strategy: 
     type: Recreate
@@ -45,14 +45,14 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mongo
+      app: mongodb
   template:
     metadata:
       labels:
-        app: mongo
+        app: mongodb
     spec:
       containers:
-        - name: mongo
+        - name: mongodb
           image: mongo:3.7
           args: ["--sslMode", "preferSSL", "-sslPEMKeyFile", "/etc/ssl/mongodb.pem"]
           ports:
@@ -76,9 +76,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongo
+  name: mongodb
   labels:
-    app: mongo
+    app: mongodb
 spec:
   ports:
   - port: 27017
@@ -86,4 +86,4 @@ spec:
   type: LoadBalancer
   loadBalancerIP:
   selector:
-    app: mongo
+    app: mongodb

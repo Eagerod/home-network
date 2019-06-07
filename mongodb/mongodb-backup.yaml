@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: mongo-backups-pv
+  name: mongodb-backups-pv
   labels:
     identifier: mongodb-backups
 spec:
@@ -46,12 +46,12 @@ spec:
         spec:
           restartPolicy: OnFailure
           containers:
-            - name: mongo
+            - name: mongodb
               image: mongo:3.7
               command:
                 - mongodump
                 - -h
-                - mongo.internal.aleemhaji.com
+                - mongodb.internal.aleemhaji.com
                 - -o
                 - /var/lib/backups
               volumeMounts:
