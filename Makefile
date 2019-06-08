@@ -395,6 +395,12 @@ restart-nginx:
 	@kubectl scale deployment nginx-deployment --replicas=1
 
 
+.PHONY: restart-pihole
+restart-pihole:
+	@kubectl scale deployment pihole-deployment --replicas=0
+	@kubectl scale deployment pihole-deployment --replicas=1
+
+
 .PHONY: mysql-restore
 mysql-restore:
 	@if [ -z "$${RESTORE_MYSQL_DATABASE}" ]; then \
