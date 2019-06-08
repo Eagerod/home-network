@@ -14,5 +14,6 @@ data:
     resilio
     pihole-tcp
     plex
+    sharelatex
   monitoring: |
     grafana-published

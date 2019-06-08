@@ -42,7 +42,8 @@ TRIVIAL_SERVICES:=\
 	certbot \
 	nginx \
 	pihole \
-	plex
+	plex \
+	sharelatex
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
 #   docker image using the Dockerfile in the service's directory, and pushing
