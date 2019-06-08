@@ -37,17 +37,7 @@ spec:
               protocol: TCP
             - containerPort: 53
               protocol: UDP
-          # resources:
-          #   requests:
-          #     memory: "64Mi"
-          #     cpu: "50m"
-          #   limits:
-          #     memory: "128Mi"
-          #     cpu: "100m"
           volumeMounts:
-            # - name: pihole-config
-            #   mountPath: /etc/pihole/setupVars.conf
-            #   subPath: setupVars.conf
             - name: pihole-config
               mountPath: /etc/dnsmasq.d/02-lan.conf
               subPath: 02-lan.conf
