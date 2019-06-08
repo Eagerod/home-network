@@ -57,9 +57,9 @@ spec:
             - containerPort: 32400
           env:
             - name: ALLOWED_NETWORKS
-              value: 10.244.0.1/32
+              value: 192.168.2.0/24
             - name: ADVERTISE_IP
-              value: https://plex.aleemhaji.com
+              value: http://plex.aleemhaji.com:32400
           volumeMounts:
             - name: plex-persistent-storage
               mountPath: /config
