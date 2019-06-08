@@ -116,8 +116,10 @@ ANY_CONTAINER_BUILD_DEPS:=\
 .PHONY: all
 all: initialize-cluster $(KUBERNETES_SERVICES)
 
+
 .PHONY: services
 services: $(KUBERNETES_SERVICES)
+
 
 .PHONY: initialize-cluster
 initialize-cluster: $(KUBECONFIG)
@@ -230,6 +232,15 @@ $(SIMPLE_SERVICES):
 	@$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
+
+
+# Restart any service.
+# Currently makes the assumption that 1 replica is needed; could be upgraded to
+#   check current scale.
+.PHONY: restart-%
+restart-%:
+	@kubectl scale deployment $*-deployment --replicas=0
+	@kubectl scale deployment $*-deployment --replicas=1
 
 
 .PHONY: mongodb
@@ -383,22 +394,6 @@ pihole-configurations: kube.list
 		--from-file pihole/setupVars.conf \
 		--from-file kube.list \
 		-o yaml --dry-run | kubectl apply -f -
-
-
-# Because of ConfigMap volumes taking their time to reload, can't just run an
-#   `nginx -s restart`, and it's easier to just kill all pods.
-# Newer versions of Kubernetes include an option to cycle all pods more
-#   gracefully
-.PHONY: restart-nginx
-restart-nginx:
-	@kubectl scale deployment nginx-deployment --replicas=0
-	@kubectl scale deployment nginx-deployment --replicas=1
-
-
-.PHONY: restart-pihole
-restart-pihole:
-	@kubectl scale deployment pihole-deployment --replicas=0
-	@kubectl scale deployment pihole-deployment --replicas=1
 
 
 .PHONY: mysql-restore
