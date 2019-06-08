@@ -127,6 +127,7 @@ coverage.xml
 *.log
 local_settings.py
 db.sqlite3
+db.sqlite3-journal
 
 # Flask stuff:
 instance/
@@ -190,8 +191,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-compose.env
-setup
-pi-hole/lan.list
-plex/plex-volumes.yml
 .kube
