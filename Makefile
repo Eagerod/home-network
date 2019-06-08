@@ -378,11 +378,10 @@ resilio-configurations:
 
 
 .PHONY: pihole-configurations
-pihole-configurations: lan.list
+pihole-configurations: kube.list
 	kubectl create configmap pihole-config \
-		--from-literal "02-lan.conf=addn-hosts=/etc/pihole/lan.list" \
 		--from-file pihole/setupVars.conf \
-		--from-file lan.list \
+		--from-file kube.list \
 		-o yaml --dry-run | kubectl apply -f -
 
 
@@ -508,11 +507,11 @@ external-keycert.pem: external-domain.key external-domain.crt
 	@cat $^ > $@
 
 
-# lan.list creates a pi-hole list that provides the appropriate ip addresses
+# kube.list creates a pi-hole list that provides the appropriate ip addresses
 #   when DNS requests are sent for internal services.
 # This could probably be done better, considering the hard coding, but it works
-.INTERMEDIATE: lan.list
-lan.list:
+.INTERMEDIATE: kube.list
+kube.list:
 	@nginx_lb_ip=$$(kubectl get service nginx -o template={{.spec.loadBalancerIP}}) && \
 	http_services=$$(kubectl get configmap http-services -o template={{.data.default}}) && \
 	arr=($(KUBERNETES_SERVICES)) && \

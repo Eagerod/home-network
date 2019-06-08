@@ -1,3 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pihole-static-config
+data:
+  02-lan.conf: |
+    addn-hosts=/etc/pihole/lan.list
+  03-kube.conf: |
+    addn-hosts=/etc/pihole/kube.list
+  lan.list: |
+    192.168.1.42 trunk.internal.aleemhaji.com. trunk
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -38,16 +50,25 @@ spec:
             - containerPort: 53
               protocol: UDP
           volumeMounts:
-            - name: pihole-config
+            - name: pihole-static-config
               mountPath: /etc/dnsmasq.d/02-lan.conf
               subPath: 02-lan.conf
-            - name: pihole-config
+            - name: pihole-static-config
+              mountPath: /etc/dnsmasq.d/03-kube.conf
+              subPath: 03-kube.conf
+            - name: pihole-static-config
               mountPath: /etc/pihole/lan.list
               subPath: lan.list
+            - name: pihole-config
+              mountPath: /etc/pihole/kube.list
+              subPath: kube.list
       volumes:
         - name: pihole-config
           configMap:
             name: pihole-config
+        - name: pihole-static-config
+          configMap:
+            name: pihole-static-config
 ---
 apiVersion: v1
 kind: Service
