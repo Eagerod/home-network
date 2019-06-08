@@ -449,13 +449,34 @@ $(KUBECONFIG):
 	@cp $@ ~/.kube/config
 
 
-.PHONY: router-config
-router-config:
+.PHONY: router-bgp-config
+router-bgp-config:
 	ssh ubnt@192.168.1.1 /bin/vbash -c "'\
 		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper begin; \
 		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set protocols bgp 64512 parameters router-id 192.168.1.1; \
 		$(foreach ip,$(KUBERNETES_HOSTS),/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set protocols bgp 64512 neighbor $(ip) remote-as 64512;) \
 		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set protocols bgp 64512 maximum-paths ibgp 64; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper commit; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper save; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper end; \
+	'"
+
+
+.PHONY: router-dns-config
+router-dns-config:
+	pihole_ip=$$(kubectl get configmap network-ip-assignments -o template={{.data.pihole}}) && \
+	ssh ubnt@192.168.1.1 /bin/vbash -c "'\
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper begin; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dns forwarding cache-size 0; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper delete system name-server; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set system name-server 127.0.0.1; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dhcp-server use-dnsmasq enable; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set interfaces ethernet eth0 dhcp-options name-server no-update; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dns forwarding options strict-order; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper delete service dns forwarding name-server; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dns forwarding name-server 8.8.4.4; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dns forwarding name-server 8.8.8.8; \
+		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dns forwarding name-server '$${pihole_ip}'; \
 		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper commit; \
 		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper save; \
 		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper end; \
