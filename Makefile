@@ -382,11 +382,23 @@ mysql-restore:
 	@$(call KUBECTL_APP_EXEC,mysql) -- \
 		sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -u root -e 'CREATE DATABASE IF NOT EXISTS '$${RESTORE_MYSQL_DATABASE}';'"
 
-
 	@sed \
 		-e 's/$${JOB_CREATION_TIMESTAMP}/'$$(date -u +%Y%m%d%H%M%S)'/' \
 		-e 's/$${RESTORE_MYSQL_DATABASE}/'$${RESTORE_MYSQL_DATABASE}'/' \
 		 mysql/mysql-restore.yaml | kubectl apply -f -
+
+
+.PHONY: mongodb-restore
+mongodb-restore:
+	@if [ -z "$${RESTORE_MONGODB_DATABASE}" ]; then \
+		echo >&2 "Must supply RESTORE_MONGODB_DATABASE to target restore operation."; \
+		exit 1; \
+	fi
+
+	@sed \
+		-e 's/$${JOB_CREATION_TIMESTAMP}/'$$(date -u +%Y%m%d%H%M%S)'/' \
+		-e 's/$${RESTORE_MONGODB_DATABASE}/'$${RESTORE_MONGODB_DATABASE}'/' \
+		 mongodb/mongodb-restore.yaml | kubectl apply -f -
 
 
 .PHONY: unifi-restore

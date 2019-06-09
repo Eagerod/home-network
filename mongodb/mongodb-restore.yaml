@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongodb-restore-pv
+  labels:
+    identifier: mongodb-restore
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nfsvers=3
+  nfs:
+    path: /kubernetes-test/mongodb-restore
+    server: 192.168.1.42
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-restore-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  selector:
+    matchLabels:
+      identifier: mongodb-restore
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongodb-restore-job-${JOB_CREATION_TIMESTAMP}
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: mongodb-restore
+          image: mongo:3.7
+          command:
+            - sh
+            - -c
+            - mongorestore --host ${MONGODB_HOST} --drop --db ${RESTORE_MONGODB_DATABASE} /restore
+          env:
+            - name: MONGODB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: network-ip-assignments
+                  key: mongodb
+          volumeMounts:
+            - name: mongodb-restore-storage
+              mountPath: /restore
+      volumes:
+        - name: mongodb-restore-storage
+          persistentVolumeClaim:
+            claimName: mongodb-restore-pv-claim
