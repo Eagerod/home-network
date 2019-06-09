@@ -20,6 +20,7 @@ data:
   remindmebot: 192.168.2.67
   pihole: 192.168.2.68
   plex: 192.168.2.69
+  slackbot: 192.168.2.70
   # Daemon-Like Services  192.168.2.80/28
   certbot: 192.168.2.80
   transmission: 192.168.2.81

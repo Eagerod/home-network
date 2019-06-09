@@ -1,5 +1,16 @@
 SHELL=/bin/bash
 
+# Figure out how this machine does docker:
+ifeq ($(shell docker ps > /dev/null 2> /dev/null && echo "pass"),pass)
+DOCKER:=docker
+else ifeq ($(shell type docker-machine > /dev/null && echo "pass"),pass)
+DOCKER:=eval $$(docker-machine env $$(docker-machine ls -q)) && docker
+else ifeq ($(shell sudo docker ps > /dev/null && echo "pass"),pass)
+DOCKER:=sudo docker
+else
+$(error Cannot communicate with docker daemon)
+endif
+
 # Platform specific cleaning
 UNAME=$(shell uname)
 
@@ -52,7 +63,8 @@ SIMPLE_SERVICES:=\
 	transmission \
 	unifi \
 	util \
-	resilio
+	resilio \
+	slackbot
 
 KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 
@@ -64,6 +76,7 @@ nginx: nginx-configurations
 util: util-configurations
 pihole: pihole-configurations
 resilio: resilio-configurations
+slackbot: slackbot-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -370,6 +383,18 @@ pihole-configurations: kube.list
 		--from-file pihole/setupVars.conf \
 		--from-file kube.list \
 		-o yaml --dry-run | kubectl apply -f -
+
+
+.PHONY: slackbot-configurations
+slackbot-configurations:
+	@source .env && \
+		kubectl create configmap slack-bot-config \
+			--from-literal "default_channel=$${SLACK_BOT_DEFAULT_CHANNEL}" \
+			-o yaml --dry-run | kubectl apply -f -
+	@source .env && \
+		kubectl create secret generic slack-bot-secrets \
+			--from-literal "api_key=$${SLACK_BOT_API_KEY}" \
+			-o yaml --dry-run | kubectl apply -f -
 
 
 .PHONY: mysql-restore

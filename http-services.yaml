@@ -15,5 +15,6 @@ data:
     pihole-tcp
     plex
     sharelatex
+    slackbot
   monitoring: |
     grafana-published
