@@ -408,8 +408,7 @@ mysql-restore:
 		sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -u root -e 'CREATE DATABASE IF NOT EXISTS '$${RESTORE_MYSQL_DATABASE}';'"
 
 	@sed \
-		-e 's/$${JOB_CREATION_TIMESTAMP}/'$$(date -u +%Y%m%d%H%M%S)'/' \
-		-e 's/$${RESTORE_MYSQL_DATABASE}/'$${RESTORE_MYSQL_DATABASE}'/' \
+		-e 's/$${RESTORE_MYSQL_DATABASE}/'$${RESTORE_MYSQL_DATABASE}'/g' \
 		 mysql/mysql-restore.yaml | kubectl apply -f -
 
 
@@ -421,8 +420,7 @@ mongodb-restore:
 	fi
 
 	@sed \
-		-e 's/$${JOB_CREATION_TIMESTAMP}/'$$(date -u +%Y%m%d%H%M%S)'/' \
-		-e 's/$${RESTORE_MONGODB_DATABASE}/'$${RESTORE_MONGODB_DATABASE}'/' \
+		-e 's/$${RESTORE_MONGODB_DATABASE}/'$${RESTORE_MONGODB_DATABASE}'/g' \
 		 mongodb/mongodb-restore.yaml | kubectl apply -f -
 
 

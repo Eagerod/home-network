@@ -35,7 +35,7 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: mongodb-restore-job-${JOB_CREATION_TIMESTAMP}
+  name: mongodb-restore-job-${RESTORE_MONGODB_DATABASE}
 spec:
   template:
     spec:

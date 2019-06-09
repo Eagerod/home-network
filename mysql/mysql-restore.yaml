@@ -35,7 +35,7 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: mysql-restore-job-${JOB_CREATION_TIMESTAMP}
+  name: mysql-restore-job-${RESTORE_MYSQL_DATABASE}
 spec:
   template:
     spec:
