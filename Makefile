@@ -64,7 +64,8 @@ SIMPLE_SERVICES:=\
 	unifi \
 	util \
 	resilio \
-	slackbot
+	slackbot \
+	nodered
 
 KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 
@@ -77,6 +78,7 @@ util: util-configurations
 pihole: pihole-configurations
 resilio: resilio-configurations
 slackbot: slackbot-configurations
+nodered: nodered-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -99,7 +101,9 @@ SAVE_ENV_VARS=\
 	ADVERTISE_IP\
 	DOCKER_REGISTRY_USERNAME\
 	FIREFLY_MYSQL_USER\
-	FIREFLY_MYSQL_DATABASE
+	FIREFLY_MYSQL_DATABASE\
+	NODE_RED_MYSQL_USER\
+	NODE_RED_MYSQL_DATABASE
 
 
 .PHONY: all
@@ -394,6 +398,20 @@ slackbot-configurations:
 	@source .env && \
 		kubectl create secret generic slack-bot-secrets \
 			--from-literal "api_key=$${SLACK_BOT_API_KEY}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+
+.PHONY: nodered-configurations
+nodered-configurations:
+	@source .env && \
+		kubectl create configmap nodered-config \
+			--from-literal "mysql_database=$${NODE_RED_MYSQL_DATABASE}" \
+			--from-literal "mysql_user=$${NODE_RED_MYSQL_USER}" \
+			-o yaml --dry-run | kubectl apply -f -
+	@source .env && \
+		kubectl create secret generic nodered-secrets \
+			--from-literal "freedns_auth=$${FREEDNS_AUTH}" \
+			--from-literal "mysql_password=$${NODE_RED_MYSQL_PASSWORD}" \
 			-o yaml --dry-run | kubectl apply -f -
 
 

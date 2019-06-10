@@ -16,5 +16,6 @@ data:
     plex
     sharelatex
     slackbot
+    nodered
   monitoring: |
     grafana-published
