@@ -223,13 +223,25 @@ $(SIMPLE_SERVICES):
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 
 
+# Shutdown any service.
+.PHONY: kill-%
+kill-%:
+	@kubectl scale deployment $*-deployment --replicas=0
+
+
 # Restart any service.
 # Currently makes the assumption that 1 replica is needed; could be upgraded to
 #   check current scale.
 .PHONY: restart-%
-restart-%:
-	@kubectl scale deployment $*-deployment --replicas=0
+restart-%: kill-%
 	@kubectl scale deployment $*-deployment --replicas=1
+
+
+# Cycle all pods in the cluster. Really should only be used in weird debugging
+#   situations.
+.PHONY: refresh
+refresh:
+	$(foreach s,$(KUBERNETES_SERVICES),$(MAKE) restart-$(s);)
 
 
 .PHONY: mongodb
@@ -554,10 +566,6 @@ kube.list:
 				$$svc >> $@; \
 		fi; \
 	done
-
-
-.PHONY: setup
-setup: $(SETUP_FILES)
 
 
 # Base image is needed for several containers. Make sure that it's available
