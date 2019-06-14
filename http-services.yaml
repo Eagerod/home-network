@@ -18,3 +18,4 @@ data:
     slackbot
   monitoring: |
     grafana-published
+    alertmanager-published

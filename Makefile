@@ -52,7 +52,8 @@ TRIVIAL_SERVICES:=\
 	nginx \
 	pihole \
 	plex \
-	sharelatex
+	sharelatex \
+	alertmanager
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
 #   docker image using the Dockerfile in the service's directory, and pushing
@@ -556,6 +557,8 @@ kube.list:
 		if echo $${http_services} | grep -q $${svc}; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		elif [ "$${svc}" == "grafana" ]; then \
+			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
+		elif [ "$${svc}" == "alertmanager" ]; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		else \
 			printf '%s\t%s\t%s\n' \
