@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: firefly-iii-deployment
+  name: firefly-deployment
   labels:
     app: firefly-iii
 spec:
