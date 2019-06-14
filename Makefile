@@ -227,6 +227,13 @@ $(SIMPLE_SERVICES):
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 
 
+# Do a full deployment of a service, including updating networking info and
+#   having pihole take on new configurations.
+.PHONY: complete-%
+complete-%:
+	make networking $* nginx restart-nginx pihole restart-pihole
+
+
 # Shutdown any service.
 .PHONY: kill-%
 kill-%:
@@ -469,19 +476,6 @@ $(KUBECONFIG):
 	@mkdir -p $(@D)
 	@ssh -t util1 "kubectl config view --raw" | sed 's/127.0.0.1/$(KUBERNETES_MASTER)/' > $@
 	@cp $@ ~/.kube/config
-
-
-.PHONY: router-bgp-config
-router-bgp-config:
-	ssh ubnt@192.168.1.1 /bin/vbash -c "'\
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper begin; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set protocols bgp 64512 parameters router-id 192.168.1.1; \
-		$(foreach ip,$(KUBERNETES_HOSTS),/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set protocols bgp 64512 neighbor $(ip) remote-as 64512;) \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set protocols bgp 64512 maximum-paths ibgp 64; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper commit; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper save; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper end; \
-	'"
 
 
 .PHONY: router-dns-config
