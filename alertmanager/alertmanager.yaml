@@ -1,4 +1,5 @@
-# Create a service for Grafana that I can control and publish through nginx.
+# Create a service for AlertManager that I can control and publish through
+#   nginx.
 # Has to be put into the monitoring namespace, or else it can't find the
 #   pods it needs to serve.
 # Typical solutions include having an ExternalName service, but that doesn't
