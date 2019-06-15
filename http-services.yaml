@@ -19,3 +19,4 @@ data:
     nodered
   monitoring: |
     grafana-published
+    alertmanager-published

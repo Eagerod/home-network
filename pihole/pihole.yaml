@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: pihole-static-config
 data:
+  resolv.conf:
+    nameserver 127.0.0.1
   02-lan.conf: |
     addn-hosts=/etc/pihole/lan.list
   03-kube.conf: |
@@ -54,6 +56,9 @@ spec:
             - name: pihole-static-config
               mountPath: /etc/dnsmasq.d/02-lan.conf
               subPath: 02-lan.conf
+            - name: pihole-static-config
+              mountPath: /etc/resolv.conf
+              subPath: resolv.conf
             - name: pihole-static-config
               mountPath: /etc/dnsmasq.d/03-kube.conf
               subPath: 03-kube.conf

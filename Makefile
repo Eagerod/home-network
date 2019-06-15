@@ -52,7 +52,8 @@ TRIVIAL_SERVICES:=\
 	nginx \
 	pihole \
 	plex \
-	sharelatex
+	sharelatex \
+	alertmanager
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
 #   docker image using the Dockerfile in the service's directory, and pushing
@@ -121,13 +122,17 @@ initialize-cluster: $(KUBECONFIG)
 	@kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
 	@kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml
 
-	@kubectl apply -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml
-	@kubectl apply -f metallb-config.yaml
-
 	@kubectl apply -f users.yaml
 
+	@$(MAKE) metallb
 	@$(MAKE) prometheus
 	@$(MAKE) grafana
+
+
+.PHONY: metallb
+metallb:
+	@kubectl apply -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml
+	@kubectl apply -f metallb-config.yaml
 
 
 .PHONY: prometheus
@@ -225,6 +230,13 @@ $(SIMPLE_SERVICES):
 	@$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
+
+
+# Do a full deployment of a service, including updating networking info and
+#   having pihole take on new configurations.
+.PHONY: complete-%
+complete-%:
+	make networking $* nginx restart-nginx pihole restart-pihole
 
 
 # Shutdown any service.
@@ -485,19 +497,6 @@ $(KUBECONFIG):
 	@cp $@ ~/.kube/config
 
 
-.PHONY: router-bgp-config
-router-bgp-config:
-	ssh ubnt@192.168.1.1 /bin/vbash -c "'\
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper begin; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set protocols bgp 64512 parameters router-id 192.168.1.1; \
-		$(foreach ip,$(KUBERNETES_HOSTS),/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set protocols bgp 64512 neighbor $(ip) remote-as 64512;) \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set protocols bgp 64512 maximum-paths ibgp 64; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper commit; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper save; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper end; \
-	'"
-
-
 .PHONY: router-dns-config
 router-dns-config:
 	pihole_ip=$$(kubectl get configmap network-ip-assignments -o template={{.data.pihole}}) && \
@@ -576,6 +575,8 @@ kube.list:
 		if echo $${http_services} | grep -q $${svc}; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		elif [ "$${svc}" == "grafana" ]; then \
+			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
+		elif [ "$${svc}" == "alertmanager" ]; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		else \
 			printf '%s\t%s\t%s\n' \

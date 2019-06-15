@@ -6,11 +6,7 @@ metadata:
 data:
   config: |
     address-pools:
-      - name: default
-        protocol: bgp
-        addresses:
-          - 192.168.2.0/24
-    peers:
-      - my-asn: 64512
-        peer-address: 192.168.2.1
-        peer-asn: 64512
+    - name: default
+      protocol: layer2
+      addresses:
+      - 192.168.2.32-192.168.2.224
