@@ -52,8 +52,7 @@ TRIVIAL_SERVICES:=\
 	nginx \
 	pihole \
 	plex \
-	sharelatex \
-	alertmanager
+	sharelatex
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
 #   docker image using the Dockerfile in the service's directory, and pushing
@@ -145,6 +144,14 @@ prometheus:
 
 	kubectl apply -f kube-prometheus-$(KUBERNETES_PROMETHEUS_VERISON)/manifests/
 	rm -rf kube-prometheus-$(KUBERNETES_PROMETHEUS_VERISON)
+
+
+.PHONY: alertmanager
+alertmanager:
+	@kubectl create secret generic alertmanager-main -n monitoring \
+		--from-file alertmanager/alertmanager.yaml \
+		-o yaml --dry-run | \
+			kubectl apply -f -
 
 
 # Set up the ConfigMaps that are needed to hold network information.
