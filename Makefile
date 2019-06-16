@@ -52,7 +52,8 @@ TRIVIAL_SERVICES:=\
 	nginx \
 	pihole \
 	plex \
-	sharelatex
+	sharelatex \
+	alertmanager
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
 #   docker image using the Dockerfile in the service's directory, and pushing
@@ -64,7 +65,8 @@ SIMPLE_SERVICES:=\
 	unifi \
 	util \
 	resilio \
-	slackbot
+	slackbot \
+	amproxy
 
 KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 
@@ -77,6 +79,7 @@ util: util-configurations
 pihole: pihole-configurations
 resilio: resilio-configurations
 slackbot: slackbot-configurations
+alertmanager: alertmanager-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -146,12 +149,14 @@ prometheus:
 	rm -rf kube-prometheus-$(KUBERNETES_PROMETHEUS_VERISON)
 
 
-.PHONY: alertmanager
-alertmanager:
+.PHONY: alertmanager-configurations
+alertmanager-configurations:
 	@kubectl create secret generic alertmanager-main -n monitoring \
-		--from-file alertmanager/alertmanager.yaml \
+		--from-file alertmanager.yaml=alertmanager/alertmanager-config.yaml \
 		-o yaml --dry-run | \
 			kubectl apply -f -
+	@echo "Alertmanager configuration updated. Run this once volumes have updated:"
+	@echo "    curl -X POST https://alertmanager.internal.aleemhaji.com/-/reload"
 
 
 # Set up the ConfigMaps that are needed to hold network information.
@@ -275,8 +280,15 @@ registry:
 		kubectl create secret generic registry-htpasswd-secret \
 			--from-literal "htpasswd=$$(htpasswd -nbB -C 10 $${DOCKER_REGISTRY_USERNAME} $${DOCKER_REGISTRY_PASSWORD})" -o yaml --dry-run | \
 		kubectl apply -f -
+	# Create the registry secret in the default and monitoring namespaces
 	@source .env && \
 		kubectl create secret docker-registry $(REGISTRY_HOSTNAME) \
+			--docker-server $(REGISTRY_HOSTNAME) \
+			--docker-username $${DOCKER_REGISTRY_USERNAME} \
+			--docker-password $${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
+		kubectl apply -f -
+	@source .env && \
+		kubectl create secret -n monitoring docker-registry $(REGISTRY_HOSTNAME) \
 			--docker-server $(REGISTRY_HOSTNAME) \
 			--docker-username $${DOCKER_REGISTRY_USERNAME} \
 			--docker-password $${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
@@ -421,6 +433,12 @@ slackbot-configurations:
 	@source .env && \
 		kubectl create configmap slack-bot-config \
 			--from-literal "default_channel=$${SLACK_BOT_DEFAULT_CHANNEL}" \
+			--from-literal "alerting_channel=$${SLACK_BOT_ALERTING_CHANNEL}" \
+			-o yaml --dry-run | kubectl apply -f -
+	@source .env && \
+		kubectl create configmap -n monitoring slack-bot-config \
+			--from-literal "default_channel=$${SLACK_BOT_DEFAULT_CHANNEL}" \
+			--from-literal "alerting_channel=$${SLACK_BOT_ALERTING_CHANNEL}" \
 			-o yaml --dry-run | kubectl apply -f -
 	@source .env && \
 		kubectl create secret generic slack-bot-secrets \
