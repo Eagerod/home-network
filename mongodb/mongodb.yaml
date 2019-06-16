@@ -39,7 +39,7 @@ metadata:
   labels:
     app: mongodb
 spec:
-  strategy: 
+  strategy:
     type: Recreate
   revisionHistoryLimit: 0
   replicas: 1
