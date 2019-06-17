@@ -19,3 +19,5 @@ data:
   monitoring: |
     grafana-published
     alertmanager-published
+  kube-system: |
+    dashboard-published

@@ -53,7 +53,8 @@ TRIVIAL_SERVICES:=\
 	pihole \
 	plex \
 	sharelatex \
-	alertmanager
+	alertmanager \
+	dashboard
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
 #   docker image using the Dockerfile in the service's directory, and pushing
@@ -225,6 +226,12 @@ external-certificates: external-domain.crt external-domain.rsa.key external-doma
 			$$(kubectl get service -n monitoring $${line} -o template={{.spec.loadBalancerIP}}) \
 			$$(kubectl get service -n monitoring $${line} -o jsonpath='{.spec.ports[0].port}') >> $@; \
 	done
+	@kubectl get configmap http-services -o template='{{ index .data "kube-system" }}' | while read line; do \
+		printf 'upstream %s {\n    server %s:%d;\n}\n\n' \
+			$${line} \
+			$$(kubectl get service -n kube-system $${line} -o template={{.spec.loadBalancerIP}}) \
+			$$(kubectl get service -n kube-system $${line} -o jsonpath='{.spec.ports[0].port}') >> $@; \
+	done
 
 
 .PHONY: $(TRIVIAL_SERVICES)
@@ -243,8 +250,7 @@ $(SIMPLE_SERVICES):
 # Do a full deployment of a service, including updating networking info and
 #   having pihole take on new configurations.
 .PHONY: complete-%
-complete-%:
-	make networking $* nginx restart-nginx pihole restart-pihole
+complete-%: networking % nginx restart-nginx pihole restart-pihole;
 
 
 # Shutdown any service.
@@ -422,7 +428,7 @@ resilio-configurations:
 
 .PHONY: pihole-configurations
 pihole-configurations: kube.list
-	kubectl create configmap pihole-config \
+	@kubectl create configmap pihole-config \
 		--from-file pihole/setupVars.conf \
 		--from-file kube.list \
 		-o yaml --dry-run | kubectl apply -f -
@@ -552,7 +558,7 @@ external-domain.key:
 
 .INTERMEDIATE: internal-domain.rsa.key
 internal-domain.rsa.key: internal-domain.key
-	openssl rsa -in $^ -out $@
+	@openssl rsa -in $^ -out $@
 
 
 .INTERMEDIATE: internal-keycert.pem
@@ -562,7 +568,7 @@ internal-keycert.pem: internal-domain.key internal-domain.crt
 
 .INTERMEDIATE: external-domain.rsa.key
 external-domain.rsa.key: external-domain.key
-	openssl rsa -in $^ -out $@
+	@openssl rsa -in $^ -out $@
 
 
 .INTERMEDIATE: external-keycert.pem
@@ -584,6 +590,8 @@ kube.list:
 		elif [ "$${svc}" == "grafana" ]; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		elif [ "$${svc}" == "alertmanager" ]; then \
+			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
+		elif [ "$${svc}" == "dashboard" ]; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		else \
 			printf '%s\t%s\t%s\n' \
