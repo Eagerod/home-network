@@ -64,11 +64,11 @@ def receive_internal_message():
 
     for alert in alertmanager_alerts:
         if alert['status'] != 'firing':
-            print('Skipping alert {} because it is not firing'.format(item['annotations']['message']))
+            print('Skipping alert {} because it is not firing'.format(alert['annotations']['message']))
             continue
 
         if not alert_cache.add(alert):
-            print('Skipping alert {} because it was recently sent'.format(item['annotations']['message']))
+            print('Skipping alert {} because it was recently sent'.format(alert['annotations']['message']))
             continue
 
         slack_message = '{} issue with cluster at {}.\n{}'.format(
