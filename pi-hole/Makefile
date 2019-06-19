@@ -9,7 +9,8 @@ PIHOLE_SEARCH_DOMAINS:=home local
 
 
 lan.list: ../docker-compose.yml Makefile
-	$(foreach domain,$(PIHOLE_SEARCH_DOMAINS),\
+	@rm -rf $@
+	@$(foreach domain,$(PIHOLE_SEARCH_DOMAINS),\
 		source .env && python ../.scripts/get_hostnames.py ../docker-compose.yml | while read line; do \
 			arr=($${line[@]}); \
 			hostname=$${arr[0]}; \
