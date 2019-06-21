@@ -40,7 +40,8 @@ COMPLEX_SERVICES= \
 	mysql \
 	firefly \
 	registry \
-	remindmebot
+	remindmebot \
+	openvpnas
 
 
 # TRIVIAL_SERVICES are the set of services that are deployed by only applying
@@ -56,6 +57,7 @@ TRIVIAL_SERVICES:=\
 	alertmanager \
 	dashboard
 
+
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
 #   docker image using the Dockerfile in the service's directory, and pushing
 #   it to the container registry before applying its yaml file.
@@ -68,6 +70,7 @@ SIMPLE_SERVICES:=\
 	resilio \
 	slackbot \
 	amproxy
+
 
 KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 
@@ -103,7 +106,9 @@ SAVE_ENV_VARS=\
 	ADVERTISE_IP\
 	DOCKER_REGISTRY_USERNAME\
 	FIREFLY_MYSQL_USER\
-	FIREFLY_MYSQL_DATABASE
+	FIREFLY_MYSQL_DATABASE\
+	OPENVPN_PRIMARY_USERNAME\
+	OPENVPN_AS_HOSTNAME
 
 
 .PHONY: all
@@ -383,6 +388,24 @@ remindmebot:
 			-o yaml --dry-run | kubectl apply -f -
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
+
+
+.PHONY: openvpnas
+openvpnas:
+	@source .env && \
+		kubectl create configmap openvpn-config \
+			--from-literal "username=$${OPENVPN_PRIMARY_USERNAME}" \
+			--from-literal "hostname=$${OPENVPN_AS_HOSTNAME}" \
+			-o yaml --dry-run | kubectl apply -f -
+	@source .env && \
+		kubectl create secret generic openvpn-password \
+			--from-literal "value=$${OPENVPN_PRIMARY_USERPASS}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
+
+	$(call KUBECTL_WAIT_FOR_POD,$@)
+	$(call KUBECTL_APP_EXEC,$@) -- sh -c 'set -ex; find scripts -type f | sort | while read line; do sh $$line; done'
 
 
 # Configuration Recipes

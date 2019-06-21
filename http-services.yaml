@@ -16,6 +16,7 @@ data:
     plex
     sharelatex
     slackbot
+    openvpnas-tcp
   monitoring: |
     grafana-published
     alertmanager-published
