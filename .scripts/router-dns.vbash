@@ -1,0 +1,23 @@
+#!/bin/vbash
+
+source /opt/vyatta/etc/functions/script-template
+
+configure
+
+set service dns forwarding cache-size 0
+
+delete system name-server
+set system name-server 127.0.0.1
+
+set service dhcp-server use-dnsmasq enable
+
+set interfaces ethernet eth0 dhcp-options name-server no-update
+
+set service dns forwarding options strict-order
+delete service dns forwarding name-server
+set service dns forwarding name-server 8.8.4.4
+set service dns forwarding name-server 8.8.8.8
+set service dns forwarding name-server ${PIHOLE_IP}
+
+commit
+save
