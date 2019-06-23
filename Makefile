@@ -54,7 +54,8 @@ TRIVIAL_SERVICES:=\
 	plex \
 	sharelatex \
 	alertmanager \
-	dashboard
+	dashboard \
+	blobstore
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
 #   docker image using the Dockerfile in the service's directory, and pushing
@@ -81,6 +82,7 @@ pihole: pihole-configurations
 resilio: resilio-configurations
 slackbot: slackbot-configurations
 alertmanager: alertmanager-configurations
+blobstore: blobstore-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -449,6 +451,14 @@ slackbot-configurations:
 	@source .env && \
 		kubectl create secret generic slack-bot-secrets \
 			--from-literal "api_key=$${SLACK_BOT_API_KEY}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+
+.PHONY: blobstore-configurations
+blobstore-configurations:
+	@source .env && \
+		kubectl create secret generic blobstore-secrets \
+			--from-literal "database=$${BLOBSTORE_DATABASE}" \
 			-o yaml --dry-run | kubectl apply -f -
 
 
