@@ -21,7 +21,7 @@ RUN \
 # RUN sed -i -r 's/(session\s*)required(\s*pam_loginuid.so)/\1optional\2/g' /etc/pam.d/sshd
 
 # Install blobstore.
-RUN curl -sfSL https://aleem.haji.ca/blob/clientlib/installer.sh | bash
+RUN curl -sfSL https://blob.aleemhaji.com/clientlib/installer.sh | bash
 
 # Needed for the git repository manager.
 RUN python -m pip install PyYAML
