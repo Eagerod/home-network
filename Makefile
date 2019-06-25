@@ -269,6 +269,10 @@ restart-%: kill-%
 	@kubectl scale deployment $*-deployment --replicas=1
 
 
+.PHONY: %-shell
+%-shell:
+	$(call KUBECTL_APP_EXEC,$*) -it -- sh
+
 # Cycle all pods in the cluster. Really should only be used in weird debugging
 #   situations.
 .PHONY: refresh
@@ -508,8 +512,8 @@ unifi-restore:
 	kubectl scale deployment unifi-deployment --replicas=1
 
 
-.PHONY: mysql-shell
-mysql-shell:
+.PHONY: mysql-db-shell
+mysql-db-shell:
 	@source .env && $(call KUBECTL_APP_EXEC,mysql) -it -- \
 		sh -c 'MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql'
 
