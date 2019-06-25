@@ -252,7 +252,43 @@ $(SIMPLE_SERVICES):
 # Do a full deployment of a service, including updating networking info and
 #   having pihole take on new configurations.
 .PHONY: complete-%
-complete-%: networking % nginx restart-nginx pihole restart-pihole;
+complete-%: networking % reload-nginx reload-pihole
+
+
+.PHONY: reload-nginx
+reload-nginx:
+	wait_time=60 && \
+	current_nginx_config=$$($(call KUBECTL_APP_EXEC,nginx) -- find /etc/nginx/conf.d -mindepth 1 -type d) && \
+	$(MAKE) nginx-configurations && \
+	printf "Waiting for new nginx configs to be loaded into the container" 1>&2 && \
+	until [ "$$($(call KUBECTL_APP_EXEC,nginx) -- find /etc/nginx/conf.d -mindepth 1 -type d)" != "$${current_nginx_config}" ]; do \
+		printf '.' 1>&2; \
+		sleep 1; \
+		wait_time=$$((wait_time - 1)); \
+		if [ $${wait_time} -eq 0 ]; then \
+			echo >&2 ""; \
+			echo >&2 "Kubernetes hasn't updated nginx configurations in 60 seconds."; \
+			echo >&2 "Configurations are probably unchanged."; \
+			exit; \
+		fi; \
+	done && \
+	printf '\n' 1>&2
+
+	$(call KUBECTL_APP_EXEC,nginx) -- nginx -s reload
+
+
+# Since the pihole mounts its volumes as individual files, Kubernetes doesn't
+#   automatically push updated contents to the pods.
+# Update the pi-hole configs, then update replicas with the new file contents.
+.PHONY: reload-pihole
+reload-pihole: pihole-configurations kube.list
+	$(call KUBECTL_APP_PODS,pihole) | while read line; do \
+		uuid=$$(uuidgen) && \
+		kubectl cp kube.list $${line}:/etc/pihole/kube.$${uuid}.list; \
+		kubectl exec $${line} -- chown root:root /etc/pihole/kube.$${uuid}.list; \
+		kubectl exec $${line} -- sh -c "echo addn-hosts=/etc/pihole/kube.$${uuid}.list > /etc/dnsmasq.d/03-kube.conf"; \
+		kubectl exec $${line} -- pihole restartdns; \
+	done
 
 
 # Shutdown any service.
