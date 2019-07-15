@@ -49,15 +49,25 @@ spec:
             - name: mongodb
               image: mongo:3.7
               command:
-                - mongodump
-                - -h
-                - mongodb.internal.aleemhaji.com
-                - -o
-                - /var/lib/backups
+                - sh
+                - /scripts/mongodb-backup.sh
               volumeMounts:
-              - name: backups
-                mountPath: /var/lib/backups
+                - name: backups
+                  mountPath: /var/lib/backups
+                - name: backup-script
+                  mountPath: /scripts
+              env:
+                - name: MONGODB_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: network-ip-assignments
+                      key: mongodb
           volumes:
             - name: backups
               persistentVolumeClaim:
                 claimName: mongodb-backups-pv-claim
+            - name: backup-script
+              projected:
+                sources:
+                  - configMap:
+                      name: mongodb-backup

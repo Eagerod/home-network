@@ -319,6 +319,9 @@ refresh:
 
 .PHONY: mongodb
 mongodb: internal-certificates
+	@kubectl create configmap mongodb-backup --from-file mongodb/mongodb-backup.sh -o yaml --dry-run | \
+		kubectl apply -f -
+
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 	@kubectl apply -f mongodb/mongodb-backup.yaml
 
