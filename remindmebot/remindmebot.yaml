@@ -43,6 +43,10 @@ spec:
                 secretKeyRef:
                   name: remindmebot-secrets
                   key: database
+            - name: REMOTE_BASE_URL
+              value: https://remindmebot.aleemhaji.com/
+            - name: FRONT_END_URL
+              value: https://remindmebot.aleemhaji.com/
 ---
 apiVersion: v1
 kind: Service
