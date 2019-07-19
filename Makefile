@@ -171,7 +171,8 @@ networking: $(KUBECONFIG)
 
 
 .PHONY: crons
-crons:
+crons: base-image
+	@$(DOCKER) pull $(REGISTRY_HOSTNAME)/rsync:latest
 	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/rsync:latest
 	@$(DOCKER) push $(REGISTRY_HOSTNAME)/rsync:latest
 
@@ -181,6 +182,12 @@ crons:
 		sh -c "$$(kubectl get configmap cronjobs -o template={{.data.$${line}}} | tr '\n' ' ') envsubst < crons/rsync-cron.yaml" | \
 			kubectl apply -f -; \
 	done
+
+	@source .env && kubectl create secret generic namesilo-api-key \
+		--from-literal value=${NAMESILO_API_KEY} \
+		-o yaml --dry-run | \
+			kubectl apply -f -
+	@kubectl apply -f crons/dns-cron.yaml
 
 
 .PHONY: certificates
@@ -661,8 +668,12 @@ kube.list:
 # Base image is needed for several containers. Make sure that it's available
 #   before any attempt at building other containers, or else docker will try to
 #   pull an image called `ncfgbase`, and it won't find one.
+# Try pulling the image first, because it very well already be up to date;
+#   don't try to rebuild the image if other images have been built off another
+#   ncfgbase
 .PHONY: base-image
 base-image:
+	$(DOCKER) pull $(REGISTRY_HOSTNAME)/ncfgbase:latest
 	$(DOCKER) build . -f BaseUpdatedUbuntuDockerfile -t ncfgbase
 	$(DOCKER) tag ncfgbase $(REGISTRY_HOSTNAME)/ncfgbase:latest
 	$(DOCKER) push $(REGISTRY_HOSTNAME)/ncfgbase:latest
