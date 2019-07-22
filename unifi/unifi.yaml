@@ -46,6 +46,12 @@ spec:
             - containerPort: 10001
               protocol: UDP
               name: unifi-discovery
+          env:
+            - name: UNIFI_SERVICE_IP
+              valueFrom:
+                configMapKeyRef:
+                  name: network-ip-assignments
+                  key: unifi
 ---
 apiVersion: v1
 kind: Service
