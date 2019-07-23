@@ -168,6 +168,7 @@ alertmanager-configurations:
 networking: $(KUBECONFIG)
 	@kubectl apply -f network-ip-assignments.yaml
 	@kubectl apply -f http-services.yaml
+	@kubectl apply -f metallb-config.yaml
 
 
 .PHONY: crons
@@ -642,7 +643,7 @@ external-keycert.pem: external-domain.key external-domain.crt
 # This could probably be done better, considering the hard coding, but it works
 .INTERMEDIATE: kube.list
 kube.list:
-	@nginx_lb_ip=$$(kubectl get service nginx -o template={{.spec.loadBalancerIP}}) && \
+	@nginx_lb_ip=$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "nginx" }}') && \
 	http_services=$$(kubectl get configmap http-services -o template={{.data.default}}) && \
 	arr=($(KUBERNETES_SERVICES)) && \
 	for svc in "$${arr[@]}"; do \
@@ -658,7 +659,7 @@ kube.list:
 			continue; \
 		else \
 			printf '%s\t%s\t%s\n' \
-				$$(kubectl get service $${svc} -o template={{.spec.loadBalancerIP}}) \
+				$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "'$${svc}'" }}') \
 				$$svc.$(NETWORK_SEARCH_DOMAIN). \
 				$$svc >> $@; \
 		fi; \
