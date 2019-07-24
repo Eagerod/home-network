@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongodb-repair-job
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: mongodb-repair
+          image: mongo:3.7
+          command:
+            - mongod
+            - --repair
+          env:
+          volumeMounts:
+            - name: mongodb-storage
+              mountPath: /data/db
+      volumes:
+        - name: mongodb-storage
+          persistentVolumeClaim:
+            claimName: mongodb-pv-claim
