@@ -252,6 +252,7 @@ $(TRIVIAL_SERVICES):
 
 .PHONY: $(SIMPLE_SERVICES)
 $(SIMPLE_SERVICES):
+	@$(DOCKER) pull $(REGISTRY_HOSTNAME)/$@:latest
 	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
 	@$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
 
