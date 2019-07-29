@@ -83,6 +83,7 @@ resilio: resilio-configurations
 slackbot: slackbot-configurations
 alertmanager: alertmanager-configurations
 blobstore: blobstore-configurations
+certbot: certbot-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -191,38 +192,6 @@ crons: base-image
 	@kubectl apply -f crons/dns-cron.yaml
 
 
-.PHONY: certificates
-certificates: internal-certificates external-certificates
-
-
-.PHONY: internal-certificates
-internal-certificates: internal-domain.crt internal-domain.rsa.key internal-domain.key internal-keycert.pem
-	@kubectl create secret generic internal-certificate-files \
-		--from-file tls.crt=internal-domain.crt \
-		--from-file tls.key=internal-domain.key \
-		--from-file tls.rsa.key=internal-domain.rsa.key \
-		-o yaml --dry-run | \
-			kubectl apply -f -
-	@kubectl create secret generic internal-certificate-file \
-		--from-file keycert.pem=internal-keycert.pem \
-		-o yaml --dry-run | \
-			kubectl apply -f -
-
-
-.PHONY: external-certificates
-external-certificates: external-domain.crt external-domain.rsa.key external-domain.key external-keycert.pem
-	@kubectl create secret generic external-certificate-files \
-		--from-file tls.crt=external-domain.crt \
-		--from-file tls.key=external-domain.key \
-		--from-file tls.rsa.key=external-domain.rsa.key \
-		-o yaml --dry-run | \
-			kubectl apply -f -
-	@kubectl create secret generic external-certificate-file \
-		--from-file keycert.pem=external-keycert.pem \
-		-o yaml --dry-run | \
-			kubectl apply -f -
-
-
 .INTERMEDIATE: 00-upstream.http.conf
 00-upstream.http.conf:
 	@kubectl get configmap http-services -o template={{.data.default}} | while read line; do \
@@ -327,7 +296,7 @@ refresh:
 
 
 .PHONY: mongodb
-mongodb: internal-certificates
+mongodb:
 	@kubectl create configmap mongodb-backup --from-file mongodb/mongodb-backup.sh -o yaml --dry-run | \
 		kubectl apply -f -
 
@@ -365,7 +334,7 @@ registry:
 
 
 .PHONY: mysql
-mysql: internal-certificates
+mysql:
 	@source .env && \
 		kubectl create secret generic mysql-root-password \
 			--from-literal "value=$${MYSQL_ROOT_PASSWORD}" -o yaml --dry-run | \
@@ -442,7 +411,7 @@ remindmebot:
 
 # Configuration Recipes
 .PHONY: nginx-configurations
-nginx-configurations: networking 00-upstream.http.conf certificates
+nginx-configurations: networking 00-upstream.http.conf
 	@kubectl create configmap nginx-config --from-file nginx/nginx.conf -o yaml --dry-run | \
 		kubectl apply -f -
 
@@ -513,6 +482,18 @@ blobstore-configurations:
 		kubectl create secret generic blobstore-secrets \
 			--from-literal "database=$${BLOBSTORE_DATABASE}" \
 			-o yaml --dry-run | kubectl apply -f -
+
+
+.PHONY: certbot-configurations
+certbot-configurations:
+	@kubectl create secret generic internal-certificate-file 2> /dev/null || true
+	@kubectl create secret generic internal-certificate-files 2> /dev/null || true
+	@kubectl create secret generic external-certificate-file 2> /dev/null || true
+	@kubectl create secret generic external-certificate-files 2> /dev/null || true
+	@kubectl create configmap certbot-scripts \
+		--from-file "certbot/dns-renew.sh" \
+		--from-file "certbot/update-secrets.sh" \
+		-o yaml --dry-run | kubectl apply -f -
 
 
 .PHONY: mysql-restore
@@ -597,46 +578,6 @@ router-dns-config:
 .PHONY: token
 token:
 	@kubectl -n kube-system get secret $$(kubectl -n kube-system get serviceaccount aleem -o jsonpath={.secrets[0].name}) -o jsonpath={.data.token} | base64 -D && echo
-
-
-.INTERMEDIATE: internal-domain.crt
-internal-domain.crt:
-	@kubectl cp $$($(call KUBECTL_APP_PODS,certbot) | head -1):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/fullchain1.pem $@
-
-
-.INTERMEDIATE: internal-domain.key
-internal-domain.key:
-	@kubectl cp $$($(call KUBECTL_APP_PODS,certbot) | head -1):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/privkey1.pem $@
-
-
-.INTERMEDIATE: external-domain.crt
-external-domain.crt:
-	@kubectl cp $$($(call KUBECTL_APP_PODS,certbot) | head -1):/etc/letsencrypt/archive/aleemhaji.com-0001/fullchain1.pem $@
-
-
-.INTERMEDIATE: external-domain.key
-external-domain.key:
-	@kubectl cp $$($(call KUBECTL_APP_PODS,certbot) | head -1):/etc/letsencrypt/archive/aleemhaji.com-0001/privkey1.pem $@
-
-
-.INTERMEDIATE: internal-domain.rsa.key
-internal-domain.rsa.key: internal-domain.key
-	@openssl rsa -in $^ -out $@
-
-
-.INTERMEDIATE: internal-keycert.pem
-internal-keycert.pem: internal-domain.key internal-domain.crt
-	@cat $^ > $@
-
-
-.INTERMEDIATE: external-domain.rsa.key
-external-domain.rsa.key: external-domain.key
-	@openssl rsa -in $^ -out $@
-
-
-.INTERMEDIATE: external-keycert.pem
-external-keycert.pem: external-domain.key external-domain.crt
-	@cat $^ > $@
 
 
 # kube.list creates a pi-hole list that provides the appropriate ip addresses
