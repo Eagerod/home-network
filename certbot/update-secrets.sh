@@ -18,7 +18,7 @@ replace_certificates() {
     fi
 
     cert_name=$1
-    certs_path=$2
+    cert_path=$2
 
     rsa_keyfile=$(mktemp).rsa.key
 
@@ -50,7 +50,7 @@ replace_combined_certificate() {
     fi
 
     cert_name=$1
-    certs_path=$2
+    cert_path=$2
 
     combined_file=$(mktemp).pem
 
