@@ -115,3 +115,4 @@ spec:
             - name: certbot-scripts
               configMap:
                 name: certbot-scripts
+                defaultMode: 0777
