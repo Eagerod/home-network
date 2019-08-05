@@ -3,14 +3,14 @@ FROM ncfgbase
 # Install all the primary applications to be used/made available on the util
 #   server.
 RUN \
-	apt-get update -y && \
-	apt-get install -y \
-		openssh-server \
-		python-pip \
-		golang-go \
-		cmake \
-		git \
-		vim
+    apt-get update -y && \
+    apt-get install -y \
+        openssh-server \
+        python-pip \
+        golang-go \
+        cmake \
+        git \
+        vim
 
 RUN \
     sed -i -r 's/^[#\s]*(PasswordAuthentication).*$/\1 no/' /etc/ssh/sshd_config && \
