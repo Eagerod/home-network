@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unifi-deployment
+  labels:
+    app: unifi
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: unifi
+  template:
+    metadata:
+      name: unifi
+      labels:
+        app: unifi
+    spec:
+      imagePullSecrets: 
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: unifi
+          image: registry.internal.aleemhaji.com/unifi:latest
+          ports:
+            - containerPort: 8443
+              protocol: TCP
+              name: unifi-gui-port
+            - containerPort: 8080
+              protocol: TCP
+              name: unspecified
+            - containerPort: 8081
+              protocol: TCP
+              name: unifi-comms
+            - containerPort: 8880
+              protocol: TCP
+              name: unifi-http
+            - containerPort: 8843
+              protocol: TCP
+              name: unifi-https
+            - containerPort: 6789
+              protocol: TCP
+              name: unifi-test-port
+            - containerPort: 3478
+              protocol: UDP
+              name: unifi-stun-port
+            - containerPort: 10001
+              protocol: UDP
+              name: unifi-discovery
+          env:
+            - name: UNIFI_SERVICE_IP
+              valueFrom:
+                configMapKeyRef:
+                  name: network-ip-assignments
+                  key: unifi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unifi-tcp
+  labels:
+    app: unifi
+  annotations:
+    metallb.universe.tf/allow-shared-ip: unifi
+spec:
+  # https://help.ubnt.com/hc/en-us/articles/218506997
+  ports:
+    - port: 8443
+      protocol: TCP
+      name: unifi-gui-port
+    - port: 8080
+      protocol: TCP
+      name: unifi-comms-port
+    - port: 8081
+      protocol: TCP
+      name: unifi-unspecified-port
+    - port: 8880
+      protocol: TCP
+      name: unifi-http-portal-port
+    - port: 8843
+      protocol: TCP
+      name: unifi-https-portal-port
+    - port: 6789
+      protocol: TCP
+      name: unifi-test-port
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: unifi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unifi-udp
+  labels:
+    app: unifi
+  annotations:
+    metallb.universe.tf/allow-shared-ip: unifi
+spec:
+  # https://help.ubnt.com/hc/en-us/articles/218506997
+  ports:
+    - port: 3478
+      protocol: UDP
+      name: unifi-stun-port
+    - port: 10001
+      protocol: UDP
+      name: unifi-discovery-port
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: unifi

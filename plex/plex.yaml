@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: plex-pv
+  labels:
+    identifier: plex
+spec:
+  capacity:
+    storage: 20Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nfsvers=3
+  nfs:
+    path: /kubernetes-test/plex
+    server: 192.168.1.42
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: plex-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  selector:
+    matchLabels:
+      identifier: plex
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex-deployment
+  labels:
+    app: plex
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      name: plex
+      labels:
+        app: plex
+    spec:
+      containers:
+        - name: plex
+          image: plexinc/pms-docker
+          ports:
+            - containerPort: 32400
+          env:
+            - name: ALLOWED_NETWORKS
+              value: 192.168.2.0/24
+            - name: ADVERTISE_IP
+              value: http://plex.aleemhaji.com:32400
+          volumeMounts:
+            - name: plex-persistent-storage
+              mountPath: /config
+      volumes:
+        - name: plex-persistent-storage
+          persistentVolumeClaim:
+            claimName: plex-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: plex
+  labels:
+    app: plex
+spec:
+  ports:
+    - port: 32400
+      protocol: TCP
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: plex

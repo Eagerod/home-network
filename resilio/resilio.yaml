@@ -1,0 +1,130 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: backups-pv
+  labels:
+    identifier: backups
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nfsvers=3
+  nfs:
+    path: /kubernetes-test/backups
+    server: 192.168.1.42
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backups-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  selector:
+    matchLabels:
+      identifier: backups
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: resilio-pv
+  labels:
+    identifier: resilio
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nfsvers=3
+  nfs:
+    path: /kubernetes-test/resilio
+    server: 192.168.1.42
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: resilio-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  selector:
+    matchLabels:
+      identifier: resilio
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: resilio-deployment
+  labels:
+    app: resilio
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resilio
+  template:
+    metadata:
+      labels:
+        app: resilio
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: resilio
+          image: registry.internal.aleemhaji.com/resilio:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: RESILIO_SERVER_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: resilio-sync-config
+                  key: username
+            - name: RESILIO_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: resilio-sync-credentials
+                  key: password
+          volumeMounts:
+            - name: backups-persistent-storage
+              mountPath: /var/lib/resilio-folders
+            - name: resilio-sync-persistent-storage
+              mountPath: /.sync
+      volumes:
+        - name: backups-persistent-storage
+          persistentVolumeClaim:
+            claimName: backups-pv-claim
+        - name: resilio-sync-persistent-storage
+          persistentVolumeClaim:
+            claimName: resilio-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resilio
+  labels:
+    app: resilio
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: resilio

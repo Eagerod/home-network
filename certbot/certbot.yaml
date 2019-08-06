@@ -1,0 +1,118 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: certificates-pv
+  labels:
+    identifier: certificates
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nfsvers=3
+  nfs:
+    path: /kubernetes-test/certs/letsencrypt
+    server: 192.168.1.42
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: certificates-pv-claim
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  selector:
+    matchLabels:
+      identifier: certificates
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: certbot
+  labels:
+    app: certbot
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: certbot
+---
+# EFF recommends running `certbot renew` a couple times per day.
+# Kubernetes doesn't make this kind of pattern very easy.
+# An externally accessible endpoint is needed, and it needs access to the
+#   certificates volume.
+# Run `certbot renew` in an already running certbot pod occasionally.
+# This may or may not work depending on how the persistent volume claim works.
+# Jobs run successfully, but once renewal time comes up, they may fail.
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: certbot
+spec:
+  schedule: "32 4,16 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: certbot
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: certbot
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
+          initContainers:
+            - name: certbot-renew
+              image: certbot/certbot
+              command:
+                - sh
+                - -c
+                - |
+                  set -x;
+                  certbot renew --standalone --preferred-challenges http;
+                  certbot --manual-auth-hook /scripts/dns-renew.sh renew || true;
+              volumeMounts:
+                - name: certbot-storage
+                  mountPath: /etc/letsencrypt
+                - name: certbot-scripts
+                  mountPath: /scripts
+              env:
+                - name: NAMESILO_API_KEY 
+                  valueFrom:
+                    secretKeyRef:
+                      name: namesilo-api-key
+                      key: value
+            - name: update-secrets
+              image: registry.internal.aleemhaji.com/ncfgbase
+              command:
+                - sh
+                - /scripts/update-secrets.sh
+              volumeMounts:
+                - name: certbot-storage
+                  mountPath: /etc/letsencrypt
+                - name: certbot-scripts
+                  mountPath: /scripts
+          containers:
+            - name: dummy-container
+              image: busybox
+              command: 
+                - echo
+                - Oh look, it worked.
+          volumes:
+            - name: certbot-storage
+              persistentVolumeClaim:
+                claimName: certificates-pv-claim
+            - name: certbot-scripts
+              configMap:
+                name: certbot-scripts
+                defaultMode: 0777

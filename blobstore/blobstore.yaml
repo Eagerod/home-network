@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blobstore-deployment
+  labels:
+    app: blobstore
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blobstore
+  template:
+    metadata:
+      name: blobstore
+      labels:
+        app: blobstore
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: blobstore
+          image: registry.internal.aleemhaji.com/blobstore:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: PORT
+              value: "80"
+            - name: DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: blobstore-secrets
+                  key: database
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blobstore
+  labels:
+    app: blobstore
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: blobstore

@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: git-pv
+  labels:
+    identifier: git
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nfsvers=3
+  nfs:
+    path: /kubernetes-test/git
+    server: 192.168.1.42
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: git-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  selector:
+    matchLabels:
+      identifier: git
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: util-deployment
+  labels:
+    app: util
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: util
+  template:
+    metadata:
+      labels:
+        app: util
+    spec:
+      imagePullSecrets: 
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: util
+          image: registry.internal.aleemhaji.com/util:latest
+          ports:
+            - containerPort: 22
+          volumeMounts:
+            - name: git-persistent-storage
+              mountPath: /var/lib/git
+          env:
+            - name: DEFAULT_BLOBSTORE_WRITE_ACL
+              valueFrom:
+                secretKeyRef:
+                  name: multi-reddit-blob-credentials
+                  key: write_acl
+            - name: DEFAULT_BLOBSTORE_READ_ACL
+              valueFrom:
+                secretKeyRef:
+                  name: multi-reddit-blob-credentials
+                  key: read_acl
+            - name: MULTI_REDDIT_SAVED_LOCATION
+              valueFrom:
+                configMapKeyRef:
+                  name: multi-reddit-blob-config
+                  key: saved_posts_path
+            - name: MULTI_REDDIT_SUBS_LOCATION
+              valueFrom:
+                configMapKeyRef:
+                  name: multi-reddit-blob-config
+                  key: subreddit_path
+      volumes:
+        - name: git-persistent-storage
+          persistentVolumeClaim:
+            claimName: git-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: util
+  labels:
+    app: util
+spec:
+  ports:
+  - port: 22
+    protocol: TCP
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: util

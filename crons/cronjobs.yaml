@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cronjobs
+data:
+  _keys: |
+    factorio
+    trilium
+    sharelatex
+  factorio: |
+    CRONJOB_NAME=factorio
+    RSYNC_OPTIONS="-avhuDH --exclude=.sync"
+    SOURCE_NFS_SERVER=192.168.1.42
+    SOURCE_NFS_DIRECTORY=/kubernetes-test/factorio
+    SOURCE_PATH=/
+    DESTINATION_NFS_SERVER=192.168.1.42
+    DESTINATION_NFS_DIRECTORY=/kubernetes-test/backups/factorio
+    DEST_PATH=
+  trilium: |
+    CRONJOB_NAME=trilium
+    RSYNC_OPTIONS="-avhuDH --delete --exclude=.sync"
+    SOURCE_NFS_SERVER=192.168.1.42
+    SOURCE_NFS_DIRECTORY=/kubernetes-test/trilium
+    SOURCE_PATH=/
+    DESTINATION_NFS_SERVER=192.168.1.42
+    DESTINATION_NFS_DIRECTORY=/kubernetes-test/backups/trilium
+    DEST_PATH=
+  sharelatex: |
+    CRONJOB_NAME=sharelatex
+    RSYNC_OPTIONS="-avhuDH --delete --exclude=.sync"
+    SOURCE_NFS_SERVER=192.168.1.42
+    SOURCE_NFS_DIRECTORY=/kubernetes-test/sharelatex
+    SOURCE_PATH=/
+    DESTINATION_NFS_SERVER=192.168.1.42
+    DESTINATION_NFS_DIRECTORY=/kubernetes-test/backups/sharelatex
+    DEST_PATH=

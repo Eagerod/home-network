@@ -3,14 +3,14 @@ FROM ncfgbase
 # Install all the primary applications to be used/made available on the util
 #   server.
 RUN \
-	apt-get update -y && \
-	apt-get install -y \
-		openssh-server \
-		python-pip \
-		golang-go \
-		cmake \
-		git \
-		vim
+    apt-get update -y && \
+    apt-get install -y \
+        openssh-server \
+        python-pip \
+        golang-go \
+        cmake \
+        git \
+        vim
 
 RUN \
     sed -i -r 's/^[#\s]*(PasswordAuthentication).*$/\1 no/' /etc/ssh/sshd_config && \
@@ -21,7 +21,7 @@ RUN \
 # RUN sed -i -r 's/(session\s*)required(\s*pam_loginuid.so)/\1optional\2/g' /etc/pam.d/sshd
 
 # Install blobstore.
-RUN curl -sfSL https://aleem.haji.ca/blob/clientlib/installer.sh | bash
+RUN curl -sfSL https://blob.aleemhaji.com/clientlib/installer.sh | bash
 
 # Needed for the git repository manager.
 RUN python -m pip install PyYAML

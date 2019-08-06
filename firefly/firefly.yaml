@@ -1,0 +1,151 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firefly-deployment
+  labels:
+    app: firefly-iii
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: firefly-iii
+  template:
+    metadata:
+      labels:
+        app: firefly-iii
+    spec:
+      containers:
+        - name: firefly-iii
+          image: jc5x/firefly-iii:release-4.7.17
+          ports:
+            - containerPort: 80
+          env:
+            - name: TRUSTED_PROXIES
+              value: '**'
+            - name: APP_URL
+              value: https://firefly.internal.aleemhaji.com
+            - name: FF_DB_HOST
+              value: mysql
+            - name: FF_APP_ENV
+              value: local
+            - name: FF_DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: firefly-config
+                  key: mysql_user
+            - name: FF_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: firefly-config
+                  key: mysql_database
+            - name: FF_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: firefly-secrets
+                  key: mysql_password
+            - name: FF_APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: firefly-secrets
+                  key: app_key
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: firefly
+  labels:
+    app: firefly
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: firefly-iii
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: firefly-mysql-init
+  labels:
+    job: firefly-mysql-init
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        - name: firefly-mysql-init
+          image: mysql:5.7.26
+          command:
+            - sh
+            - -c
+            - |
+              mysql -h ${MYSQL_HOST} -u root -e " \
+                CREATE USER IF NOT EXISTS ${FF_DB_USER}@'10.244.%.%'; \
+                SET PASSWORD FOR ${FF_DB_USER}@'10.244.%.%' = PASSWORD('${FF_DB_PASSWORD}'); \
+                CREATE DATABASE IF NOT EXISTS ${FF_DB_NAME}; \
+                GRANT ALL ON $${FF_DB_NAME}.* TO $${FF_DB_USER}@'10.244.%.%';"
+          env:
+            - name: MYSQL_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-root-password
+                  key: value
+            - name: MYSQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: network-ip-assignments
+                  key: mysql
+            - name: FF_DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: firefly-config
+                  key: mysql_user
+            - name: FF_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: firefly-config
+                  key: mysql_database
+            - name: FF_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: firefly-secrets
+                  key: mysql_password
+        - name: firefly-app-init
+          image: jc5x/firefly-iii:release-4.7.17
+          command:
+            - sh
+            - -c
+            - php artisan migrate && php artisan firefly:upgrade-database && php artisan firefly:verify && php artisan passport:install
+          # https://github.com/firefly-iii/firefly-iii/blob/4.7.5.3/.env.docker#L25
+          env:
+            - name: DB_HOST
+              value: mysql
+            - name: DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: firefly-config
+                  key: mysql_user
+            - name: DB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: firefly-config
+                  key: mysql_database
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: firefly-secrets
+                  key: mysql_password
+            - name: APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: firefly-secrets
+                  key: app_key
+      containers:
+        - name: dummy-container
+          image: busybox
+          command: 
+            - echo
+            - Oh look, it worked.

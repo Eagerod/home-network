@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-init-deployment
+  labels:
+    app: mysql-init
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-init
+  template:
+    metadata:
+      labels:
+        app: mysql-init
+    spec:
+      containers:
+        - name: mysql-sgt
+          image: mysql:5.7.26
+          args:
+            - --skip-grant-tables
+            - --skip-networking
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-root-password
+                  key: value
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: mysql-pv-claim

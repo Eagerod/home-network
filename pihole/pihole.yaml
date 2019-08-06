@@ -1,0 +1,129 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pihole-static-config
+data:
+  resolv.conf:
+    nameserver 127.0.0.1
+  02-lan.conf: |
+    addn-hosts=/etc/pihole/lan.list
+  03-kube.conf: |
+    addn-hosts=/etc/pihole/kube.list
+  lan.list: |
+    192.168.1.42 trunk.internal.aleemhaji.com. trunk
+    192.168.2.48 pi.hole pihole
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pihole-deployment
+  labels:
+    app: pihole
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pihole
+  template:
+    metadata:
+      name: pihole
+      labels:
+        app: pihole
+    spec:
+      # Since individual files don't reload the way that full directory mount
+      #   do, copy files over to where they belong.
+      # This prevents them from being read only, and lets me update the files
+      #   however I want without needing to restart the pod.
+      initContainers:
+        - name: pihole-config
+          image: busybox
+          volumeMounts:
+            - name: pihole-config
+              mountPath: pihole-config
+            - name: pihole-static-config
+              mountPath: pihole-static-config
+            - name: config-root
+              mountPath: config-root
+          command:
+            - sh
+            - -c
+            - |
+              cp pihole-config/setupVars.conf config-root/ && \
+              cp pihole-static-config/02-lan.conf config-root/ && \
+              cp pihole-static-config/03-kube.conf config-root/ && \
+              cp pihole-static-config/lan.list config-root/ && \
+              cp pihole-config/kube.list config-root/
+      containers:
+        - name: pihole
+          image: pihole/pihole
+          ports:
+            - containerPort: 80
+              protocol: TCP
+            - containerPort: 53
+              protocol: TCP
+            - containerPort: 53
+              protocol: UDP
+          volumeMounts:
+            - name: config-root
+              mountPath: /etc/dnsmasq.d/02-lan.conf
+              subPath: 02-lan.conf
+            - name: pihole-static-config
+              mountPath: /etc/resolv.conf
+              subPath: resolv.conf
+            - name: config-root
+              mountPath: /etc/dnsmasq.d/03-kube.conf
+              subPath: 03-kube.conf
+            - name: config-root
+              mountPath: /etc/pihole/lan.list
+              subPath: lan.list
+            - name: config-root
+              mountPath: /etc/pihole/kube.list
+              subPath: kube.list
+      volumes:
+        - name: pihole-config
+          configMap:
+            name: pihole-config
+        - name: pihole-static-config
+          configMap:
+            name: pihole-static-config
+        - name: config-root
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pihole-tcp
+  labels:
+    app: pihole
+  annotations:
+    metallb.universe.tf/allow-shared-ip: pihole
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      name: webserver
+    - port: 53
+      protocol: TCP
+      name: dns
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: pihole
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pihole-udp
+  labels:
+    app: pihole
+  annotations:
+    metallb.universe.tf/allow-shared-ip: pihole
+spec:
+  ports:
+    - port: 53
+      protocol: UDP
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: pihole

@@ -1,4 +1,0 @@
-/share/appdata /mnt/appdata
-/share/backups /mnt/backups
-/share/db /mnt/db
-/share/downloads /mnt/downloads
