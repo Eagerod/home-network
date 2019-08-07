@@ -55,7 +55,8 @@ TRIVIAL_SERVICES:=\
 	sharelatex \
 	alertmanager \
 	dashboard \
-	blobstore
+	blobstore \
+	gitea
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
 #   docker image using the Dockerfile in the service's directory, and pushing
