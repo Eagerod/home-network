@@ -7,6 +7,7 @@ data:
     factorio
     trilium
     sharelatex
+    nodered
   factorio: |
     CRONJOB_NAME=factorio
     RSYNC_OPTIONS="-avhuDH --exclude=.sync"
@@ -34,3 +35,12 @@ data:
     DESTINATION_NFS_SERVER=192.168.1.42
     DESTINATION_NFS_DIRECTORY=/kubernetes-test/backups/sharelatex
     DEST_PATH=
+  nodered: |
+    CRONJOB_NAME=nodered
+    RSYNC_OPTIONS="-avhuDH --delete --exclude=.sync"
+    SOURCE_NFS_SERVER=192.168.1.42
+    SOURCE_NFS_DIRECTORY=/kubernetes-test/node-red
+    SOURCE_PATH=/flows.json
+    DESTINATION_NFS_SERVER=192.168.1.42
+    DESTINATION_NFS_DIRECTORY=/kubernetes-test/backups/node-red
+    DEST_PATH=/
