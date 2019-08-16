@@ -53,7 +53,9 @@ TRIVIAL_SERVICES:=\
 	pihole \
 	plex \
 	sharelatex \
-	alertmanager
+	alertmanager \
+	dashboard \
+	blobstore
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
 #   docker image using the Dockerfile in the service's directory, and pushing
@@ -66,6 +68,7 @@ SIMPLE_SERVICES:=\
 	util \
 	resilio \
 	slackbot \
+	amproxy \
 	nodered
 
 KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
@@ -79,6 +82,9 @@ util: util-configurations
 pihole: pihole-configurations
 resilio: resilio-configurations
 slackbot: slackbot-configurations
+alertmanager: alertmanager-configurations
+blobstore: blobstore-configurations
+certbot: certbot-configurations
 nodered: nodered-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
@@ -103,6 +109,7 @@ SAVE_ENV_VARS=\
 	DOCKER_REGISTRY_USERNAME\
 	FIREFLY_MYSQL_USER\
 	FIREFLY_MYSQL_DATABASE\
+	REMINDMEBOT_USERNAME\
 	NODE_RED_MYSQL_USER\
 	NODE_RED_MYSQL_DATABASE
 
@@ -151,15 +158,27 @@ prometheus:
 	rm -rf kube-prometheus-$(KUBERNETES_PROMETHEUS_VERISON)
 
 
+.PHONY: alertmanager-configurations
+alertmanager-configurations:
+	@kubectl create secret generic alertmanager-main -n monitoring \
+		--from-file alertmanager.yaml=alertmanager/alertmanager-config.yaml \
+		-o yaml --dry-run | \
+			kubectl apply -f -
+	@echo "Alertmanager configuration updated. Run this once volumes have updated:"
+	@echo "    curl -X POST https://alertmanager.internal.aleemhaji.com/-/reload"
+
+
 # Set up the ConfigMaps that are needed to hold network information.
 .PHONY: networking
 networking: $(KUBECONFIG)
 	@kubectl apply -f network-ip-assignments.yaml
 	@kubectl apply -f http-services.yaml
+	@kubectl apply -f metallb-config.yaml
 
 
 .PHONY: crons
-crons:
+crons: base-image
+	@$(DOCKER) pull $(REGISTRY_HOSTNAME)/rsync:latest
 	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/rsync:latest
 	@$(DOCKER) push $(REGISTRY_HOSTNAME)/rsync:latest
 
@@ -170,37 +189,11 @@ crons:
 			kubectl apply -f -; \
 	done
 
-
-.PHONY: certificates
-certificates: internal-certificates external-certificates
-
-
-.PHONY: internal-certificates
-internal-certificates: internal-domain.crt internal-domain.rsa.key internal-domain.key internal-keycert.pem
-	@kubectl create secret generic internal-certificate-files \
-		--from-file tls.crt=internal-domain.crt \
-		--from-file tls.key=internal-domain.key \
-		--from-file tls.rsa.key=internal-domain.rsa.key \
+	@source .env && kubectl create secret generic namesilo-api-key \
+		--from-literal value=${NAMESILO_API_KEY} \
 		-o yaml --dry-run | \
 			kubectl apply -f -
-	@kubectl create secret generic internal-certificate-file \
-		--from-file keycert.pem=internal-keycert.pem \
-		-o yaml --dry-run | \
-			kubectl apply -f -
-
-
-.PHONY: external-certificates
-external-certificates: external-domain.crt external-domain.rsa.key external-domain.key external-keycert.pem
-	@kubectl create secret generic external-certificate-files \
-		--from-file tls.crt=external-domain.crt \
-		--from-file tls.key=external-domain.key \
-		--from-file tls.rsa.key=external-domain.rsa.key \
-		-o yaml --dry-run | \
-			kubectl apply -f -
-	@kubectl create secret generic external-certificate-file \
-		--from-file keycert.pem=external-keycert.pem \
-		-o yaml --dry-run | \
-			kubectl apply -f -
+	@kubectl apply -f crons/dns-cron.yaml
 
 
 .INTERMEDIATE: 00-upstream.http.conf
@@ -217,6 +210,12 @@ external-certificates: external-domain.crt external-domain.rsa.key external-doma
 			$$(kubectl get service -n monitoring $${line} -o template={{.spec.loadBalancerIP}}) \
 			$$(kubectl get service -n monitoring $${line} -o jsonpath='{.spec.ports[0].port}') >> $@; \
 	done
+	@kubectl get configmap http-services -o template='{{ index .data "kube-system" }}' | while read line; do \
+		printf 'upstream %s {\n    server %s:%d;\n}\n\n' \
+			$${line} \
+			$$(kubectl get service -n kube-system $${line} -o template={{.spec.loadBalancerIP}}) \
+			$$(kubectl get service -n kube-system $${line} -o jsonpath='{.spec.ports[0].port}') >> $@; \
+	done
 
 
 .PHONY: $(TRIVIAL_SERVICES)
@@ -226,6 +225,7 @@ $(TRIVIAL_SERVICES):
 
 .PHONY: $(SIMPLE_SERVICES)
 $(SIMPLE_SERVICES):
+	@$(DOCKER) pull $(REGISTRY_HOSTNAME)/$@:latest
 	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
 	@$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
 
@@ -235,8 +235,43 @@ $(SIMPLE_SERVICES):
 # Do a full deployment of a service, including updating networking info and
 #   having pihole take on new configurations.
 .PHONY: complete-%
-complete-%:
-	make networking $* nginx restart-nginx pihole restart-pihole
+complete-%: networking % reload-nginx reload-pihole
+
+
+.PHONY: reload-nginx
+reload-nginx:
+	wait_time=60 && \
+	current_nginx_config=$$($(call KUBECTL_APP_EXEC,nginx) -- find /etc/nginx/conf.d -mindepth 1 -type d) && \
+	$(MAKE) nginx-configurations && \
+	printf "Waiting for new nginx configs to be loaded into the container" 1>&2 && \
+	until [ "$$($(call KUBECTL_APP_EXEC,nginx) -- find /etc/nginx/conf.d -mindepth 1 -type d)" != "$${current_nginx_config}" ]; do \
+		printf '.' 1>&2; \
+		sleep 1; \
+		wait_time=$$((wait_time - 1)); \
+		if [ $${wait_time} -eq 0 ]; then \
+			echo >&2 ""; \
+			echo >&2 "Kubernetes hasn't updated nginx configurations in 60 seconds."; \
+			echo >&2 "Configurations are probably unchanged."; \
+			exit; \
+		fi; \
+	done && \
+	printf '\n' 1>&2
+
+	$(call KUBECTL_APP_EXEC,nginx) -- nginx -s reload
+
+
+# Since the pihole mounts its volumes as individual files, Kubernetes doesn't
+#   automatically push updated contents to the pods.
+# Update the pi-hole configs, then update replicas with the new file contents.
+.PHONY: reload-pihole
+reload-pihole: pihole-configurations kube.list
+	$(call KUBECTL_APP_PODS,pihole) | while read line; do \
+		uuid=$$(uuidgen) && \
+		kubectl cp kube.list $${line}:/etc/pihole/kube.$${uuid}.list; \
+		kubectl exec $${line} -- chown root:root /etc/pihole/kube.$${uuid}.list; \
+		kubectl exec $${line} -- sh -c "echo addn-hosts=/etc/pihole/kube.$${uuid}.list > /etc/dnsmasq.d/03-kube.conf"; \
+		kubectl exec $${line} -- pihole restartdns; \
+	done
 
 
 # Shutdown any service.
@@ -253,6 +288,10 @@ restart-%: kill-%
 	@kubectl scale deployment $*-deployment --replicas=1
 
 
+.PHONY: %-shell
+%-shell:
+	$(call KUBECTL_APP_EXEC,$*) -it -- sh
+
 # Cycle all pods in the cluster. Really should only be used in weird debugging
 #   situations.
 .PHONY: refresh
@@ -261,7 +300,10 @@ refresh:
 
 
 .PHONY: mongodb
-mongodb: internal-certificates
+mongodb:
+	@kubectl create configmap mongodb-backup --from-file mongodb/mongodb-backup.sh -o yaml --dry-run | \
+		kubectl apply -f -
+
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 	@kubectl apply -f mongodb/mongodb-backup.yaml
 
@@ -272,8 +314,15 @@ registry:
 		kubectl create secret generic registry-htpasswd-secret \
 			--from-literal "htpasswd=$$(htpasswd -nbB -C 10 $${DOCKER_REGISTRY_USERNAME} $${DOCKER_REGISTRY_PASSWORD})" -o yaml --dry-run | \
 		kubectl apply -f -
+	# Create the registry secret in the default and monitoring namespaces
 	@source .env && \
 		kubectl create secret docker-registry $(REGISTRY_HOSTNAME) \
+			--docker-server $(REGISTRY_HOSTNAME) \
+			--docker-username $${DOCKER_REGISTRY_USERNAME} \
+			--docker-password $${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
+		kubectl apply -f -
+	@source .env && \
+		kubectl create secret -n monitoring docker-registry $(REGISTRY_HOSTNAME) \
 			--docker-server $(REGISTRY_HOSTNAME) \
 			--docker-username $${DOCKER_REGISTRY_USERNAME} \
 			--docker-password $${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
@@ -289,7 +338,7 @@ registry:
 
 
 .PHONY: mysql
-mysql: internal-certificates
+mysql:
 	@source .env && \
 		kubectl create secret generic mysql-root-password \
 			--from-literal "value=$${MYSQL_ROOT_PASSWORD}" -o yaml --dry-run | \
@@ -366,7 +415,7 @@ remindmebot:
 
 # Configuration Recipes
 .PHONY: nginx-configurations
-nginx-configurations: networking 00-upstream.http.conf certificates
+nginx-configurations: networking 00-upstream.http.conf
 	@kubectl create configmap nginx-config --from-file nginx/nginx.conf -o yaml --dry-run | \
 		kubectl apply -f -
 
@@ -407,7 +456,7 @@ resilio-configurations:
 
 .PHONY: pihole-configurations
 pihole-configurations: kube.list
-	kubectl create configmap pihole-config \
+	@kubectl create configmap pihole-config \
 		--from-file pihole/setupVars.conf \
 		--from-file kube.list \
 		-o yaml --dry-run | kubectl apply -f -
@@ -418,11 +467,37 @@ slackbot-configurations:
 	@source .env && \
 		kubectl create configmap slack-bot-config \
 			--from-literal "default_channel=$${SLACK_BOT_DEFAULT_CHANNEL}" \
+			--from-literal "alerting_channel=$${SLACK_BOT_ALERTING_CHANNEL}" \
+			-o yaml --dry-run | kubectl apply -f -
+	@source .env && \
+		kubectl create configmap -n monitoring slack-bot-config \
+			--from-literal "default_channel=$${SLACK_BOT_DEFAULT_CHANNEL}" \
+			--from-literal "alerting_channel=$${SLACK_BOT_ALERTING_CHANNEL}" \
 			-o yaml --dry-run | kubectl apply -f -
 	@source .env && \
 		kubectl create secret generic slack-bot-secrets \
 			--from-literal "api_key=$${SLACK_BOT_API_KEY}" \
 			-o yaml --dry-run | kubectl apply -f -
+
+
+.PHONY: blobstore-configurations
+blobstore-configurations:
+	@source .env && \
+		kubectl create secret generic blobstore-secrets \
+			--from-literal "database=$${BLOBSTORE_DATABASE}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+
+.PHONY: certbot-configurations
+certbot-configurations:
+	@kubectl create secret generic internal-certificate-file 2> /dev/null || true
+	@kubectl create secret generic internal-certificate-files 2> /dev/null || true
+	@kubectl create secret generic external-certificate-file 2> /dev/null || true
+	@kubectl create secret generic external-certificate-files 2> /dev/null || true
+	@kubectl create configmap certbot-scripts \
+		--from-file "certbot/dns-renew.sh" \
+		--from-file "certbot/update-secrets.sh" \
+		-o yaml --dry-run | kubectl apply -f -
 
 
 .PHONY: nodered-configurations
@@ -485,8 +560,8 @@ unifi-restore:
 	kubectl scale deployment unifi-deployment --replicas=1
 
 
-.PHONY: mysql-shell
-mysql-shell:
+.PHONY: mysql-db-shell
+mysql-db-shell:
 	@source .env && $(call KUBECTL_APP_EXEC,mysql) -it -- \
 		sh -c 'MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql'
 
@@ -523,52 +598,12 @@ token:
 	@kubectl -n kube-system get secret $$(kubectl -n kube-system get serviceaccount aleem -o jsonpath={.secrets[0].name}) -o jsonpath={.data.token} | base64 -D && echo
 
 
-.INTERMEDIATE: internal-domain.crt
-internal-domain.crt:
-	@kubectl cp $$($(call KUBECTL_APP_PODS,certbot) | head -1):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/fullchain1.pem $@
-
-
-.INTERMEDIATE: internal-domain.key
-internal-domain.key:
-	@kubectl cp $$($(call KUBECTL_APP_PODS,certbot) | head -1):/etc/letsencrypt/archive/internal.aleemhaji.com-0001/privkey1.pem $@
-
-
-.INTERMEDIATE: external-domain.crt
-external-domain.crt:
-	@kubectl cp $$($(call KUBECTL_APP_PODS,certbot) | head -1):/etc/letsencrypt/archive/aleemhaji.com-0001/fullchain1.pem $@
-
-
-.INTERMEDIATE: external-domain.key
-external-domain.key:
-	@kubectl cp $$($(call KUBECTL_APP_PODS,certbot) | head -1):/etc/letsencrypt/archive/aleemhaji.com-0001/privkey1.pem $@
-
-
-.INTERMEDIATE: internal-domain.rsa.key
-internal-domain.rsa.key: internal-domain.key
-	openssl rsa -in $^ -out $@
-
-
-.INTERMEDIATE: internal-keycert.pem
-internal-keycert.pem: internal-domain.key internal-domain.crt
-	@cat $^ > $@
-
-
-.INTERMEDIATE: external-domain.rsa.key
-external-domain.rsa.key: external-domain.key
-	openssl rsa -in $^ -out $@
-
-
-.INTERMEDIATE: external-keycert.pem
-external-keycert.pem: external-domain.key external-domain.crt
-	@cat $^ > $@
-
-
 # kube.list creates a pi-hole list that provides the appropriate ip addresses
 #   when DNS requests are sent for internal services.
 # This could probably be done better, considering the hard coding, but it works
 .INTERMEDIATE: kube.list
 kube.list:
-	@nginx_lb_ip=$$(kubectl get service nginx -o template={{.spec.loadBalancerIP}}) && \
+	@nginx_lb_ip=$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "nginx" }}') && \
 	http_services=$$(kubectl get configmap http-services -o template={{.data.default}}) && \
 	arr=($(KUBERNETES_SERVICES)) && \
 	for svc in "$${arr[@]}"; do \
@@ -578,9 +613,13 @@ kube.list:
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		elif [ "$${svc}" == "alertmanager" ]; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
+		elif [ "$${svc}" == "dashboard" ]; then \
+			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
+		elif [ "$${svc}" == "amproxy" ]; then \
+			continue; \
 		else \
 			printf '%s\t%s\t%s\n' \
-				$$(kubectl get service $${svc} -o template={{.spec.loadBalancerIP}}) \
+				$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "'$${svc}'" }}') \
 				$$svc.$(NETWORK_SEARCH_DOMAIN). \
 				$$svc >> $@; \
 		fi; \
@@ -590,8 +629,12 @@ kube.list:
 # Base image is needed for several containers. Make sure that it's available
 #   before any attempt at building other containers, or else docker will try to
 #   pull an image called `ncfgbase`, and it won't find one.
+# Try pulling the image first, because it very well already be up to date;
+#   don't try to rebuild the image if other images have been built off another
+#   ncfgbase
 .PHONY: base-image
 base-image:
+	$(DOCKER) pull $(REGISTRY_HOSTNAME)/ncfgbase:latest
 	$(DOCKER) build . -f BaseUpdatedUbuntuDockerfile -t ncfgbase
 	$(DOCKER) tag ncfgbase $(REGISTRY_HOSTNAME)/ncfgbase:latest
 	$(DOCKER) push $(REGISTRY_HOSTNAME)/ncfgbase:latest

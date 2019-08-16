@@ -46,7 +46,7 @@ spec:
           command:
             - sh
             - -c
-            - mongorestore --host ${MONGODB_HOST} --drop --db ${RESTORE_MONGODB_DATABASE} /restore
+            - mongorestore --host ${MONGODB_HOST} --drop --db ${RESTORE_MONGODB_DATABASE} /restore/${RESTORE_MONGODB_DATABASE}
           env:
             - name: MONGODB_HOST
               valueFrom:

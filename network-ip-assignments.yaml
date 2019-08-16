@@ -14,6 +14,7 @@ data:
   trilium: 192.168.2.51
   sharelatex: 192.168.2.52
   alertmanager: 192.168.2.53
+  dashboard: 192.168.2.54
   # Back End Services     192.168.2.64/28
   registry: 192.168.2.64
   util: 192.168.2.65
@@ -22,6 +23,7 @@ data:
   pihole: 192.168.2.68
   plex: 192.168.2.69
   slackbot: 192.168.2.70
+  blobstore: 192.168.2.71
   # Daemon-Like Services  192.168.2.80/28
   certbot: 192.168.2.80
   transmission: 192.168.2.81

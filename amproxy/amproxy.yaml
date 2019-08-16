@@ -1,0 +1,47 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: amproxy-deployment
+  namespace: monitoring
+  labels:
+    app: amproxy
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: amproxy
+  template:
+    metadata:
+      labels:
+        app: amproxy
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: amproxy
+          image: registry.internal.aleemhaji.com/amproxy:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: SLACK_CHANNEL
+              valueFrom:
+                configMapKeyRef:
+                  name: slack-bot-config
+                  key: alerting_channel
+            - name: SLACK_HOST
+              value: http://slackbot.default.svc.cluster.local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: amproxy
+  namespace: monitoring
+  labels:
+    app: amproxy
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+  selector:
+    app: amproxy

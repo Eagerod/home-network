@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # mr is an application designed to easily support building out a multi-reddit
-#   tracker using the blob service at https://aleem.haji.ca/blob
+#   tracker using the blob service at https://blob.aleemhaji.com
 __blob_file_get() {
 	if [ $# -ne 1 ]; then
 		exit -1
