@@ -17,6 +17,7 @@ data:
     sharelatex
     slackbot
     blobstore
+    drone
   monitoring: |
     grafana-published
     alertmanager-published

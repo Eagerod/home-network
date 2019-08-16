@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: gitea-pv
+  name: drone-pv
   labels:
-    identifier: gitea
+    identifier: drone
 spec:
   capacity:
     storage: 5Gi
@@ -15,13 +15,13 @@ spec:
     - hard
     - nfsvers=3
   nfs:
-    path: /kubernetes-test/gitea
+    path: /kubernetes-test/drone
     server: 192.168.1.42
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: gitea-pv-claim
+  name: drone-pv-claim
 spec:
   accessModes:
     - ReadWriteOnce
@@ -30,62 +30,61 @@ spec:
       storage: 5Gi
   selector:
     matchLabels:
-      identifier: gitea
+      identifier: drone
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gitea-deployment
+  name: drone-deployment
   labels:
-    app: gitea
+    app: drone
 spec:
   revisionHistoryLimit: 0
   replicas: 1
   selector:
     matchLabels:
-      app: gitea
+      app: drone
   template:
     metadata:
       labels:
-        app: gitea
+        app: drone
     spec:
       containers:
-        - name: gitea
-          image: gitea/gitea:1.9.0
+        - name: drone
+          image: drone/drone:1.2.3
+          env:
+            - name: DRONE_GITEA_SERVER
+              value: https://gitea.internal.aleemhaji.com
+            - name: DRONE_SERVER_HOST
+              value: drone.internal.aleemhaji.com
+            - name: DRONE_SERVER_PROTO
+              value: https
           ports:
-            - containerPort: 3000
-            - containerPort: 22
+            - containerPort: 80
           volumeMounts:
-            - name: gitea-persistent-storage
+            - name: drone-persistent-storage
               mountPath: /data
-            - name: ssl-cert
-              mountPath: /etc/ssl/certs/
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
       volumes:
-        - name: gitea-persistent-storage
+        - name: drone-persistent-storage
           persistentVolumeClaim:
-            claimName: gitea-pv-claim
-        - name: ssl-cert
-          projected:
-            sources:
-              - secret:
-                  name: internal-certificate-files
+            claimName: drone-pv-claim
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: gitea
+  name: drone
   labels:
-    app: gitea
+    app: drone
 spec:
   ports:
-    - port: 443
+    - port: 80
       protocol: TCP
-      name: web
-      targetPort: 3000
-    - port: 22
-      protocol: TCP
-      name: ssh
   type: LoadBalancer
   loadBalancerIP:
   selector:
-    app: gitea
+    app: drone
