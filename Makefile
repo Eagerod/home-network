@@ -428,8 +428,12 @@ openvpnas:
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 
-	$(call KUBECTL_WAIT_FOR_POD,$@)
-	$(call KUBECTL_APP_EXEC,$@) -- sh -c 'set -ex; find scripts -type f | sort | while read line; do sh $$line; done'
+	@# Wait a while in case a pod was already running, let it die, so we don't
+	@#   try to run the setup script in the dying pod.
+	@sleep 5
+
+	@$(call KUBECTL_WAIT_FOR_POD,$@)
+	@$(call KUBECTL_APP_EXEC,$@) -- sh -c 'set -ex; find scripts -type f | sort | while read line; do sh $$line; done'
 
 
 # Configuration Recipes

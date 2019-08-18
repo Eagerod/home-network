@@ -13,6 +13,7 @@ data:
     /usr/local/openvpn_as/scripts/sacli --key vpn.server.port_share.enable --value false ConfigPut
     /usr/local/openvpn_as/scripts/sacli --key vpn.server.port_share.service --value custom ConfigPut
   30-set-client-port.sh: |
+    /usr/local/openvpn_as/scripts/sacli --key admin_ui.https.port --value 943 ConfigPut
     /usr/local/openvpn_as/scripts/sacli --key cs.https.port --value 944 ConfigPut
   40-set-vpn-network-rules.sh: |
     /usr/local/openvpn_as/scripts/sacli --key vpn.server.routing.private_network.0 --value 192.168.1.0/24 ConfigPut
@@ -23,13 +24,14 @@ data:
 
     /usr/local/openvpn_as/scripts/sacli --key host.name --value ${OPENVPN_AS_HOSTNAME} ConfigPut
   50-set-user-configs.sh: |
+    /usr/local/openvpn_as/scripts/sacli --user __DEFAULT__ --key def_deny --value true UserPropPut
+    /usr/local/openvpn_as/scripts/sacli --user __DEFAULT__ --key prop_deny --value true UserPropPut
+
     /usr/local/openvpn_as/scripts/sacli --user ${OPENVPN_PRIMARY_USERNAME} --key type --value user_connect UserPropPut
     /usr/local/openvpn_as/scripts/sacli --user ${OPENVPN_PRIMARY_USERNAME} --key prop_superuser --value true UserPropPut
     /usr/local/openvpn_as/scripts/sacli --user ${OPENVPN_PRIMARY_USERNAME} --key prop_deny --value false UserPropPut
+    /usr/local/openvpn_as/scripts/sacli --user ${OPENVPN_PRIMARY_USERNAME} --key prop_autologin --value true UserPropPut
     /usr/local/openvpn_as/scripts/sacli --user ${OPENVPN_PRIMARY_USERNAME} --new_pass ${OPENVPN_PRIMARY_USERPASS} SetLocalPassword
-
-    /usr/local/openvpn_as/scripts/sacli --user __DEFAULT__ --key def_deny --value true UserPropPut
-    /usr/local/openvpn_as/scripts/sacli --user __DEFAULT__ --key prop_deny --value true UserPropPut
   60-enable-2fa.sh: |
     # Only recreate 2fa secret if there isn't already one set.
     if [ -z "$(/usr/local/openvpn_as/scripts/sacli --user ${OPENVPN_PRIMARY_USERNAME} UserPropGet | grep '"pvt_google_auth_secret"' | awk '{print $2}' | tr -cd '[[:alnum:]]')" ]; then
@@ -114,7 +116,7 @@ spec:
     spec:
       containers:
         - name: openvpnas
-          image: linuxserver/openvpn-as
+          image: linuxserver/openvpn-as:2.7.3-ls21
           ports:
             - containerPort: 9443
             - containerPort: 943
