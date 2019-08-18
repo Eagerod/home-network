@@ -270,6 +270,10 @@ reload-pihole: pihole-configurations kube.list
 	done
 
 
+.PHONY: killall
+killall: $(foreach s,$(KUBERNETES_SERVICES), kill-$(s))
+
+
 # Shutdown any service.
 .PHONY: kill-%
 kill-%:
