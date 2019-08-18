@@ -68,7 +68,8 @@ SIMPLE_SERVICES:=\
 	util \
 	resilio \
 	slackbot \
-	amproxy
+	amproxy \
+	nodered
 
 KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 
@@ -84,6 +85,7 @@ slackbot: slackbot-configurations
 alertmanager: alertmanager-configurations
 blobstore: blobstore-configurations
 certbot: certbot-configurations
+nodered: nodered-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -107,7 +109,9 @@ SAVE_ENV_VARS=\
 	DOCKER_REGISTRY_USERNAME\
 	FIREFLY_MYSQL_USER\
 	FIREFLY_MYSQL_DATABASE\
-	REMINDMEBOT_USERNAME
+	REMINDMEBOT_USERNAME\
+	NODE_RED_MYSQL_USER\
+	NODE_RED_MYSQL_DATABASE
 
 
 .PHONY: all
@@ -498,6 +502,19 @@ certbot-configurations:
 		--from-file "certbot/dns-renew.sh" \
 		--from-file "certbot/update-secrets.sh" \
 		-o yaml --dry-run | kubectl apply -f -
+
+
+.PHONY: nodered-configurations
+nodered-configurations:
+	@source .env && \
+		kubectl create configmap nodered-config \
+			--from-literal "mysql_database=$${NODE_RED_MYSQL_DATABASE}" \
+			--from-literal "mysql_user=$${NODE_RED_MYSQL_USER}" \
+			-o yaml --dry-run | kubectl apply -f -
+	@source .env && \
+		kubectl create secret generic nodered-secrets \
+			--from-literal "mysql_password=$${NODE_RED_MYSQL_PASSWORD}" \
+			-o yaml --dry-run | kubectl apply -f -
 
 
 .PHONY: mysql-restore
