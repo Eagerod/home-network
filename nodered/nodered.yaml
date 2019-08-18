@@ -124,11 +124,6 @@ spec:
                 secretKeyRef:
                   name: nodered-secrets
                   key: mysql_password
-            - name: FREEDNS_AUTH
-              valueFrom:
-                secretKeyRef:
-                  name: nodered-secrets
-                  key: freedns_auth
       volumes:
         - name: nodered-persistent-storage
           persistentVolumeClaim:

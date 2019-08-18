@@ -509,7 +509,6 @@ nodered-configurations:
 			-o yaml --dry-run | kubectl apply -f -
 	@source .env && \
 		kubectl create secret generic nodered-secrets \
-			--from-literal "freedns_auth=$${FREEDNS_AUTH}" \
 			--from-literal "mysql_password=$${NODE_RED_MYSQL_PASSWORD}" \
 			-o yaml --dry-run | kubectl apply -f -
 
