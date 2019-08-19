@@ -1,15 +1,14 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: mysql-init-deployment
-  labels:
-    app: mysql-init
+  name: mysql-init
 spec:
   revisionHistoryLimit: 0
   replicas: 1
   selector:
     matchLabels:
       app: mysql-init
+  serviceName: mysql
   template:
     metadata:
       labels:
@@ -30,7 +29,15 @@ spec:
                 secretKeyRef:
                   name: mysql-root-password
                   key: value
-      volumes:
-        - name: mysql-persistent-storage
-          persistentVolumeClaim:
-            claimName: mysql-pv-claim
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-persistent-storage
+      spec:
+        accessModes: 
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+        selector:
+          matchLabels:
+            identifier: mysql

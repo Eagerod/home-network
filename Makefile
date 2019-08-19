@@ -359,11 +359,15 @@ mysql:
 	@#   actually running queries against it.
 	@if [ -z "$$($(call KUBECTL_APP_PODS,mysql))" ] || \
 			! $(call KUBECTL_APP_EXEC,mysql) -- sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -e 'SELECT 1'"; then \
-		kubectl scale deployment mysql-deployment --replicas=0; \
-		kubectl scale deployment mysql-init-deployment --replicas=0; \
+		kubectl scale statefulset mysql --replicas=0; \
+		kubectl scale statefulset mysql-init --replicas=0; \
 		kubectl apply -f mysql/mysql-init.yaml; \
 		while [ -z "$$($(call KUBECTL_RUNNING_POD,mysql-init))" ]; do \
-			echo >&2 "MySQL not up yet. Waiting 1 second..."; \
+			echo >&2 "MySQL pod not up yet. Waiting 1 second..."; \
+			sleep 1; \
+		done; \
+		source .env && while ! $(call KUBECTL_APP_EXEC,mysql-init) -- mysql -e 'select 1;'; do \
+			echo >&2 "MySQL service not up yet. Waiting 1 second..."; \
 			sleep 1; \
 		done; \
 		source .env && $(call KUBECTL_APP_EXEC,mysql-init) -- \
@@ -374,7 +378,7 @@ mysql:
 				SET PASSWORD FOR '"'"'root'"'"'@'"'"'10.244.%.%'"'"' = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
 				GRANT ALL PRIVILEGES ON *.* to '"'"'root'"'"'@'"'"'10.244.%.%'"'"' WITH GRANT OPTION; \
 				FLUSH PRIVILEGES;'; \
-		kubectl scale deployment mysql-init-deployment --replicas=0; \
+		kubectl scale statefulset mysql-init --replicas=0; \
 	fi
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
