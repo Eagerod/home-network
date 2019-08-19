@@ -8,7 +8,7 @@ spec:
   selector:
     matchLabels:
       app: mysql-init
-  serviceName: mysql
+  serviceName: mysql-init
   template:
     metadata:
       labels:
