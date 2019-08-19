@@ -55,7 +55,8 @@ TRIVIAL_SERVICES:=\
 	sharelatex \
 	alertmanager \
 	dashboard \
-	blobstore
+	blobstore \
+	tedbot
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
 #   docker image using the Dockerfile in the service's directory, and pushing
@@ -86,6 +87,7 @@ alertmanager: alertmanager-configurations
 blobstore: blobstore-configurations
 certbot: certbot-configurations
 nodered: nodered-configurations
+tedbot: tedbot-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -518,6 +520,14 @@ nodered-configurations:
 	@source .env && \
 		kubectl create secret generic nodered-secrets \
 			--from-literal "mysql_password=$${NODE_RED_MYSQL_PASSWORD}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+
+.PHONY: tedbot-configurations
+tedbot-configurations:
+	@source .env && \
+		kubectl create secret generic tedbot-webhook-url \
+			--from-literal "value=$${SLACK_TEDBOT_APP_WEBHOOK}" \
 			-o yaml --dry-run | kubectl apply -f -
 
 
