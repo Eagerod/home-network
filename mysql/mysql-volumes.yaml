@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: mysql-pv
+  name: mysql-pv-0
   labels:
     identifier: mysql
 spec:
@@ -19,15 +19,21 @@ spec:
     server: 192.168.1.42
 ---
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: PersistentVolume
 metadata:
-  name: mysql-pv-claim
+  name: mysql-pv-1
+  labels:
+    identifier: mysql
 spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
   accessModes:
     - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  selector:
-    matchLabels:
-      identifier: mysql
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nfsvers=3
+  nfs:
+    path: /kubernetes-test/mysql
+    server: 192.168.1.42
