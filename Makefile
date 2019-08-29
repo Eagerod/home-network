@@ -29,6 +29,11 @@ KUBERNETES_MASTER:=192.168.2.10
 KUBERNETES_HOSTS:=$(shell kubectl get nodes -o jsonpath={.items[*].status.addresses[?\(@.type==\"InternalIP\"\)].address})
 KUBERNETES_PROMETHEUS_VERISON=0.1.0
 
+AP_IPS=\
+	192.168.1.43 \
+	192.168.1.46 \
+	192.168.1.56
+
 NETWORK_SEARCH_DOMAIN=internal.aleemhaji.com
 
 KUBECONFIG=.kube/config
@@ -608,6 +613,15 @@ router-dns-config:
 		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper save; \
 		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper end; \
 	'"
+
+
+.PHONY: ap-config
+ap-config:
+	@# Use the IP of the service, rather than the domain.
+	@# The domain will point at nginx, so it'll be useless.
+	@inform_ip=$$(kubectl get configmap network-ip-assignments -o template='{{index .data "unifi"}}') && \
+	$(foreach ip,$(AP_IPS),ssh $(ip) mca-cli-op set-inform http://$${inform_ip}:8080/inform && ) \
+	echo "Done"
 
 
 .PHONY: token
