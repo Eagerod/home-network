@@ -1,37 +1,3 @@
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: git-pv
-  labels:
-    identifier: git
-spec:
-  capacity:
-    storage: 5Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  mountOptions:
-    - hard
-    - nfsvers=3
-  nfs:
-    path: /kubernetes-test/git
-    server: 192.168.1.42
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: git-pv-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  selector:
-    matchLabels:
-      identifier: git
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -56,9 +22,6 @@ spec:
           image: registry.internal.aleemhaji.com/util:latest
           ports:
             - containerPort: 22
-          volumeMounts:
-            - name: git-persistent-storage
-              mountPath: /var/lib/git
           env:
             - name: DEFAULT_BLOBSTORE_WRITE_ACL
               valueFrom:
@@ -80,10 +43,6 @@ spec:
                 configMapKeyRef:
                   name: multi-reddit-blob-config
                   key: subreddit_path
-      volumes:
-        - name: git-persistent-storage
-          persistentVolumeClaim:
-            claimName: git-pv-claim
 ---
 apiVersion: v1
 kind: Service
