@@ -1,0 +1,49 @@
+# This deployment spec is meant to be pretty volatile, but overall just used
+#   for experimentation.
+# Lives in its own namespace to keep itself a little further away from all
+#   other services.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devbox
+  namespace: dev
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      name: devbox
+  template:
+    metadata:
+      labels:
+        name: devbox
+    spec:
+      containers:
+        - name: devbox
+          image: busybox
+          command: 
+            - /bin/sh
+          stdin: true 
+          tty: true
+---
+# Just have a service sitting there, pointing at port 80.
+# It'll mostly be unused, but better to have the definition ready to go.
+apiVersion: v1
+kind: Service
+metadata:
+  name: devbox
+  namespace: dev
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8080
+  type: LoadBalancer
+  loadBalancerIP: 192.168.200.224
+  selector:
+    app: devbox
