@@ -29,6 +29,11 @@ KUBERNETES_MASTER:=192.168.2.10
 KUBERNETES_HOSTS:=$(shell kubectl get nodes -o jsonpath={.items[*].status.addresses[?\(@.type==\"InternalIP\"\)].address})
 KUBERNETES_PROMETHEUS_VERISON=0.1.0
 
+AP_IPS=\
+	192.168.1.43 \
+	192.168.1.46 \
+	192.168.1.56
+
 NETWORK_SEARCH_DOMAIN=internal.aleemhaji.com
 
 KUBECONFIG=.kube/config
@@ -56,6 +61,7 @@ TRIVIAL_SERVICES:=\
 	alertmanager \
 	dashboard \
 	blobstore \
+	tedbot \
 	gitea
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
@@ -69,7 +75,8 @@ SIMPLE_SERVICES:=\
 	util \
 	resilio \
 	slackbot \
-	amproxy
+	amproxy \
+	nodered
 
 KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 
@@ -85,6 +92,8 @@ slackbot: slackbot-configurations
 alertmanager: alertmanager-configurations
 blobstore: blobstore-configurations
 certbot: certbot-configurations
+nodered: nodered-configurations
+tedbot: tedbot-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -108,7 +117,9 @@ SAVE_ENV_VARS=\
 	DOCKER_REGISTRY_USERNAME\
 	FIREFLY_MYSQL_USER\
 	FIREFLY_MYSQL_DATABASE\
-	REMINDMEBOT_USERNAME
+	REMINDMEBOT_USERNAME\
+	NODE_RED_MYSQL_USER\
+	NODE_RED_MYSQL_DATABASE
 
 
 .PHONY: all
@@ -271,6 +282,10 @@ reload-pihole: pihole-configurations kube.list
 	done
 
 
+.PHONY: killall
+killall: $(foreach s,$(KUBERNETES_SERVICES), kill-$(s))
+
+
 # Shutdown any service.
 .PHONY: kill-%
 kill-%:
@@ -352,11 +367,15 @@ mysql:
 	@#   actually running queries against it.
 	@if [ -z "$$($(call KUBECTL_APP_PODS,mysql))" ] || \
 			! $(call KUBECTL_APP_EXEC,mysql) -- sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -e 'SELECT 1'"; then \
-		kubectl scale deployment mysql-deployment --replicas=0; \
-		kubectl scale deployment mysql-init-deployment --replicas=0; \
+		kubectl scale statefulset mysql --replicas=0; \
+		kubectl scale statefulset mysql-init --replicas=0; \
 		kubectl apply -f mysql/mysql-init.yaml; \
 		while [ -z "$$($(call KUBECTL_RUNNING_POD,mysql-init))" ]; do \
-			echo >&2 "MySQL not up yet. Waiting 1 second..."; \
+			echo >&2 "MySQL pod not up yet. Waiting 1 second..."; \
+			sleep 1; \
+		done; \
+		source .env && while ! $(call KUBECTL_APP_EXEC,mysql-init) -- mysql -e 'select 1;'; do \
+			echo >&2 "MySQL service not up yet. Waiting 1 second..."; \
 			sleep 1; \
 		done; \
 		source .env && $(call KUBECTL_APP_EXEC,mysql-init) -- \
@@ -367,7 +386,7 @@ mysql:
 				SET PASSWORD FOR '"'"'root'"'"'@'"'"'10.244.%.%'"'"' = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
 				GRANT ALL PRIVILEGES ON *.* to '"'"'root'"'"'@'"'"'10.244.%.%'"'"' WITH GRANT OPTION; \
 				FLUSH PRIVILEGES;'; \
-		kubectl scale deployment mysql-init-deployment --replicas=0; \
+		kubectl scale statefulset mysql-init --replicas=0; \
 	fi
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
@@ -497,6 +516,27 @@ certbot-configurations:
 		-o yaml --dry-run | kubectl apply -f -
 
 
+.PHONY: nodered-configurations
+nodered-configurations:
+	@source .env && \
+		kubectl create configmap nodered-config \
+			--from-literal "mysql_database=$${NODE_RED_MYSQL_DATABASE}" \
+			--from-literal "mysql_user=$${NODE_RED_MYSQL_USER}" \
+			-o yaml --dry-run | kubectl apply -f -
+	@source .env && \
+		kubectl create secret generic nodered-secrets \
+			--from-literal "mysql_password=$${NODE_RED_MYSQL_PASSWORD}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+
+.PHONY: tedbot-configurations
+tedbot-configurations:
+	@source .env && \
+		kubectl create secret generic tedbot-webhook-url \
+			--from-literal "value=$${SLACK_TEDBOT_APP_WEBHOOK}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+
 .PHONY: mysql-restore
 mysql-restore:
 	@if [ -z "$${RESTORE_MYSQL_DATABASE}" ]; then \
@@ -574,6 +614,15 @@ router-dns-config:
 		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper save; \
 		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper end; \
 	'"
+
+
+.PHONY: ap-config
+ap-config:
+	@# Use the IP of the service, rather than the domain.
+	@# The domain will point at nginx, so it'll be useless.
+	@inform_ip=$$(kubectl get configmap network-ip-assignments -o template='{{index .data "unifi"}}') && \
+	$(foreach ip,$(AP_IPS),ssh $(ip) mca-cli-op set-inform http://$${inform_ip}:8080/inform && ) \
+	echo "Done"
 
 
 .PHONY: token

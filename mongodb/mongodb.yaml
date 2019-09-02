@@ -18,43 +18,31 @@ spec:
     path: /kubernetes-test/mongodb
     server: 192.168.1.42
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mongodb-pv-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  selector:
-    matchLabels:
-      identifier: mongodb
----
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: mongodb-deployment
-  labels:
-    app: mongodb
+  name: mongodb
 spec:
-  strategy:
-    type: Recreate
   revisionHistoryLimit: 0
   replicas: 1
   selector:
     matchLabels:
       app: mongodb
+  serviceName: mongodb
   template:
     metadata:
       labels:
         app: mongodb
     spec:
+      terminationGracePeriodSeconds: 120
       containers:
         - name: mongodb
           image: mongo:3.7
-          args: ["--sslMode", "preferSSL", "-sslPEMKeyFile", "/etc/ssl/mongodb.pem"]
+          args:
+            - --sslMode
+            - preferSSL
+            - --sslPEMKeyFile
+            - /etc/ssl/mongodb.pem
           ports:
             - containerPort: 27017
           volumeMounts:
@@ -64,14 +52,23 @@ spec:
               mountPath: /etc/ssl/mongodb.pem
               subPath: keycert.pem
       volumes:
-        - name: mongodb-persistent-storage
-          persistentVolumeClaim:
-            claimName: mongodb-pv-claim
         - name: mongodb-pem
           projected:
             sources:
               - secret:
                   name: internal-certificate-file
+  volumeClaimTemplates:
+    - metadata:
+        name: mongodb-persistent-storage
+      spec:
+        accessModes: 
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+        selector:
+          matchLabels:
+            identifier: mongodb
 ---
 apiVersion: v1
 kind: Service

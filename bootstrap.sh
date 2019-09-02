@@ -23,7 +23,7 @@ verify_is_root() {
 
 # Check to make sure this is running on a Linux machine.
 verify_is_linux() {
-    if [ "$$(uname)" != "Linux" ]; then
+    if [ "$(uname)" != "Linux" ]; then
         echo >&2 "Bootstrap being run on a $(uname) machine. Cannot continue."
         exit 1
     fi
@@ -51,8 +51,8 @@ verify_bootstrap_op() {
 setup_openssh_server() {
     yum install -y openssh-server
 
-    sed -i -r 's/^[#\s]*(PasswordAuthentication).*$$/\1 no/' /etc/ssh/sshd_config
-    sed -i -r 's/^[#\s]*(PermitRootLogin).*$$/\1 prohibit-password/' /etc/ssh/sshd_config
+    sed -i -r 's/^[#\s]*(PasswordAuthentication).*$/\1 no/' /etc/ssh/sshd_config
+    sed -i -r 's/^[#\s]*(PermitRootLogin).*$/\1 prohibit-password/' /etc/ssh/sshd_config
 
     systemctl enable sshd
     systemctl start sshd

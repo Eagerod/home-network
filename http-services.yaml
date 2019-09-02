@@ -17,6 +17,7 @@ data:
     sharelatex
     slackbot
     blobstore
+    nodered
   monitoring: |
     grafana-published
     alertmanager-published
