@@ -342,6 +342,14 @@ registry:
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 
+	@# Wait for the current registry to possibly be scheduled away if it needs
+	@#   to be.
+	@# This can probably be replaced with something more fancy at some point,
+	@#   but it does what it needs to for now.
+	@sleep 5
+
+	@$(call KUBECTL_WAIT_FOR_POD,$@)
+
 	@source .env && \
 		$(DOCKER) login \
 			--username $${DOCKER_REGISTRY_USERNAME}\
