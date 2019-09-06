@@ -198,7 +198,7 @@ crons: base-image
 	done
 
 	@source .env && kubectl create secret generic namesilo-api-key \
-		--from-literal value=${NAMESILO_API_KEY} \
+		--from-literal value=$${NAMESILO_API_KEY} \
 		-o yaml --dry-run | \
 			kubectl apply -f -
 	@kubectl apply -f crons/dns-cron.yaml
