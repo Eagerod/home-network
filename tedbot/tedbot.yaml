@@ -38,6 +38,8 @@ metadata:
   name: tedbot
 spec:
   schedule: "0 12 * * 1-5"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
       template:
