@@ -60,6 +60,8 @@ metadata:
   name: certbot
 spec:
   schedule: "32 4,16 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
       template:

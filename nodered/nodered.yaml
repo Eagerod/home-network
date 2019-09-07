@@ -1,0 +1,145 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nodered-pv
+  labels:
+    identifier: nodered
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nfsvers=3
+  nfs:
+    path: /kubernetes-test/node-red
+    server: 192.168.1.42
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nodered-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  selector:
+    matchLabels:
+      identifier: nodered
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nodered-mysql-init
+  labels:
+    job: nodered-mysql-init
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: nodered-mysql-init
+          image: mysql:5.7.26
+          command:
+            - sh
+            - -c
+            - |
+              mysql -h ${MYSQL_HOST} -u root -e " \
+                CREATE USER IF NOT EXISTS ${DB_USER}@'10.244.%.%'; \
+                SET PASSWORD FOR ${DB_USER}@'10.244.%.%' = PASSWORD('${DB_PASSWORD}'); \
+                CREATE DATABASE IF NOT EXISTS ${DB_NAME}; \
+                GRANT ALL ON $${DB_NAME}.* TO $${DB_USER}@'10.244.%.%';"
+          env:
+            - name: MYSQL_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-root-password
+                  key: value
+            - name: MYSQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: network-ip-assignments
+                  key: mysql
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: nodered-config
+                  key: mysql_user
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: nodered-config
+                  key: mysql_database
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nodered-secrets
+                  key: mysql_password
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nodered-deployment
+  labels:
+    app: nodered
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodered
+  template:
+    metadata:
+      labels:
+        app: nodered
+    spec:
+      imagePullSecrets: 
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: nodered
+          image: registry.internal.aleemhaji.com/nodered:latest
+          ports:
+            - containerPort: 1880
+          volumeMounts:
+            - name: nodered-persistent-storage
+              mountPath: /root/.node-red
+          env:
+            - name: MYSQL_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: nodered-config
+                  key: mysql_user
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: nodered-config
+                  key: mysql_database
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nodered-secrets
+                  key: mysql_password
+      volumes:
+        - name: nodered-persistent-storage
+          persistentVolumeClaim:
+            claimName: nodered-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodered
+  labels:
+    app: nodered
+spec:
+  ports:
+    - port: 1880
+      protocol: TCP
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: nodered

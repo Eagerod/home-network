@@ -7,6 +7,8 @@ data:
     factorio
     trilium
     sharelatex
+    nodered
+    git
   factorio: |
     CRONJOB_NAME=factorio
     RSYNC_OPTIONS="-avhuDH --exclude=.sync"
@@ -33,4 +35,22 @@ data:
     SOURCE_PATH=/
     DESTINATION_NFS_SERVER=192.168.1.42
     DESTINATION_NFS_DIRECTORY=/kubernetes-test/backups/sharelatex
+    DEST_PATH=
+  nodered: |
+    CRONJOB_NAME=nodered
+    RSYNC_OPTIONS="-avhuDH --delete --exclude=.sync"
+    SOURCE_NFS_SERVER=192.168.1.42
+    SOURCE_NFS_DIRECTORY=/kubernetes-test/node-red
+    SOURCE_PATH=/flows.json
+    DESTINATION_NFS_SERVER=192.168.1.42
+    DESTINATION_NFS_DIRECTORY=/kubernetes-test/backups/node-red
+    DEST_PATH=/
+  git: |
+    CRONJOB_NAME=git
+    RSYNC_OPTIONS="-avhuDH --delete --exclude=.sync"
+    SOURCE_NFS_SERVER=192.168.1.42
+    SOURCE_NFS_DIRECTORY=/kubernetes-test/gitea
+    SOURCE_PATH=/
+    DESTINATION_NFS_SERVER=192.168.1.42
+    DESTINATION_NFS_DIRECTORY=/kubernetes-test/backups/gitea
     DEST_PATH=

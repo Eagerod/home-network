@@ -17,6 +17,7 @@ data:
     sharelatex
     slackbot
     blobstore
+    nodered
     openvpnas-tcp
   monitoring: |
     grafana-published

@@ -23,9 +23,6 @@ RUN \
 # Install blobstore.
 RUN curl -sfSL https://blob.aleemhaji.com/clientlib/installer.sh | bash
 
-# Needed for the git repository manager.
-RUN python -m pip install PyYAML
-
 COPY ./authorized_keys /root/.ssh/authorized_keys
 COPY ./app/mr /usr/sbin/mr
 COPY ./docker-entrypoint.sh .

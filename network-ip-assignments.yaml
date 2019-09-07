@@ -15,6 +15,7 @@ data:
   sharelatex: 192.168.2.52
   alertmanager: 192.168.2.53
   dashboard: 192.168.2.54
+  gitea: 192.168.2.55
   # Back End Services     192.168.2.64/28
   registry: 192.168.2.64
   util: 192.168.2.65
@@ -29,4 +30,5 @@ data:
   transmission: 192.168.2.81
   unifi: 192.168.2.82
   resilio: 192.168.2.83
+  nodered: 192.168.2.84
   openvpnas: 192.168.2.85
