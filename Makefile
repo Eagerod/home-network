@@ -24,6 +24,9 @@ else
 $(error Unknown distribution ($(UNAME)) for running this project.)
 endif
 
+ROUTER_HOST:=192.168.1.1
+ROUTER_HOST_USER:=ubnt@$(ROUTER_HOST)
+
 # Constants and calculated values
 KUBERNETES_MASTER:=192.168.2.10
 KUBERNETES_HOSTS:=$(shell kubectl get nodes -o jsonpath={.items[*].status.addresses[?\(@.type==\"InternalIP\"\)].address})
@@ -603,25 +606,38 @@ $(KUBECONFIG):
 	@cp $@ ~/.kube/config
 
 
+.INTERMEDIATE: dns.vbash
+dns.vbash:
+	sed \
+		-e 's/$${PIHOLE_IP}/'$(call SERVICE_LB_IP,pihole)'/' \
+		.scripts/router-dns.vbash > $@
+
+
 .PHONY: router-dns-config
-router-dns-config:
-	pihole_ip=$$(kubectl get configmap network-ip-assignments -o template={{.data.pihole}}) && \
-	ssh ubnt@192.168.1.1 /bin/vbash -c "'\
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper begin; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dns forwarding cache-size 0; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper delete system name-server; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set system name-server 127.0.0.1; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dhcp-server use-dnsmasq enable; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set interfaces ethernet eth0 dhcp-options name-server no-update; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dns forwarding options strict-order; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper delete service dns forwarding name-server; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dns forwarding name-server 8.8.4.4; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dns forwarding name-server 8.8.8.8; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dns forwarding name-server '$${pihole_ip}'; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper commit; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper save; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper end; \
-	'"
+router-dns-config: dns.vbash
+	scp dns.vbash $(ROUTER_HOST_USER):temp.vbash
+	ssh $(ROUTER_HOST_USER) /bin/vbash temp.vbash
+	ssh $(ROUTER_HOST_USER) rm temp.vbash
+
+
+.INTERMEDIATE: pf.vbash
+pf.vbash:
+	sed \
+		-e 's/$${FACTORIO_IP}/'$(call SERVICE_LB_IP,factorio)'/' \
+		-e 's/$${PLEX_IP}/'$(call SERVICE_LB_IP,plex)'/' \
+		-e 's/$${NGINX_IP}/'$(call SERVICE_LB_IP,nginx)'/' \
+		.scripts/router-port-forward.vbash > $@
+
+
+# Port forwarding is all pretty custom, so don't bother trying to put any real
+#   automation around this.
+# This will destroy whatever existing port-forwarding rules exist too, so
+#   hopefully they don't matter.
+.PHONY: router-port-forwarding
+router-port-forwarding: networking pf.vbash
+	scp pf.vbash $(ROUTER_HOST_USER):temp.vbash
+	ssh $(ROUTER_HOST_USER) /bin/vbash temp.vbash
+	ssh $(ROUTER_HOST_USER) rm temp.vbash
 
 
 .PHONY: ap-config
