@@ -1,37 +1,3 @@
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: mysql-backups-pv
-  labels:
-    identifier: mysql-backups
-spec:
-  capacity:
-    storage: 5Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  mountOptions:
-    - hard
-    - nfsvers=3
-  nfs:
-    path: /kubernetes-test/backups/mysql
-    server: 192.168.1.42
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-backups-pv-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  selector:
-    matchLabels:
-      identifier: mysql-backups
----
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -45,7 +11,7 @@ spec:
       template:
         spec:
           containers:
-            - name: mysql
+            - name: mysql-backup
               image: mysql:5.7.26
               command:
                 - sh
@@ -68,8 +34,9 @@ spec:
                       key: mysql
           volumes:
             - name: backups
-              persistentVolumeClaim:
-                claimName: mysql-backups-pv-claim
+              nfs:
+                server: 192.168.1.42
+                path: /kubernetes-test/backups/mysql
             - name: backup-script
               projected:
                 sources:
