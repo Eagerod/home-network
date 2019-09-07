@@ -66,7 +66,7 @@ spec:
     matchLabels:
       identifier: resilio
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: resilio-deployment
