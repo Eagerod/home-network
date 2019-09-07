@@ -20,7 +20,7 @@ data:
     DEST_PATH=
   trilium: |
     CRONJOB_NAME=trilium
-    RSYNC_OPTIONS="-avhuDH --delete --exclude=.sync"
+    RSYNC_OPTIONS="-avhuDH --delete --exclude=.sync --exclude=log"
     SOURCE_NFS_SERVER=192.168.1.42
     SOURCE_NFS_DIRECTORY=/kubernetes-test/trilium
     SOURCE_PATH=/
@@ -45,9 +45,9 @@ data:
     DESTINATION_NFS_SERVER=192.168.1.42
     DESTINATION_NFS_DIRECTORY=/kubernetes-test/backups/node-red
     DEST_PATH=/
-  git: |
+  gitea: |
     CRONJOB_NAME=gitea
-    RSYNC_OPTIONS="-avhuDH --delete --exclude=.sync"
+    RSYNC_OPTIONS="-avhuDH --delete --exclude=.sync --exclude=gitea/log"
     SOURCE_NFS_SERVER=192.168.1.42
     SOURCE_NFS_DIRECTORY=/kubernetes-test/gitea
     SOURCE_PATH=/

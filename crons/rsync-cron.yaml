@@ -1,78 +1,7 @@
 # This is a template CronJob definition that can be used to create an entity
 #   in Kubernetes that will rsync one directory to another.
 # It creates a job that runs one rsync comment between two volumes of choice.
-# It creates a persistent volume and claim for each of the two volumes
-#   specified.
 # Currently only supports NFS shares
-# Assumes the capacity of any volume is 5Gi
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: ${CRONJOB_NAME}-source-pv
-  labels:
-    identifier: ${CRONJOB_NAME}-source
-spec:
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  capacity:
-    storage: 5Gi
-  persistentVolumeReclaimPolicy: Retain
-  mountOptions:
-    - hard
-    - nfsvers=3
-  nfs:
-    path: ${SOURCE_NFS_DIRECTORY}
-    server: ${SOURCE_NFS_SERVER}
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: ${CRONJOB_NAME}-source-pv-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  selector:
-    matchLabels:
-      identifier: ${CRONJOB_NAME}-source
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: ${CRONJOB_NAME}-destination-pv
-  labels:
-    identifier: ${CRONJOB_NAME}-destination
-spec:
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  capacity:
-    storage: 5Gi
-  persistentVolumeReclaimPolicy: Retain
-  mountOptions:
-    - hard
-    - nfsvers=3
-  nfs:
-    path: ${DESTINATION_NFS_DIRECTORY}
-    server: ${DESTINATION_NFS_SERVER}
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: ${CRONJOB_NAME}-destination-pv-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  selector:
-    matchLabels:
-      identifier: ${CRONJOB_NAME}-destination
----
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -102,8 +31,10 @@ spec:
                   mountPath: /data/dest
           volumes:
             - name: ${CRONJOB_NAME}-source
-              persistentVolumeClaim:
-                claimName: ${CRONJOB_NAME}-source-pv-claim
+              nfs:
+                server: ${SOURCE_NFS_SERVER}
+                path: ${SOURCE_NFS_DIRECTORY}
             - name: ${CRONJOB_NAME}-destination
-              persistentVolumeClaim:
-                claimName: ${CRONJOB_NAME}-destination-pv-claim
+              nfs:
+                server: ${DESTINATION_NFS_SERVER}
+                path: ${DESTINATION_NFS_DIRECTORY}
