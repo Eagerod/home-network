@@ -8,7 +8,7 @@ data:
     trilium
     sharelatex
     nodered
-    git
+    gitea
   factorio: |
     CRONJOB_NAME=factorio
     RSYNC_OPTIONS="-avhuDH --exclude=.sync"
