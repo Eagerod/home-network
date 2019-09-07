@@ -1,71 +1,3 @@
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: downloads-pv
-  labels:
-    identifier: downloads
-spec:
-  capacity:
-    storage: 20Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  mountOptions:
-    - hard
-    - nfsvers=3
-  nfs:
-    path: /kubernetes-test/downloads
-    server: 192.168.1.42
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: downloads-pv-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
-  selector:
-    matchLabels:
-      identifier: downloads
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: transmission-pv
-  labels:
-    identifier: transmission
-spec:
-  capacity:
-    storage: 5Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  mountOptions:
-    - hard
-    - nfsvers=3
-  nfs:
-    path: /kubernetes-test/transmission
-    server: 192.168.1.42
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: transmission-pv-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  selector:
-    matchLabels:
-      identifier: transmission
----
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -97,11 +29,13 @@ spec:
               mountPath: /var/lib/transmission-daemon
       volumes:
         - name: downloads-persistent-storage
-          persistentVolumeClaim:
-            claimName: downloads-pv-claim
+          nfs:
+            server: 192.168.1.42
+            path: /kubernetes-test/downloads
         - name: transmission-persistent-storage
-          persistentVolumeClaim:
-            claimName: transmission-pv-claim
+          nfs:
+            server: 192.168.1.42
+            path: /kubernetes-test/transmission
 ---
 apiVersion: v1
 kind: Service

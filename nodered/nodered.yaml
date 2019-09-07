@@ -1,37 +1,3 @@
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: nodered-pv
-  labels:
-    identifier: nodered
-spec:
-  capacity:
-    storage: 5Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  mountOptions:
-    - hard
-    - nfsvers=3
-  nfs:
-    path: /kubernetes-test/node-red
-    server: 192.168.1.42
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: nodered-pv-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  selector:
-    matchLabels:
-      identifier: nodered
----
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -126,8 +92,9 @@ spec:
                   key: mysql_password
       volumes:
         - name: nodered-persistent-storage
-          persistentVolumeClaim:
-            claimName: nodered-pv-claim
+          nfs:
+            server: 192.168.1.42
+            path: /kubernetes-test/node-red
 ---
 apiVersion: v1
 kind: Service

@@ -1,37 +1,3 @@
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: trilium-pv
-  labels:
-    identifier: trilium
-spec:
-  capacity:
-    storage: 5Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  mountOptions:
-    - hard
-    - nfsvers=3
-  nfs:
-    path: /kubernetes-test/trilium
-    server: 192.168.1.42
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: trilium-pv-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  selector:
-    matchLabels:
-      identifier: trilium
----
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -61,8 +27,9 @@ spec:
               mountPath: /var/lib/trilium
       volumes:
         - name: trilium-persistent-storage
-          persistentVolumeClaim:
-            claimName: trilium-pv-claim
+          nfs:
+            server: 192.168.1.42
+            path: /kubernetes-test/trilium
 ---
 apiVersion: v1
 kind: Service
