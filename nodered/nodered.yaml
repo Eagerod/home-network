@@ -81,7 +81,7 @@ spec:
                   name: nodered-secrets
                   key: mysql_password
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nodered-deployment
