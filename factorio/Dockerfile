@@ -5,7 +5,7 @@ RUN \
     apt-get install -y \
         xz-utils
 
-ENV FACTORIO_SERVER_VERSION 0.17.43
+ENV FACTORIO_SERVER_VERSION 0.17.68
 
 RUN \
     curl -sSL https://www.factorio.com/get-download/$FACTORIO_SERVER_VERSION/headless/linux64 -o /tmp/$FACTORIO_SERVER_VERSION.tar.xz && \
