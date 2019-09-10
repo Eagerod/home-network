@@ -30,7 +30,9 @@ ROUTER_HOST_USER:=ubnt@$(ROUTER_HOST)
 # Constants and calculated values
 KUBERNETES_MASTER:=192.168.2.10
 KUBERNETES_HOSTS:=$(shell kubectl get nodes -o jsonpath={.items[*].status.addresses[?\(@.type==\"InternalIP\"\)].address})
+
 KUBERNETES_PROMETHEUS_VERISON=0.1.0
+KUBERNETES_DASHBOARD_VERSION=v1.10.1
 
 AP_IPS=\
 	192.168.1.43 \
@@ -138,7 +140,8 @@ initialize-cluster: $(KUBECONFIG)
 	@kubectl taint node util1 node-role.kubernetes.io/master:NoSchedule- || true
 	@kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 	@kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
-	@kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml
+	@kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/$(KUBERNETES_DASHBOARD_VERSION)/src/deploy/recommended/kubernetes-dashboard.yaml
+	@kubectl apply -f metrics-server.yaml
 
 	@kubectl apply -f users.yaml
 
