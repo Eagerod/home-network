@@ -50,7 +50,8 @@ COMPLEX_SERVICES= \
 	mysql \
 	firefly \
 	registry \
-	remindmebot
+	remindmebot \
+	openvpnas
 
 
 # TRIVIAL_SERVICES are the set of services that are deployed by only applying
@@ -69,6 +70,7 @@ TRIVIAL_SERVICES:=\
 	tedbot \
 	gitea
 
+
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
 #   docker image using the Dockerfile in the service's directory, and pushing
 #   it to the container registry before applying its yaml file.
@@ -82,6 +84,7 @@ SIMPLE_SERVICES:=\
 	slackbot \
 	amproxy \
 	nodered
+
 
 KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 
@@ -124,7 +127,9 @@ SAVE_ENV_VARS=\
 	FIREFLY_MYSQL_DATABASE\
 	REMINDMEBOT_USERNAME\
 	NODE_RED_MYSQL_USER\
-	NODE_RED_MYSQL_DATABASE
+	NODE_RED_MYSQL_DATABASE\
+	OPENVPN_PRIMARY_USERNAME\
+	OPENVPN_AS_HOSTNAME
 
 
 .PHONY: all
@@ -443,6 +448,28 @@ remindmebot:
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 
 
+.PHONY: openvpnas
+openvpnas:
+	@source .env && \
+		kubectl create configmap openvpn-config \
+			--from-literal "username=$${OPENVPN_PRIMARY_USERNAME}" \
+			--from-literal "hostname=$${OPENVPN_AS_HOSTNAME}" \
+			-o yaml --dry-run | kubectl apply -f -
+	@source .env && \
+		kubectl create secret generic openvpn-password \
+			--from-literal "value=$${OPENVPN_PRIMARY_USERPASS}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
+
+	@# Wait a while in case a pod was already running, let it die, so we don't
+	@#   try to run the setup script in the dying pod.
+	@sleep 5
+
+	@$(call KUBECTL_WAIT_FOR_POD,$@)
+	@$(call KUBECTL_APP_EXEC,$@) -- sh -c 'set -ex; find scripts -type f | sort | while read line; do sh $$line; done'
+
+
 # Configuration Recipes
 .PHONY: nginx-configurations
 nginx-configurations: networking 00-upstream.http.conf
@@ -628,6 +655,7 @@ pf.vbash:
 	sed \
 		-e 's/$${FACTORIO_IP}/'$(call SERVICE_LB_IP,factorio)'/' \
 		-e 's/$${PLEX_IP}/'$(call SERVICE_LB_IP,plex)'/' \
+		-e 's/$${OPENVPNAS_IP}/'$(call SERVICE_LB_IP,openvpnas)'/' \
 		-e 's/$${NGINX_IP}/'$(call SERVICE_LB_IP,nginx)'/' \
 		.scripts/router-port-forward.vbash > $@
 

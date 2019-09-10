@@ -22,6 +22,18 @@ set port-forward rule 2 forward-to port 32400
 set port-forward rule 2 original-port 32400
 set port-forward rule 2 protocol tcp
 
+set port-forward rule 3 description 'OpenVPN UDP'
+set port-forward rule 3 forward-to address ${OPENVPNAS_IP}
+set port-forward rule 3 forward-to port 1194
+set port-forward rule 3 original-port 1194
+set port-forward rule 3 protocol udp
+
+set port-forward rule 4 description 'OpenVPN TCP'
+set port-forward rule 4 forward-to address ${OPENVPNAS_IP}
+set port-forward rule 4 forward-to port 9443
+set port-forward rule 4 original-port 9443
+set port-forward rule 4 protocol tcp
+
 set port-forward rule 5 description 'Web Server HTTP'
 set port-forward rule 5 forward-to address ${NGINX_IP}
 set port-forward rule 5 forward-to port 80

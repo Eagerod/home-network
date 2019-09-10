@@ -18,6 +18,7 @@ data:
     slackbot
     blobstore
     nodered
+    openvpnas-tcp
   monitoring: |
     grafana-published
     alertmanager-published
