@@ -35,9 +35,14 @@ spec:
           image: registry.internal.aleemhaji.com/pms-docker:1.40.5.8921-836b34c27
           ports:
             - containerPort: 32400
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "2000m"
+            limits:
+              memory: "2Gi"
+              cpu: "2000m"
           env:
-            - name: ALLOWED_NETWORKS
-              value: 192.168.2.0/24
             - name: ADVERTISE_IP
               value: https://${LOAD_BALANCER_IP}:32400
             - name: CHANGE_CONFIG_DIR_OWNERSHIP
