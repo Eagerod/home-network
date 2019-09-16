@@ -28,6 +28,7 @@ spec:
   schedule: "32 4,16 * * *"
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:
