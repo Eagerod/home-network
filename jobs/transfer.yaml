@@ -1,0 +1,41 @@
+# This deployment spec is meant to be pretty volatile, but overall just used
+#   for experimentation.
+# Lives in its own namespace to keep itself a little further away from all
+#   other services.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: transfer-
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: transfer-assister
+          image: registry.internal.aleemhaji.com/rsync:latest
+          command:
+            - sh
+            - -x
+            - -e
+            - -c
+            - |
+              if [ -f /mnt/dst/.transferred ]; then
+                echo >&2 "Transfer has previously been completed"
+                exit
+              fi
+              rsync -avhuDH --progress /mnt/src/ /mnt/dst/
+              touch /mnt/dst/.transferred
+          volumeMounts:
+            - mountPath: /mnt/src
+              name: source-volume
+            - mountPath: /mnt/dst
+              name: destination-volume
+      volumes:
+        - name: source-volume
+          persistentVolumeClaim:
+            claimName: source-pv-claim
+        - name: destination-volume
+          persistentVolumeClaim:
+            claimName: destination-pv-claim
