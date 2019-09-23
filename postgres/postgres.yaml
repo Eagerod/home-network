@@ -14,6 +14,23 @@ spec:
       labels:
         app: postgres
     spec:
+      initContainers:
+        # Certificates need to have specific permissions for Postgres to accept
+        #   them, so set those in a temporary volume.
+        - name: cert-permissions
+          image: postgres:9
+          command:
+            - sh
+            - -c
+            - |
+              cp /src/* /dst/
+              chown postgres:postgres /dst/*
+              chmod 600 /dst/*
+          volumeMounts:
+            - name: postgres-certs-source
+              mountPath: /src
+            - name: postgres-certs
+              mountPath: /dst
       containers:
         - name: postgres
           image: postgres:9
@@ -25,6 +42,7 @@ spec:
             - name: postgres-certs
               mountPath: /etc/ssl
           args:
+            - --ssl=on
             - --ssl_cert_file=/etc/ssl/tls.crt
             - --ssl_key_file=/etc/ssl/tls.rsa.key
           env:
@@ -38,6 +56,8 @@ spec:
           persistentVolumeClaim:
             claimName: postgres-pv-claim
         - name: postgres-certs
+          emptyDir: {}
+        - name: postgres-certs-source
           projected:
             sources:
               - secret:
