@@ -1,0 +1,33 @@
+# Block storage devices defined more formally as Kubernetes PersistentVolumes,
+#   rather than just in-line as plain Docker volumes.
+# All block storage devices are all listed here.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-block-storage
+  labels:
+    identifier: postgres
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  iscsi:
+    targetPortal: 192.168.96.4
+    iqn: iqn.2019-05.com.aleemhaji.internal.ctl:postgres
+    lun: 15
+    fsType: ext4
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  selector:
+    matchLabels:
+      identifier: postgres
