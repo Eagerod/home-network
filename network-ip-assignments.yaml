@@ -7,6 +7,7 @@ data:
   redis: 192.168.2.32
   mongodb: 192.168.2.33
   mysql: 192.168.2.34
+  postgres: 192.168.2.35
   # Front End Services    192.168.2.48/28
   nginx: 192.168.2.48
   firefly: 192.168.2.49

@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  serviceName: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:9
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-persistent-storage
+              mountPath: /usr/local/pgsql/data
+            - name: postgres-certs
+              mountPath: /etc/ssl
+          args:
+            - --ssl_cert_file=/etc/ssl/tls.crt
+            - --ssl_key_file=/etc/ssl/tls.rsa.key
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-root-password
+                  key: value
+      volumes:
+        - name: postgres-persistent-storage
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim
+        - name: postgres-certs
+          projected:
+            sources:
+              - secret:
+                  name: internal-certificate-files
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  ports:
+  - port: 5432
+    protocol: TCP
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: postgres
