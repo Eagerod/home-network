@@ -57,15 +57,9 @@ spec:
           ports:
             - containerPort: 80
           volumeMounts:
-            - name: drone-persistent-storage
-              mountPath: /data
             - name: docker-sock
               mountPath: /var/run/docker.sock
       volumes:
-        - name: drone-persistent-storage
-          nfs:
-            server: 192.168.1.42
-            path: /kubernetes-test/drone
         - name: docker-sock
           hostPath:
             path: /var/run/docker.sock
