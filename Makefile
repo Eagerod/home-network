@@ -24,10 +24,20 @@ else
 $(error Unknown distribution ($(UNAME)) for running this project.)
 endif
 
+ROUTER_HOST:=192.168.1.1
+ROUTER_HOST_USER:=ubnt@$(ROUTER_HOST)
+
 # Constants and calculated values
 KUBERNETES_MASTER:=192.168.2.10
 KUBERNETES_HOSTS:=$(shell kubectl get nodes -o jsonpath={.items[*].status.addresses[?\(@.type==\"InternalIP\"\)].address})
+
 KUBERNETES_PROMETHEUS_VERISON=0.1.0
+KUBERNETES_DASHBOARD_VERSION=v1.10.1
+
+AP_IPS=\
+	192.168.1.43 \
+	192.168.1.46 \
+	192.168.1.56
 
 NETWORK_SEARCH_DOMAIN=internal.aleemhaji.com
 
@@ -40,7 +50,8 @@ COMPLEX_SERVICES= \
 	mysql \
 	firefly \
 	registry \
-	remindmebot
+	remindmebot \
+	openvpnas
 
 
 # TRIVIAL_SERVICES are the set of services that are deployed by only applying
@@ -56,8 +67,11 @@ TRIVIAL_SERVICES:=\
 	alertmanager \
 	dashboard \
 	blobstore \
+	tedbot \
 	gitea \
+	postgres \
 	drone
+
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
 #   docker image using the Dockerfile in the service's directory, and pushing
@@ -70,7 +84,9 @@ SIMPLE_SERVICES:=\
 	util \
 	resilio \
 	slackbot \
-	amproxy
+	amproxy \
+	nodered
+
 
 KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 
@@ -86,6 +102,9 @@ slackbot: slackbot-configurations
 alertmanager: alertmanager-configurations
 blobstore: blobstore-configurations
 certbot: certbot-configurations
+nodered: nodered-configurations
+tedbot: tedbot-configurations
+postgres: postgres-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -109,7 +128,11 @@ SAVE_ENV_VARS=\
 	DOCKER_REGISTRY_USERNAME\
 	FIREFLY_MYSQL_USER\
 	FIREFLY_MYSQL_DATABASE\
-	REMINDMEBOT_USERNAME
+	REMINDMEBOT_USERNAME\
+	NODE_RED_MYSQL_USER\
+	NODE_RED_MYSQL_DATABASE\
+	OPENVPN_PRIMARY_USERNAME\
+	OPENVPN_AS_HOSTNAME
 
 
 .PHONY: all
@@ -125,7 +148,8 @@ initialize-cluster: $(KUBECONFIG)
 	@kubectl taint node util1 node-role.kubernetes.io/master:NoSchedule- || true
 	@kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 	@kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
-	@kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml
+	@kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/$(KUBERNETES_DASHBOARD_VERSION)/src/deploy/recommended/kubernetes-dashboard.yaml
+	@kubectl apply -f metrics-server.yaml
 
 	@kubectl apply -f users.yaml
 
@@ -188,7 +212,7 @@ crons: base-image
 	done
 
 	@source .env && kubectl create secret generic namesilo-api-key \
-		--from-literal value=${NAMESILO_API_KEY} \
+		--from-literal value=$${NAMESILO_API_KEY} \
 		-o yaml --dry-run | \
 			kubectl apply -f -
 	@kubectl apply -f crons/dns-cron.yaml
@@ -272,6 +296,10 @@ reload-pihole: pihole-configurations kube.list
 	done
 
 
+.PHONY: killall
+killall: $(foreach s,$(KUBERNETES_SERVICES), kill-$(s))
+
+
 # Shutdown any service.
 .PHONY: kill-%
 kill-%:
@@ -328,6 +356,14 @@ registry:
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 
+	@# Wait for the current registry to possibly be scheduled away if it needs
+	@#   to be.
+	@# This can probably be replaced with something more fancy at some point,
+	@#   but it does what it needs to for now.
+	@sleep 5
+
+	@$(call KUBECTL_WAIT_FOR_POD,$@)
+
 	@source .env && \
 		$(DOCKER) login \
 			--username $${DOCKER_REGISTRY_USERNAME}\
@@ -353,11 +389,15 @@ mysql:
 	@#   actually running queries against it.
 	@if [ -z "$$($(call KUBECTL_APP_PODS,mysql))" ] || \
 			! $(call KUBECTL_APP_EXEC,mysql) -- sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -e 'SELECT 1'"; then \
-		kubectl scale deployment mysql-deployment --replicas=0; \
-		kubectl scale deployment mysql-init-deployment --replicas=0; \
+		kubectl scale statefulset mysql --replicas=0; \
+		kubectl scale statefulset mysql-init --replicas=0; \
 		kubectl apply -f mysql/mysql-init.yaml; \
 		while [ -z "$$($(call KUBECTL_RUNNING_POD,mysql-init))" ]; do \
-			echo >&2 "MySQL not up yet. Waiting 1 second..."; \
+			echo >&2 "MySQL pod not up yet. Waiting 1 second..."; \
+			sleep 1; \
+		done; \
+		source .env && while ! $(call KUBECTL_APP_EXEC,mysql-init) -- mysql -e 'select 1;'; do \
+			echo >&2 "MySQL service not up yet. Waiting 1 second..."; \
 			sleep 1; \
 		done; \
 		source .env && $(call KUBECTL_APP_EXEC,mysql-init) -- \
@@ -368,7 +408,7 @@ mysql:
 				SET PASSWORD FOR '"'"'root'"'"'@'"'"'10.244.%.%'"'"' = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
 				GRANT ALL PRIVILEGES ON *.* to '"'"'root'"'"'@'"'"'10.244.%.%'"'"' WITH GRANT OPTION; \
 				FLUSH PRIVILEGES;'; \
-		kubectl scale deployment mysql-init-deployment --replicas=0; \
+		kubectl scale statefulset mysql-init --replicas=0; \
 	fi
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
@@ -409,6 +449,28 @@ remindmebot:
 			-o yaml --dry-run | kubectl apply -f -
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
+
+
+.PHONY: openvpnas
+openvpnas:
+	@source .env && \
+		kubectl create configmap openvpn-config \
+			--from-literal "username=$${OPENVPN_PRIMARY_USERNAME}" \
+			--from-literal "hostname=$${OPENVPN_AS_HOSTNAME}" \
+			-o yaml --dry-run | kubectl apply -f -
+	@source .env && \
+		kubectl create secret generic openvpn-password \
+			--from-literal "value=$${OPENVPN_PRIMARY_USERPASS}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
+
+	@# Wait a while in case a pod was already running, let it die, so we don't
+	@#   try to run the setup script in the dying pod.
+	@sleep 5
+
+	@$(call KUBECTL_WAIT_FOR_POD,$@)
+	@$(call KUBECTL_APP_EXEC,$@) -- sh -c 'set -ex; find scripts -type f | sort | while read line; do sh $$line; done'
 
 
 # Configuration Recipes
@@ -498,6 +560,34 @@ certbot-configurations:
 		-o yaml --dry-run | kubectl apply -f -
 
 
+.PHONY: nodered-configurations
+nodered-configurations:
+	@source .env && \
+		kubectl create configmap nodered-config \
+			--from-literal "mysql_database=$${NODE_RED_MYSQL_DATABASE}" \
+			--from-literal "mysql_user=$${NODE_RED_MYSQL_USER}" \
+			-o yaml --dry-run | kubectl apply -f -
+	@source .env && \
+		kubectl create secret generic nodered-secrets \
+			--from-literal "mysql_password=$${NODE_RED_MYSQL_PASSWORD}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+
+.PHONY: tedbot-configurations
+tedbot-configurations:
+	@source .env && \
+		kubectl create secret generic tedbot-webhook-url \
+			--from-literal "value=$${SLACK_TEDBOT_APP_WEBHOOK}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+
+.PHONY: postgres-configurations
+postgres-configurations:
+	@source .env && kubectl create secret generic postgres-root-password \
+		--from-literal "value=$${PG_PASSWORD}" \
+		-o yaml --dry-run | kubectl apply -f -
+
+
 .PHONY: mysql-restore
 mysql-restore:
 	@if [ -z "$${RESTORE_MYSQL_DATABASE}" ]; then \
@@ -556,25 +646,48 @@ $(KUBECONFIG):
 	@cp $@ ~/.kube/config
 
 
+.INTERMEDIATE: dns.vbash
+dns.vbash:
+	sed \
+		-e 's/$${PIHOLE_IP}/'$(call SERVICE_LB_IP,pihole)'/' \
+		.scripts/router-dns.vbash > $@
+
+
 .PHONY: router-dns-config
-router-dns-config:
-	pihole_ip=$$(kubectl get configmap network-ip-assignments -o template={{.data.pihole}}) && \
-	ssh ubnt@192.168.1.1 /bin/vbash -c "'\
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper begin; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dns forwarding cache-size 0; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper delete system name-server; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set system name-server 127.0.0.1; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dhcp-server use-dnsmasq enable; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set interfaces ethernet eth0 dhcp-options name-server no-update; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dns forwarding options strict-order; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper delete service dns forwarding name-server; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dns forwarding name-server 8.8.4.4; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dns forwarding name-server 8.8.8.8; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper set service dns forwarding name-server '$${pihole_ip}'; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper commit; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper save; \
-		/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper end; \
-	'"
+router-dns-config: dns.vbash
+	scp dns.vbash $(ROUTER_HOST_USER):temp.vbash
+	ssh $(ROUTER_HOST_USER) /bin/vbash temp.vbash
+	ssh $(ROUTER_HOST_USER) rm temp.vbash
+
+
+.INTERMEDIATE: pf.vbash
+pf.vbash:
+	sed \
+		-e 's/$${FACTORIO_IP}/'$(call SERVICE_LB_IP,factorio)'/' \
+		-e 's/$${PLEX_IP}/'$(call SERVICE_LB_IP,plex)'/' \
+		-e 's/$${OPENVPNAS_IP}/'$(call SERVICE_LB_IP,openvpnas)'/' \
+		-e 's/$${NGINX_IP}/'$(call SERVICE_LB_IP,nginx)'/' \
+		.scripts/router-port-forward.vbash > $@
+
+
+# Port forwarding is all pretty custom, so don't bother trying to put any real
+#   automation around this.
+# This will destroy whatever existing port-forwarding rules exist too, so
+#   hopefully they don't matter.
+.PHONY: router-port-forwarding
+router-port-forwarding: networking pf.vbash
+	scp pf.vbash $(ROUTER_HOST_USER):temp.vbash
+	ssh $(ROUTER_HOST_USER) /bin/vbash temp.vbash
+	ssh $(ROUTER_HOST_USER) rm temp.vbash
+
+
+.PHONY: ap-config
+ap-config:
+	@# Use the IP of the service, rather than the domain.
+	@# The domain will point at nginx, so it'll be useless.
+	@inform_ip=$$(kubectl get configmap network-ip-assignments -o template='{{index .data "unifi"}}') && \
+	$(foreach ip,$(AP_IPS),ssh $(ip) mca-cli-op set-inform http://$${inform_ip}:8080/inform && ) \
+	echo "Done"
 
 
 .PHONY: token

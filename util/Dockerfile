@@ -27,11 +27,6 @@ COPY ./authorized_keys /root/.ssh/authorized_keys
 COPY ./app/mr /usr/sbin/mr
 COPY ./docker-entrypoint.sh .
 
-# Copy the repository manager to the container so that it can automatically
-#   create the repository manager repo, and link the appropriate files if they
-#   don't already exist properly.
-COPY ./git /root/repository-manager
-
 RUN \
     chmod 700 /root/.ssh && \
     chmod 500 /root/.ssh/authorized_keys && \

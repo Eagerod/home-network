@@ -1,0 +1,1 @@
+node-red-node-mysql@0.0.18

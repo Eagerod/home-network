@@ -1,22 +1,20 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: mysql-deployment
-  labels:
-    app: mysql
+  name: mysql
 spec:
-  strategy: 
-    type: Recreate
   revisionHistoryLimit: 0
   replicas: 1
   selector:
     matchLabels:
       app: mysql
+  serviceName: mysql
   template:
     metadata:
       labels:
         app: mysql
     spec:
+      terminationGracePeriodSeconds: 120
       containers:
         - name: mysql
           image: mysql:5.7.26
@@ -37,14 +35,15 @@ spec:
                   name: mysql-root-password
                   key: value
       volumes:
-        - name: mysql-persistent-storage
-          persistentVolumeClaim:
-            claimName: mysql-pv-claim
         - name: mysql-certs
           projected:
             sources:
               - secret:
                   name: internal-certificate-files
+        - name: mysql-persistent-storage
+          nfs:
+            server: 192.168.1.42
+            path: /kubernetes-test/mysql
 ---
 apiVersion: v1
 kind: Service

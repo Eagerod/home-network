@@ -1,38 +1,4 @@
 apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: certificates-pv
-  labels:
-    identifier: certificates
-spec:
-  capacity:
-    storage: 1Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  mountOptions:
-    - hard
-    - nfsvers=3
-  nfs:
-    path: /kubernetes-test/certs/letsencrypt
-    server: 192.168.1.42
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: certificates-pv-claim
-spec:
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 1Gi
-  selector:
-    matchLabels:
-      identifier: certificates
----
-apiVersion: v1
 kind: Service
 metadata:
   name: certbot
@@ -60,6 +26,9 @@ metadata:
   name: certbot
 spec:
   schedule: "32 4,16 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:
@@ -110,8 +79,9 @@ spec:
                 - Oh look, it worked.
           volumes:
             - name: certbot-storage
-              persistentVolumeClaim:
-                claimName: certificates-pv-claim
+              nfs:
+                server: 192.168.1.42
+                path: /kubernetes-test/certs/letsencrypt
             - name: certbot-scripts
               configMap:
                 name: certbot-scripts

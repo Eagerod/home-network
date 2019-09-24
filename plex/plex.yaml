@@ -1,37 +1,3 @@
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: plex-pv
-  labels:
-    identifier: plex
-spec:
-  capacity:
-    storage: 20Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  mountOptions:
-    - hard
-    - nfsvers=3
-  nfs:
-    path: /kubernetes-test/plex
-    server: 192.168.1.42
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: plex-pv-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
-  selector:
-    matchLabels:
-      identifier: plex
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -65,8 +31,9 @@ spec:
               mountPath: /config
       volumes:
         - name: plex-persistent-storage
-          persistentVolumeClaim:
-            claimName: plex-pv-claim
+          nfs:
+            server: 192.168.1.42
+            path: /kubernetes-test/plex
 ---
 apiVersion: v1
 kind: Service

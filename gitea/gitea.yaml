@@ -1,37 +1,3 @@
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: gitea-pv
-  labels:
-    identifier: gitea
-spec:
-  capacity:
-    storage: 5Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  mountOptions:
-    - hard
-    - nfsvers=3
-  nfs:
-    path: /kubernetes-test/gitea
-    server: 192.168.1.42
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: gitea-pv-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  selector:
-    matchLabels:
-      identifier: gitea
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -62,8 +28,9 @@ spec:
               mountPath: /etc/ssl/certs/
       volumes:
         - name: gitea-persistent-storage
-          persistentVolumeClaim:
-            claimName: gitea-pv-claim
+          nfs:
+            server: 192.168.1.42
+            path: /kubernetes-test/gitea
         - name: ssl-cert
           projected:
             sources:

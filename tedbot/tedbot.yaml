@@ -1,0 +1,36 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: tedbot
+spec:
+  schedule: "0 12 * * 1-5"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: tedbot
+        spec:
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
+          containers:
+            - name: tedbot
+              image: registry.internal.aleemhaji.com/tedbot:latest
+              volumeMounts:
+                - name: tedbot-storage
+                  mountPath: /app/artifacts
+              env:
+                - name: HOOK_URL 
+                  valueFrom:
+                    secretKeyRef:
+                      name: tedbot-webhook-url
+                      key: value
+          volumes:
+            - name: tedbot-storage
+              nfs:
+                server: 192.168.1.42
+                path: /kubernetes-test/tedbot

@@ -1,0 +1,50 @@
+#!/bin/vbash
+
+source /opt/vyatta/etc/functions/script-template
+
+configure
+
+delete port-forward
+set port-forward auto-firewall enable
+set port-forward hairpin-nat enable
+set port-forward wan-interface eth0
+set port-forward lan-interface eth1
+
+set port-forward rule 1 description 'Factorio Server'
+set port-forward rule 1 forward-to address ${FACTORIO_IP}
+set port-forward rule 1 forward-to port 34197
+set port-forward rule 1 original-port 34197
+set port-forward rule 1 protocol udp
+
+set port-forward rule 2 description 'PLEX'
+set port-forward rule 2 forward-to address ${PLEX_IP}
+set port-forward rule 2 forward-to port 32400
+set port-forward rule 2 original-port 32400
+set port-forward rule 2 protocol tcp
+
+set port-forward rule 3 description 'OpenVPN UDP'
+set port-forward rule 3 forward-to address ${OPENVPNAS_IP}
+set port-forward rule 3 forward-to port 1194
+set port-forward rule 3 original-port 1194
+set port-forward rule 3 protocol udp
+
+set port-forward rule 4 description 'OpenVPN TCP'
+set port-forward rule 4 forward-to address ${OPENVPNAS_IP}
+set port-forward rule 4 forward-to port 9443
+set port-forward rule 4 original-port 9443
+set port-forward rule 4 protocol tcp
+
+set port-forward rule 5 description 'Web Server HTTP'
+set port-forward rule 5 forward-to address ${NGINX_IP}
+set port-forward rule 5 forward-to port 80
+set port-forward rule 5 original-port 80
+set port-forward rule 5 protocol tcp
+
+set port-forward rule 6 description 'Web Server HTTPS'
+set port-forward rule 6 forward-to address ${NGINX_IP}
+set port-forward rule 6 forward-to port 443
+set port-forward rule 6 original-port 443
+set port-forward rule 6 protocol tcp
+
+commit
+save
