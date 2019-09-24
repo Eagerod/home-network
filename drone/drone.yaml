@@ -1,3 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: drone-postgres-init
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: drone-postgres-init
+          image: postgres:9
+          command:
+            - sh
+            - -c
+            - psql -h postgres --user postgres -c "CREATE DATABASE drone;"
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-root-password
+                  key: value
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -25,6 +47,13 @@ spec:
               value: drone.internal.aleemhaji.com
             - name: DRONE_SERVER_PROTO
               value: https
+            - name: DRONE_DATABASE_DRIVER
+              value: postgres
+            - name: DRONE_DATABASE_DATASOURCE
+              valueFrom:
+                secretKeyRef:
+                  name: drone-secrets
+                  key: database
           ports:
             - containerPort: 80
           volumeMounts:

@@ -105,6 +105,7 @@ certbot: certbot-configurations
 nodered: nodered-configurations
 tedbot: tedbot-configurations
 postgres: postgres-configurations
+drone: drone-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -585,6 +586,14 @@ tedbot-configurations:
 postgres-configurations:
 	@source .env && kubectl create secret generic postgres-root-password \
 		--from-literal "value=$${PG_PASSWORD}" \
+		-o yaml --dry-run | kubectl apply -f -
+
+
+.PHONY: drone-configurations
+drone-configurations:
+	@source .env && kubectl create secret generic drone-secrets \
+		--from-literal "database=postgresql://postgres:$${PG_PASSWORD}@postgres/drone" \
+		--from-literal "server=postgresql://postgres:$${PG_PASSWORD}@postgres" \
 		-o yaml --dry-run | kubectl apply -f -
 
 
