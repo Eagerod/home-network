@@ -67,6 +67,7 @@ TRIVIAL_SERVICES:=\
 	alertmanager \
 	dashboard \
 	blobstore \
+	webcomics \
 	tedbot \
 	gitea \
 	postgres
@@ -100,6 +101,7 @@ resilio: resilio-configurations
 slackbot: slackbot-configurations
 alertmanager: alertmanager-configurations
 blobstore: blobstore-configurations
+webcomics: webcomics-configurations
 certbot: certbot-configurations
 nodered: nodered-configurations
 tedbot: tedbot-configurations
@@ -544,6 +546,14 @@ blobstore-configurations:
 	@source .env && \
 		kubectl create secret generic blobstore-secrets \
 			--from-literal "database=$${BLOBSTORE_DATABASE}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+
+.PHONY: webcomics-configurations
+webcomics-configurations:
+	@source .env && \
+		kubectl create secret generic webcomics-secrets \
+			--from-literal "database=$${WEBCOMICS_DATABASE}" \
 			-o yaml --dry-run | kubectl apply -f -
 
 

@@ -26,6 +26,7 @@ data:
   plex: 192.168.2.69
   slackbot: 192.168.2.70
   blobstore: 192.168.2.71
+  webcomics: 192.168.2.72
   # Daemon-Like Services  192.168.2.80/28
   certbot: 192.168.2.80
   transmission: 192.168.2.81
