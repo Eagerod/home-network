@@ -41,6 +41,8 @@ spec:
         - name: drone
           image: drone/drone:1.2.3
           env:
+            - name: DRONE_USER_CREATE
+              value: username:aleem,admin:true
             - name: DRONE_GITEA_SERVER
               value: https://gitea.internal.aleemhaji.com
             - name: DRONE_SERVER_HOST
