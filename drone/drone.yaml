@@ -39,12 +39,22 @@ spec:
     spec:
       containers:
         - name: drone
-          image: drone/drone:1.2.3
+          image: drone/drone:1.6.0
           env:
             - name: DRONE_USER_CREATE
               value: username:aleem,admin:true
             - name: DRONE_GITEA_SERVER
               value: https://gitea.internal.aleemhaji.com
+            - name: DRONE_GITEA_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: drone-secrets
+                  key: gitea-client
+            - name: DRONE_GITEA_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: drone-secrets
+                  key: gitea-secret
             - name: DRONE_SERVER_HOST
               value: drone.internal.aleemhaji.com
             - name: DRONE_SERVER_PROTO
@@ -56,8 +66,52 @@ spec:
                 secretKeyRef:
                   name: drone-secrets
                   key: database
+            - name: DRONE_RPC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: drone-secrets
+                  key: rpc-secret
           ports:
             - containerPort: 80
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: drone-agent
+  labels:
+    app: drone-agent
+spec:
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: drone-agent
+  template:
+    metadata:
+      labels:
+        app: drone-agent
+    spec:
+      containers:
+        - name: drone-agent
+          image: drone/agent:1.6.0
+          env:
+            - name: DRONE_SERVER_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: network-ip-assignments
+                  key: drone
+            - name: DRONE_RPC_PROTO
+              value: http
+            - name: DRONE_RUNNER_CAPACITY
+              value: "2"
+            - name: DRONE_RUNNER_MAX_PROCS
+              value: "4"
+            - name: DRONE_RPC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: drone-secrets
+                  key: rpc-secret
+          ports:
+            - containerPort: 3000
           volumeMounts:
             - name: docker-sock
               mountPath: /var/run/docker.sock

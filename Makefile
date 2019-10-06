@@ -594,6 +594,9 @@ drone-configurations:
 	@source .env && kubectl create secret generic drone-secrets \
 		--from-literal "database=postgresql://postgres:$${PG_PASSWORD}@postgres/drone" \
 		--from-literal "server=postgresql://postgres:$${PG_PASSWORD}@postgres" \
+		--from-literal "rpc-secret=$${DRONE_RPC_SECRET}" \
+		--from-literal "gitea-client=$${DRONE_GITEA_CLIENT_ID}" \
+		--from-literal "gitea-secret=$${DRONE_GITEA_CLIENT_SECRET}" \
 		-o yaml --dry-run | kubectl apply -f -
 
 
