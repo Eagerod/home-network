@@ -9,7 +9,6 @@ data:
     firefly
     trilium
     transmission
-    remindmebot
     unifi-tcp
     resilio
     pihole-tcp

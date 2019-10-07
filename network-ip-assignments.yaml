@@ -21,7 +21,6 @@ data:
   registry: 192.168.2.64
   util: 192.168.2.65
   factorio: 192.168.2.66
-  remindmebot: 192.168.2.67
   pihole: 192.168.2.68
   plex: 192.168.2.69
   slackbot: 192.168.2.70

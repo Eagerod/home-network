@@ -50,7 +50,6 @@ COMPLEX_SERVICES= \
 	mysql \
 	firefly \
 	registry \
-	remindmebot \
 	openvpnas
 
 
@@ -127,7 +126,6 @@ SAVE_ENV_VARS=\
 	DOCKER_REGISTRY_USERNAME\
 	FIREFLY_MYSQL_USER\
 	FIREFLY_MYSQL_DATABASE\
-	REMINDMEBOT_USERNAME\
 	NODE_RED_MYSQL_USER\
 	NODE_RED_MYSQL_DATABASE\
 	OPENVPN_PRIMARY_USERNAME\
@@ -426,25 +424,6 @@ firefly:
 		kubectl create secret generic firefly-secrets \
 			--from-literal "mysql_password=$${FIREFLY_MYSQL_PASSWORD}" \
 			--from-literal "app_key=$${FIREFLY_APP_KEY}" \
-			-o yaml --dry-run | kubectl apply -f -
-
-	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
-
-
-# Assumes that remindmebot has already shipped an image of its own to the
-#   registry.
-.PHONY: remindmebot
-remindmebot:
-	@$(call KUBECTL_JOBS,remindmebot-init) | xargs kubectl delete
-
-	@source .env && \
-		kubectl create configmap remindmebot-config \
-			--from-literal "bot_username=$${REMINDMEBOT_USERNAME}" \
-			-o yaml --dry-run | kubectl apply -f -
-	@source .env && \
-		kubectl create secret generic remindmebot-secrets \
-			--from-literal "bot_api_key=$${REMINDMEBOT_API_KEY}" \
-			--from-literal "database=$${REMINDMEBOT_DATABASE}" \
 			-o yaml --dry-run | kubectl apply -f -
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
