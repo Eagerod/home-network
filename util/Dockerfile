@@ -7,8 +7,6 @@ RUN \
     apt-get install -y \
         openssh-server \
         python-pip \
-        golang-go \
-        cmake \
         git \
         vim
 
@@ -21,7 +19,10 @@ RUN \
 # RUN sed -i -r 's/(session\s*)required(\s*pam_loginuid.so)/\1optional\2/g' /etc/pam.d/sshd
 
 # Install blobstore.
-RUN curl -sfSL https://blob.aleemhaji.com/clientlib/installer.sh | bash
+RUN \
+    mkdir -p /usr/local/bin && \ 
+    curl -sfSL https://blob.aleemhaji.com/client-bin/linux-amd64/latest-internal/blob > /usr/local/bin/blob && \
+    chmod 755 /usr/local/bin/blob
 
 COPY ./authorized_keys /root/.ssh/authorized_keys
 COPY ./app/mr /usr/sbin/mr
