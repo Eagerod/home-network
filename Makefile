@@ -107,7 +107,7 @@ postgres: postgres-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
-SERVICE_LB_IP = $$(kubectl get configmap network-ip-assignments -o template="{{.data.$(1)}}")
+SERVICE_LB_IP = $$(kubectl get configmap network-ip-assignments -o template='{{index .data "$(1)"}}')
 REPLACE_LB_IP = sed "s/loadBalancerIP:.*/loadBalancerIP: $(call SERVICE_LB_IP,$(1))/" $(1)/$(1).yaml
 
 KUBECTL_JOBS = kubectl get jobs -l 'job=$(1)' -o name
