@@ -5,6 +5,9 @@ FROM ncfgbase
 RUN \
     apt-get update -y && \
     apt-get install -y \
+        dnsutils \
+        iputils-ping \
+        traceroute \
         openssh-server \
         python-pip \
         git \
