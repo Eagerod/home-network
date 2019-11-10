@@ -556,6 +556,7 @@ certbot-configurations:
 	@kubectl create configmap certbot-scripts \
 		--from-file "certbot/dns-renew.sh" \
 		--from-file "certbot/update-secrets.sh" \
+		--from-file "certbot/patch.py" \
 		-o yaml --dry-run | kubectl apply -f -
 
 
