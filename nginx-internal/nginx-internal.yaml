@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-deployment
+  name: nginx-internal-deployment
   labels:
-    app: nginx
+    app: nginx-internal
 spec:
   revisionHistoryLimit: 0
   replicas: 1
   selector:
     matchLabels:
-      app: nginx
+      app: nginx-internal
   template:
     metadata:
-      name: nginx
+      name: nginx-internal
       labels:
-        app: nginx
+        app: nginx-internal
     spec:
       containers:
         - name: nginx
@@ -37,7 +37,7 @@ spec:
             name: nginx-config
         - name: nginx-servers
           configMap:
-            name: nginx-servers
+            name: nginx-servers-internal
         - name: internal-certs
           projected:
             sources:
@@ -52,9 +52,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx
+  name: nginx-internal
   labels:
-    app: nginx
+    app: nginx-internal
 spec:
   ports:
     - port: 80
@@ -66,4 +66,4 @@ spec:
   type: LoadBalancer
   loadBalancerIP:
   selector:
-    app: nginx
+    app: nginx-internal
