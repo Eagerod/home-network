@@ -261,13 +261,13 @@ $(SIMPLE_SERVICES):
 complete-%: networking % reload-nginx reload-pihole
 
 
-.PHONY: reload-nginx
-reload-nginx:
+.PHONY: reload-nginx-internal
+reload-nginx-internal:
 	wait_time=60 && \
-	current_nginx_config=$$($(call KUBECTL_APP_EXEC,nginx) -- find /etc/nginx/conf.d -mindepth 1 -type d) && \
+	current_nginx_config=$$($(call KUBECTL_APP_EXEC,nginx-internal) -- find /etc/nginx/conf.d -mindepth 1 -type d) && \
 	$(MAKE) nginx-configurations && \
 	printf "Waiting for new nginx configs to be loaded into the container" 1>&2 && \
-	until [ "$$($(call KUBECTL_APP_EXEC,nginx) -- find /etc/nginx/conf.d -mindepth 1 -type d)" != "$${current_nginx_config}" ]; do \
+	until [ "$$($(call KUBECTL_APP_EXEC,nginx-internal) -- find /etc/nginx/conf.d -mindepth 1 -type d)" != "$${current_nginx_config}" ]; do \
 		printf '.' 1>&2; \
 		sleep 1; \
 		wait_time=$$((wait_time - 1)); \
@@ -280,7 +280,29 @@ reload-nginx:
 	done && \
 	printf '\n' 1>&2
 
-	$(call KUBECTL_APP_EXEC,nginx) -- nginx -s reload
+	$(call KUBECTL_APP_EXEC,nginx-internal) -- nginx -s reload
+
+
+.PHONY: reload-nginx-external
+reload-nginx-external:
+	wait_time=60 && \
+	current_nginx_config=$$($(call KUBECTL_APP_EXEC,nginx-external) -- find /etc/nginx/conf.d -mindepth 1 -type d) && \
+	$(MAKE) nginx-configurations && \
+	printf "Waiting for new nginx configs to be loaded into the container" 1>&2 && \
+	until [ "$$($(call KUBECTL_APP_EXEC,nginx-external) -- find /etc/nginx/conf.d -mindepth 1 -type d)" != "$${current_nginx_config}" ]; do \
+		printf '.' 1>&2; \
+		sleep 1; \
+		wait_time=$$((wait_time - 1)); \
+		if [ $${wait_time} -eq 0 ]; then \
+			echo >&2 ""; \
+			echo >&2 "Kubernetes hasn't updated nginx configurations in 60 seconds."; \
+			echo >&2 "Configurations are probably unchanged."; \
+			exit; \
+		fi; \
+	done && \
+	printf '\n' 1>&2
+
+	$(call KUBECTL_APP_EXEC,nginx-external) -- nginx -s reload
 
 
 # Since the pihole mounts its volumes as individual files, Kubernetes doesn't
