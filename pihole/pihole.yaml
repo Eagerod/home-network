@@ -11,7 +11,7 @@ data:
     addn-hosts=/etc/pihole/kube.list
   lan.list: |
     192.168.1.42 trunk.internal.aleemhaji.com. trunk
-    192.168.2.48 pi.hole pihole
+    192.168.2.59 pi.hole pihole
 ---
 apiVersion: apps/v1
 kind: Deployment

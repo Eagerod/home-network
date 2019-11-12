@@ -60,7 +60,8 @@ TRIVIAL_SERVICES:=\
 	redis \
 	grafana \
 	certbot \
-	nginx \
+	nginx-internal \
+	nginx-external \
 	pihole \
 	plex \
 	sharelatex \
@@ -93,7 +94,8 @@ KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 #   configuration to be pushed before they can properly start.
 # Those services are included above, and additional prerequisites are listed
 #   here.
-nginx: nginx-configurations
+nginx: nginx-internal nginx-external
+nginx-internal nginx-external: nginx-configurations
 util: util-configurations
 pihole: pihole-configurations
 resilio: resilio-configurations
@@ -259,13 +261,13 @@ $(SIMPLE_SERVICES):
 complete-%: networking % reload-nginx reload-pihole
 
 
-.PHONY: reload-nginx
-reload-nginx:
+.PHONY: reload-nginx-internal
+reload-nginx-internal:
 	wait_time=60 && \
-	current_nginx_config=$$($(call KUBECTL_APP_EXEC,nginx) -- find /etc/nginx/conf.d -mindepth 1 -type d) && \
+	current_nginx_config=$$($(call KUBECTL_APP_EXEC,nginx-internal) -- find /etc/nginx/conf.d -mindepth 1 -type d) && \
 	$(MAKE) nginx-configurations && \
 	printf "Waiting for new nginx configs to be loaded into the container" 1>&2 && \
-	until [ "$$($(call KUBECTL_APP_EXEC,nginx) -- find /etc/nginx/conf.d -mindepth 1 -type d)" != "$${current_nginx_config}" ]; do \
+	until [ "$$($(call KUBECTL_APP_EXEC,nginx-internal) -- find /etc/nginx/conf.d -mindepth 1 -type d)" != "$${current_nginx_config}" ]; do \
 		printf '.' 1>&2; \
 		sleep 1; \
 		wait_time=$$((wait_time - 1)); \
@@ -278,7 +280,29 @@ reload-nginx:
 	done && \
 	printf '\n' 1>&2
 
-	$(call KUBECTL_APP_EXEC,nginx) -- nginx -s reload
+	$(call KUBECTL_APP_EXEC,nginx-internal) -- nginx -s reload
+
+
+.PHONY: reload-nginx-external
+reload-nginx-external:
+	wait_time=60 && \
+	current_nginx_config=$$($(call KUBECTL_APP_EXEC,nginx-external) -- find /etc/nginx/conf.d -mindepth 1 -type d) && \
+	$(MAKE) nginx-configurations && \
+	printf "Waiting for new nginx configs to be loaded into the container" 1>&2 && \
+	until [ "$$($(call KUBECTL_APP_EXEC,nginx-external) -- find /etc/nginx/conf.d -mindepth 1 -type d)" != "$${current_nginx_config}" ]; do \
+		printf '.' 1>&2; \
+		sleep 1; \
+		wait_time=$$((wait_time - 1)); \
+		if [ $${wait_time} -eq 0 ]; then \
+			echo >&2 ""; \
+			echo >&2 "Kubernetes hasn't updated nginx configurations in 60 seconds."; \
+			echo >&2 "Configurations are probably unchanged."; \
+			exit; \
+		fi; \
+	done && \
+	printf '\n' 1>&2
+
+	$(call KUBECTL_APP_EXEC,nginx-external) -- nginx -s reload
 
 
 # Since the pihole mounts its volumes as individual files, Kubernetes doesn't
@@ -475,15 +499,17 @@ openvpnas:
 # Configuration Recipes
 .PHONY: nginx-configurations
 nginx-configurations: networking 00-upstream.http.conf
-	@kubectl create configmap nginx-config --from-file nginx/nginx.conf -o yaml --dry-run | \
+	@kubectl create configmap nginx-config --from-file nginx.conf -o yaml --dry-run | \
 		kubectl apply -f -
 
-	@kubectl create configmap nginx-servers \
+	@kubectl create configmap nginx-servers-internal \
 		--from-file 00-upstream.http.conf \
-		--from-file nginx/internal.http.conf \
-		--from-file nginx/internal.stream.conf \
-		--from-file nginx/external.http.conf \
-		--from-file nginx/external.stream.conf \
+		--from-file nginx-internal/internal.http.conf \
+		-o yaml --dry-run | kubectl apply -f -
+
+	@kubectl create configmap nginx-servers-external \
+		--from-file 00-upstream.http.conf \
+		--from-file nginx-external/external.http.conf \
 		-o yaml --dry-run | kubectl apply -f -
 
 
@@ -666,7 +692,7 @@ pf.vbash:
 		-e 's/$${FACTORIO_IP}/'$(call SERVICE_LB_IP,factorio)'/' \
 		-e 's/$${PLEX_IP}/'$(call SERVICE_LB_IP,plex)'/' \
 		-e 's/$${OPENVPNAS_IP}/'$(call SERVICE_LB_IP,openvpnas)'/' \
-		-e 's/$${NGINX_IP}/'$(call SERVICE_LB_IP,nginx)'/' \
+		-e 's/$${NGINX_IP}/'$(call SERVICE_LB_IP,nginx-external)'/' \
 		.scripts/router-port-forward.vbash > $@
 
 
@@ -700,7 +726,7 @@ token:
 # This could probably be done better, considering the hard coding, but it works
 .INTERMEDIATE: kube.list
 kube.list:
-	@nginx_lb_ip=$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "nginx" }}') && \
+	@nginx_lb_ip=$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "nginx-internal" }}') && \
 	http_services=$$(kubectl get configmap http-services -o template={{.data.default}}) && \
 	arr=($(KUBERNETES_SERVICES)) && \
 	for svc in "$${arr[@]}"; do \
