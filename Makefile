@@ -738,7 +738,7 @@ kube.list:
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		elif [ "$${svc}" == "dashboard" ]; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
-		elif [ "$${svc}" == "amproxy" ]; then \
+		elif [ "$${svc}" == "amproxy" ] || [ "$${svc}" == "tedbot" ]; then \
 			continue; \
 		else \
 			printf '%s\t%s\t%s\n' \
