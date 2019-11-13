@@ -33,6 +33,7 @@ KUBERNETES_HOSTS:=$(shell kubectl get nodes -o jsonpath={.items[*].status.addres
 
 KUBERNETES_PROMETHEUS_VERISON=0.1.0
 KUBERNETES_DASHBOARD_VERSION=v1.10.1
+KUBERNETES_METALLB_VERSION=v0.8.3
 
 AP_IPS=\
 	192.168.1.43 \
@@ -161,7 +162,7 @@ initialize-cluster: $(KUBECONFIG)
 
 .PHONY: metallb
 metallb:
-	@kubectl apply -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml
+	@kubectl apply -f https://raw.githubusercontent.com/google/metallb/$(KUBERNETES_METALLB_VERSION)/manifests/metallb.yaml
 	@kubectl apply -f metallb-config.yaml
 
 
