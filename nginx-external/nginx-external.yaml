@@ -27,8 +27,6 @@ spec:
               subPath: nginx.conf
             - name: nginx-servers
               mountPath: /etc/nginx/conf.d/
-            - name: internal-certs
-              mountPath: /etc/ssl/certs/internal
             - name: external-certs
               mountPath: /etc/ssl/certs/external
       volumes:
@@ -38,11 +36,6 @@ spec:
         - name: nginx-servers
           configMap:
             name: nginx-servers-external
-        - name: internal-certs
-          projected:
-            sources:
-              - secret:
-                  name: internal-certificate-files
         - name: external-certs
           projected:
             sources:
