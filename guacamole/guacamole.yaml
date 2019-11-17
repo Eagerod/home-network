@@ -1,0 +1,134 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: guacamole-mysql-init
+  labels:
+    job: guacamole-mysql-init
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: guacamole-mysql-init
+          image: mysql:5.7.26
+          command:
+            - sh
+            - -c
+            - |
+              mysql -h ${MYSQL_HOST} -u root -e " \
+                CREATE USER IF NOT EXISTS ${GUACAMOLE_DB_USER}@'10.244.%.%'; \
+                SET PASSWORD FOR ${GUACAMOLE_DB_USER}@'10.244.%.%' = PASSWORD('${GUACAMOLE_DB_PASSWORD}'); \
+                CREATE DATABASE IF NOT EXISTS ${GUACAMOLE_DB_NAME}; \
+                GRANT ALL ON $${GUACAMOLE_DB_NAME}.* TO $${GUACAMOLE_DB_USER}@'10.244.%.%';"
+              until [ -f /scripts/init.sql ]; do
+                echo "Waiting for init script to be created..."
+                sleep 1
+              done
+              mysql -h ${MYSQL_HOST} -u root guacamole < /scripts/init.sql
+          env:
+            - name: MYSQL_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-root-password
+                  key: value
+            - name: MYSQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: network-ip-assignments
+                  key: mysql
+            - name: GUACAMOLE_DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: guacamole-config
+                  key: mysql_user
+            - name: GUACAMOLE_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: guacamole-config
+                  key: mysql_database
+            - name: GUACAMOLE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: guacamole-secrets
+                  key: mysql_password
+          volumeMounts:
+            - name: init-scripts
+              mountPath: /scripts
+        - name: guacamole-mysql-init-script-creator
+          image: guacamole/guacamole
+          command:
+            - sh
+            - -c
+            - /opt/guacamole/bin/initdb.sh --mysql > /scripts/init.sql
+          volumeMounts:
+            - name: init-scripts
+              mountPath: /scripts
+      volumes:
+        - name: init-scripts
+          emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guacamole-deployment
+  labels:
+    app: guacamole
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: guacamole
+  template:
+    metadata:
+      name: guacamole
+      labels:
+        app: guacamole
+    spec:
+      containers:
+        - name: guacd
+          image: guacamole/guacd
+        - name: guacamole
+          image: guacamole/guacamole
+          ports: 
+            - containerPort: 8080
+          env:
+            - name: GUACD_HOSTNAME
+              value: localhost
+            - name: MYSQL_HOSTNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: network-ip-assignments
+                  key: mysql
+            - name: MYSQL_PORT
+              value: "3306"
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: guacamole-config
+                  key: mysql_database
+            - name: MYSQL_PASSWORD 
+              valueFrom:
+                secretKeyRef:
+                  name: guacamole-secrets
+                  key: mysql_password
+            - name: MYSQL_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: guacamole-config
+                  key: mysql_user
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: guacamole
+  labels:
+    app: guacamole
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: guacamole

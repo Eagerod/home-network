@@ -18,6 +18,7 @@ data:
   dashboard: 192.168.2.54
   gitea: 192.168.2.55
   nginx-internal: 192.168.2.59
+  guacamole: 192.168.2.60
   # Back End Services     192.168.2.64/28
   registry: 192.168.2.64
   util: 192.168.2.65

@@ -71,7 +71,8 @@ TRIVIAL_SERVICES:=\
 	blobstore \
 	tedbot \
 	gitea \
-	postgres
+	postgres \
+	guacamole
 
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
@@ -107,6 +108,7 @@ certbot: certbot-configurations
 nodered: nodered-configurations
 tedbot: tedbot-configurations
 postgres: postgres-configurations
+guacamole: guacamole-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -621,6 +623,24 @@ postgres-configurations:
 	@source .env && kubectl create secret generic postgres-root-password \
 		--from-literal "value=$${PG_PASSWORD}" \
 		-o yaml --dry-run | kubectl apply -f -
+
+
+.PHONY: guacamole-configurations
+guacamole-configurations:
+	@# Don't delete the init job, since it's not re-run safe.
+	@# @$(call KUBECTL_JOBS,guacamole-mysql-init) | xargs kubectl delete
+	@#
+	@source .env && \
+		kubectl create configmap guacamole-config \
+			--from-literal "mysql_database=$${GUACAMOLE_DB}" \
+			--from-literal "mysql_user=$${GUACAMOLE_DB_USER}" \
+			-o yaml --dry-run | kubectl apply -f -
+
+	@source .env && \
+		kubectl create secret generic guacamole-secrets \
+			--from-literal "database=mysql://$${GUACAMOLE_DB_USER}:$${GUACAMOLE_DB_PASSWORD}@mysql/$${GUACAMOLE_DB}" \
+			--from-literal "mysql_password=$${GUACAMOLE_DB_PASSWORD}" \
+			-o yaml --dry-run | kubectl apply -f -
 
 
 .PHONY: mysql-restore
