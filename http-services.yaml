@@ -19,6 +19,7 @@ data:
     blobstore
     nodered
     openvpnas-tcp
+    heimdall
   monitoring: |
     grafana-published
     alertmanager-published

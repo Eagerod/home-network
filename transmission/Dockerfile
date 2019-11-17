@@ -1,4 +1,4 @@
-FROM ncfgbase
+FROM registry.internal.aleemhaji.com/ncfgbase
 
 RUN \
     apt-get update -y && \
