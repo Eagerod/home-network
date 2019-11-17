@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: heimdall-deployment
+  labels:
+    app: heimdall
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: heimdall
+  template:
+    metadata:
+      labels:
+        app: heimdall
+    spec:
+      containers:
+        - name: heimdall
+          image: linuxserver/heimdall
+          ports:
+            - containerPort: 80
+          env:
+            - name: APP_URL
+              value: https://internal.aleemhaji.com
+          volumeMounts:
+            - name: heimdall-persistent-storage
+              mountPath: /config
+      volumes:
+        - name: heimdall-persistent-storage
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/heimdall
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: heimdall
+  labels:
+    app: heimdall
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: heimdall

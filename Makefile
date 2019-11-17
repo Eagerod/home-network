@@ -71,7 +71,8 @@ TRIVIAL_SERVICES:=\
 	blobstore \
 	tedbot \
 	gitea \
-	postgres
+	postgres \
+	heimdall
 
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
