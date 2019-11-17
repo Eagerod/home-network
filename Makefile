@@ -264,7 +264,7 @@ complete-%: networking % reload-nginx reload-pihole
 
 .PHONY: reload-nginx-internal
 reload-nginx-internal:
-	wait_time=60 && \
+	@wait_time=60 && \
 	current_nginx_config=$$($(call KUBECTL_APP_EXEC,nginx-internal) -- find /etc/nginx/conf.d -mindepth 1 -type d) && \
 	$(MAKE) nginx-configurations && \
 	printf "Waiting for new nginx configs to be loaded into the container" 1>&2 && \
@@ -286,7 +286,7 @@ reload-nginx-internal:
 
 .PHONY: reload-nginx-external
 reload-nginx-external:
-	wait_time=60 && \
+	@wait_time=60 && \
 	current_nginx_config=$$($(call KUBECTL_APP_EXEC,nginx-external) -- find /etc/nginx/conf.d -mindepth 1 -type d) && \
 	$(MAKE) nginx-configurations && \
 	printf "Waiting for new nginx configs to be loaded into the container" 1>&2 && \
@@ -311,7 +311,7 @@ reload-nginx-external:
 # Update the pi-hole configs, then update replicas with the new file contents.
 .PHONY: reload-pihole
 reload-pihole: pihole-configurations kube.list
-	$(call KUBECTL_APP_PODS,pihole) | while read line; do \
+	@$(call KUBECTL_APP_PODS,pihole) | while read line; do \
 		uuid=$$(uuidgen) && \
 		kubectl cp kube.list $${line}:/etc/pihole/kube.$${uuid}.list; \
 		kubectl exec $${line} -- chown root:root /etc/pihole/kube.$${uuid}.list; \
@@ -341,6 +341,14 @@ restart-%: kill-%
 .PHONY: %-shell
 %-shell:
 	$(call KUBECTL_APP_EXEC,$*) -it -- sh
+
+
+.PHONY: mysql-root-shell
+mysql-root-shell:
+	source .env && \
+	$(call KUBECTL_APP_EXEC,mysql) -it -- \
+		sh -c "mysql -uroot -p$${MYSQL_ROOT_PASSWORD}"
+
 
 # Cycle all pods in the cluster. Really should only be used in weird debugging
 #   situations.
