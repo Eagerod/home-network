@@ -24,13 +24,9 @@ replace_certificates() {
 
     echo "Updating $cert_name..."
     openssl rsa -in $(find "$cert_path" -iname "privkey*.pem" | sort -n | tail -1) -out "$rsa_keyfile"
-    curl \
-        -fsSL \
-        --insecure \
-        -X PATCH \
-        -H "Authorization: Bearer $TOKEN" \
-        -H "Content-Type: application/merge-patch+json" \
-        -d '
+    /scripts/patch.py \
+        "Bearer $TOKEN" \
+        '
         {
             "data":{
                 "tls.crt": "'$(base64 $(find "$cert_path" -iname "fullchain*.pem" | sort -n | tail -1) | tr -d '\n')'",
@@ -58,13 +54,9 @@ replace_combined_certificate() {
     cat \
         $(find "$cert_path" -iname "fullchain*.pem" | sort -n | tail -1) \
         $(find "$cert_path" -iname "privkey*.pem" | sort -n | tail -1) > $combined_file
-    curl \
-        -fsSL \
-        --insecure \
-        -X PATCH \
-        -H "Authorization: Bearer $TOKEN" \
-        -H "Content-Type: application/merge-patch+json" \
-        -d '
+    /scripts/patch.py \
+        "Bearer $TOKEN" \
+        '
         {
             "data":{
                 "keycert.pem": "'$(base64 "$combined_file" | tr -d '\n')'"

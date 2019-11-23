@@ -40,16 +40,17 @@ spec:
           serviceAccountName: certbot
           imagePullSecrets:
             - name: registry.internal.aleemhaji.com
-          initContainers:
+          containers:
             - name: certbot-renew
               image: certbot/certbot
               command:
                 - sh
                 - -c
+                - -x
                 - |
-                  set -x;
-                  certbot renew --standalone --preferred-challenges http;
-                  certbot --manual-auth-hook /scripts/dns-renew.sh renew || true;
+                  certbot renew --no-random-sleep-on-renew --standalone --preferred-challenges http
+                  certbot renew --no-random-sleep-on-renew --manual-auth-hook /scripts/dns-renew.sh || true
+                  sh /scripts/update-secrets.sh
               volumeMounts:
                 - name: certbot-storage
                   mountPath: /etc/letsencrypt
@@ -61,22 +62,8 @@ spec:
                     secretKeyRef:
                       name: namesilo-api-key
                       key: value
-            - name: update-secrets
-              image: registry.internal.aleemhaji.com/ncfgbase
-              command:
-                - sh
-                - /scripts/update-secrets.sh
-              volumeMounts:
-                - name: certbot-storage
-                  mountPath: /etc/letsencrypt
-                - name: certbot-scripts
-                  mountPath: /scripts
-          containers:
-            - name: dummy-container
-              image: busybox
-              command: 
-                - echo
-                - Oh look, it worked.
+              ports:
+                - containerPort: 80
           volumes:
             - name: certbot-storage
               nfs:

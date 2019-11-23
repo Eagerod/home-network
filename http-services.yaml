@@ -20,6 +20,7 @@ data:
     webcomics
     nodered
     openvpnas-tcp
+    heimdall
   monitoring: |
     grafana-published
     alertmanager-published
