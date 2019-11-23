@@ -21,6 +21,7 @@ data:
     nodered
     openvpnas-tcp
     heimdall
+    guacamole
   monitoring: |
     grafana-published
     alertmanager-published
