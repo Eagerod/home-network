@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webcomics-deployment
+  labels:
+    app: webcomics
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webcomics
+  template:
+    metadata:
+      name: webcomics
+      labels:
+        app: webcomics
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: webcomics
+          image: registry.internal.aleemhaji.com/webcomics:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: PORT
+              value: "80"
+            - name: DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: webcomics-secrets
+                  key: database
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webcomics
+  labels:
+    app: webcomics
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+  type: LoadBalancer
+  loadBalancerIP:
+  selector:
+    app: webcomics
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: webcomic-scraper-schedule
+spec:
+  schedule: "0 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          imagePullSecrets: 
+            - name: registry.internal.aleemhaji.com
+          containers:
+            - name: webcomic-scraper-schedule
+              image: registry.internal.aleemhaji.com/ncfgbase:latest
+              command:
+                - sh
+                - -c
+                - curl -X POST ${WEBCOMICS_IP}/tasks/fetch/comic 
+              env:
+                - name: WEBCOMICS_IP
+                  valueFrom:
+                    configMapKeyRef:
+                      name: network-ip-assignments
+                      key: webcomics

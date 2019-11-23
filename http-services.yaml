@@ -17,6 +17,7 @@ data:
     sharelatex
     slackbot
     blobstore
+    webcomics
     nodered
     openvpnas-tcp
     heimdall
