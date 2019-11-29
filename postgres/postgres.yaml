@@ -38,7 +38,7 @@ spec:
             - containerPort: 5432
           volumeMounts:
             - name: postgres-persistent-storage
-              mountPath: /usr/local/pgsql/data
+              mountPath: /usr/local/pgsql
             - name: postgres-certs
               mountPath: /etc/ssl
           args:
@@ -46,6 +46,8 @@ spec:
             - --ssl_cert_file=/etc/ssl/tls.crt
             - --ssl_key_file=/etc/ssl/tls.rsa.key
           env:
+            - name: PGDATA
+              value: /usr/local/pgsql/data
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
