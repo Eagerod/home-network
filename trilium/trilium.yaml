@@ -15,16 +15,14 @@ spec:
       labels:
         app: trilium
     spec:
-      imagePullSecrets: 
-        - name: registry.internal.aleemhaji.com
       containers:
         - name: trilium
-          image: registry.internal.aleemhaji.com/trilium:latest
+          image: zadam/trilium:0.37.8
           ports:
             - containerPort: 8080
           volumeMounts:
             - name: trilium-persistent-storage
-              mountPath: /var/lib/trilium
+              mountPath: /root/trilium-data
       volumes:
         - name: trilium-persistent-storage
           nfs:
