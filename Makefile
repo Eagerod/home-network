@@ -324,6 +324,7 @@ reload-pihole: pihole-configurations kube.list
 		kubectl exec $${line} -- chown root:root /etc/pihole/kube.$${uuid}.list; \
 		kubectl exec $${line} -- sh -c "echo addn-hosts=/etc/pihole/kube.$${uuid}.list > /etc/dnsmasq.d/03-kube.conf"; \
 		kubectl exec $${line} -- pihole restartdns; \
+		echo >&2 "Reloaded DNS in node $${line}"; \
 	done
 
 
