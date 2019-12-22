@@ -4,7 +4,7 @@ SHELL=/bin/bash
 ifeq ($(shell docker ps > /dev/null 2> /dev/null && echo "pass"),pass)
 DOCKER:=docker
 else ifeq ($(shell type docker-machine > /dev/null && echo "pass"),pass)
-DOCKER:=eval $$(docker-machine env $$(docker-machine ls -q)) && docker
+DOCKER:=eval $$(docker-machine env $$(docker-machine ls -q --filter state=Running)) && docker
 else ifeq ($(shell sudo docker ps > /dev/null && echo "pass"),pass)
 DOCKER:=sudo docker
 else
