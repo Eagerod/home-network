@@ -75,7 +75,8 @@ TRIVIAL_SERVICES:=\
 	gitea \
 	postgres \
 	heimdall \
-	guacamole
+	guacamole \
+	browser
 
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
@@ -380,7 +381,7 @@ registry:
 		kubectl create secret generic registry-htpasswd-secret \
 			--from-literal "htpasswd=$$(htpasswd -nbB -C 10 $${DOCKER_REGISTRY_USERNAME} $${DOCKER_REGISTRY_PASSWORD})" -o yaml --dry-run | \
 		kubectl apply -f -
-	# Create the registry secret in the default and monitoring namespaces
+	@# Create the registry secret in the default and monitoring namespaces
 	@source .env && \
 		kubectl create secret docker-registry $(REGISTRY_HOSTNAME) \
 			--docker-server $(REGISTRY_HOSTNAME) \
