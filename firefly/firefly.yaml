@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: firefly-iii
-          image: jc5x/firefly-iii:release-4.7.17
+          image: jc5x/firefly-iii:release-4.8.2
           ports:
             - containerPort: 80
           env:
@@ -25,26 +25,28 @@ spec:
               value: '**'
             - name: APP_URL
               value: https://firefly.internal.aleemhaji.com
-            - name: FF_DB_HOST
-              value: mysql
-            - name: FF_APP_ENV
+            - name: APP_ENV
               value: local
-            - name: FF_DB_USER
+            - name: DB_HOST
+              value: mysql
+            - name: DB_CONNECTION
+              value: mysql
+            - name: DB_USERNAME
               valueFrom:
                 configMapKeyRef:
                   name: firefly-config
                   key: mysql_user
-            - name: FF_DB_NAME
+            - name: DB_DATABASE
               valueFrom:
                 configMapKeyRef:
                   name: firefly-config
                   key: mysql_database
-            - name: FF_DB_PASSWORD
+            - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: firefly-secrets
                   key: mysql_password
-            - name: FF_APP_KEY
+            - name: APP_KEY
               valueFrom:
                 secretKeyRef:
                   name: firefly-secrets
@@ -114,11 +116,14 @@ spec:
                   name: firefly-secrets
                   key: mysql_password
         - name: firefly-app-init
-          image: jc5x/firefly-iii:release-4.7.17
+          image: jc5x/firefly-iii:release-4.8.2
           command:
             - sh
             - -c
-            - php artisan migrate && php artisan firefly:upgrade-database && php artisan firefly:verify && php artisan passport:install
+            - |
+              php artisan migrate && \
+              php artisan firefly:upgrade-database && \
+              php artisan passport:install
           # https://github.com/firefly-iii/firefly-iii/blob/4.7.5.3/.env.docker#L25
           env:
             - name: DB_HOST

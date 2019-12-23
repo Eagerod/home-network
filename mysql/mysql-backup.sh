@@ -21,5 +21,5 @@ mysql -h ${MYSQL_HOST} -u root -s -N -e "show databases;" | while read database;
     mkdir -p "/var/lib/backups/$database"
     mysql -h ${MYSQL_HOST} -u root -s -N -c "$database" -e "show tables;" | while read table; do
         mysqldump -h ${MYSQL_HOST} -u root --skip-dump-date "$database" "$table" > "/var/lib/backups/$database/$table.sql"
-    done
-done
+    done || exit 1
+done || exit 1
