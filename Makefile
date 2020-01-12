@@ -373,6 +373,7 @@ mongodb:
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 	@kubectl apply -f mongodb/mongodb-backup.yaml
+	@kubectl apply -f mongodb/mongodb-trim.yaml
 
 
 .PHONY: registry
