@@ -1,3 +1,6 @@
+# MongoDB set up with an WiredTiger cache size.
+# Without the explicit cap, MongoDB will just eat up memory without fear,
+#   and get itself OOM killed.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -23,6 +26,8 @@ spec:
             - preferSSL
             - --sslPEMKeyFile
             - /etc/ssl/mongodb.pem
+            - --wiredTigerCacheSizeGB
+            - "1"
           ports:
             - containerPort: 27017
           volumeMounts:
