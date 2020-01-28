@@ -51,6 +51,16 @@ spec:
                 secretKeyRef:
                   name: firefly-secrets
                   key: app_key
+            - name: USE_ENCRYPTION
+              value: "false"
+          volumeMounts:
+            - name: file-uploads
+              mountPath: /var/www/firefly-iii/storage/upload
+      volumes:
+        - name: file-uploads
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/firefly-iii
 ---
 apiVersion: v1
 kind: Service
