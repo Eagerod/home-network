@@ -6,7 +6,6 @@ data:
   default: |
     registry
     certbot
-    firefly
     trilium
     transmission
     remindmebot
@@ -28,3 +27,5 @@ data:
     alertmanager-published
   kube-system: |
     dashboard-published
+  ingress:
+    firefly

@@ -58,6 +58,7 @@ COMPLEX_SERVICES= \
 # TRIVIAL_SERVICES are the set of services that are deployed by only applying
 #   their yaml files.
 TRIVIAL_SERVICES:=\
+	ingress \
 	redis \
 	grafana \
 	certbot \
@@ -99,6 +100,7 @@ KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 #   configuration to be pushed before they can properly start.
 # Those services are included above, and additional prerequisites are listed
 #   here.
+ingress: ingress-controller
 nginx: nginx-internal nginx-external
 nginx-internal nginx-external: nginx-configurations
 util: util-configurations
@@ -172,6 +174,10 @@ initialize-cluster: $(KUBECONFIG)
 metallb:
 	@kubectl apply -f https://raw.githubusercontent.com/google/metallb/$(KUBERNETES_METALLB_VERSION)/manifests/metallb.yaml
 	@kubectl apply -f metallb-config.yaml
+
+
+ingress-controller:
+	@kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-0.32.0/deploy/static/provider/baremetal/deploy.yaml
 
 
 .PHONY: prometheus
@@ -774,13 +780,17 @@ token:
 #   when DNS requests are sent for internal services.
 # This could probably be done better, considering the hard coding, but it works
 .INTERMEDIATE: kube.list
-kube.list:
+kube.list: networking
 	@nginx_lb_ip=$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "nginx-internal" }}') && \
+	ingress_lb_ip=$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "ingress" }}') && \
 	http_services=$$(kubectl get configmap http-services -o template={{.data.default}}) && \
+	nginx_services=$$(kubectl get configmap http-services -o template={{.data.ingress}}) && \
 	arr=($(KUBERNETES_SERVICES)) && \
 	for svc in "$${arr[@]}"; do \
 		if echo $${http_services} | grep -q $${svc}; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
+		elif echo $${nginx_services} | grep -q $${svc}; then \
+			printf '%s\t%s\t%s\n' $$ingress_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		elif [ "$${svc}" == "grafana" ]; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		elif [ "$${svc}" == "alertmanager" ]; then \

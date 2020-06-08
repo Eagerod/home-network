@@ -38,3 +38,5 @@ data:
   resilio: 192.168.2.83
   nodered: 192.168.2.84
   openvpnas: 192.168.2.85
+  # Other things; experiments; whatever else.
+  ingress: 192.168.2.128
