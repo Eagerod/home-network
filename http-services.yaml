@@ -4,7 +4,6 @@ metadata:
   name: http-services
 data:
   default: |
-    registry
     certbot
     trilium
     transmission
@@ -29,3 +28,4 @@ data:
     dashboard-published
   ingress:
     firefly
+    registry

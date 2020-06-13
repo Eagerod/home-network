@@ -61,3 +61,36 @@ spec:
   loadBalancerIP:
   selector:
     app: registry
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: registry-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://registry.internal.aleemhaji.com
+spec:
+  rules:
+    - host: registry
+    - host: registry.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: registry-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+spec:
+  tls:
+    - hosts:
+        - registry.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: registry.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: registry
+              servicePort: 80
