@@ -9,6 +9,12 @@ kind: ServiceAccount
 metadata:
   name: certbot
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: certbot
+  namespace: kube-system
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -38,6 +44,30 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: certbot
+roleRef:
+  kind: Role
+  name: certbot-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: certbot-role
+  namespace: kube-system
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["secrets"]
+  verbs: ["get", "list", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: certbot-manage-secrets
+  namespace: kube-system
+subjects:
+- kind: ServiceAccount
+  name: certbot
+  namespace: kube-system
 roleRef:
   kind: Role
   name: certbot-role

@@ -50,7 +50,8 @@ spec:
                 - |
                   certbot renew --no-random-sleep-on-renew --standalone --preferred-challenges http
                   certbot renew --no-random-sleep-on-renew --manual-auth-hook /scripts/dns-renew.sh || true
-                  sh /scripts/update-secrets.sh
+                  set +x
+                  sh /scripts/update-secrets-default.sh
               volumeMounts:
                 - name: certbot-storage
                   mountPath: /etc/letsencrypt
@@ -69,6 +70,48 @@ spec:
               nfs:
                 server: 192.168.1.42
                 path: /kubernetes-test/certs/letsencrypt
+            - name: certbot-scripts
+              configMap:
+                name: certbot-scripts
+                defaultMode: 0777
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: certbot-copy-to-kube-system
+  namespace: kube-system
+spec:
+  schedule: "0 0 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: certbot-copy-to-kube-system
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: certbot
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
+          containers:
+            - name: certbot-copy-to-kube-system
+              image: certbot/certbot
+              command:
+                - sh
+                - /scripts/update-secrets-kube-system.sh
+              volumeMounts:
+                - name: certbot-storage
+                  mountPath: /etc/letsencrypt
+                - name: certbot-scripts
+                  mountPath: /scripts
+          volumes:
+            - name: certbot-storage
+              nfs:
+                server: 192.168.96.4
+                path: /mnt/main/apps/certificates
             - name: certbot-scripts
               configMap:
                 name: certbot-scripts

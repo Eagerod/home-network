@@ -618,7 +618,15 @@ certbot-configurations:
 	@kubectl create secret generic external-certificate-files 2> /dev/null || true
 	@kubectl create configmap certbot-scripts \
 		--from-file "certbot/dns-renew.sh" \
-		--from-file "certbot/update-secrets.sh" \
+		--from-file "certbot/update-secrets-default.sh" \
+		--from-file "certbot/patch.py" \
+		-o yaml --dry-run | kubectl apply -f -
+
+	@kubectl create secret generic -n kube-system internal-certificate-file 2> /dev/null || true
+	@kubectl create secret generic -n kube-system internal-certificate-files 2> /dev/null || true
+	@kubectl create configmap certbot-scripts -n kube-system \
+		--from-file "certbot/dns-renew.sh" \
+		--from-file "certbot/update-secrets-kube-system.sh" \
 		--from-file "certbot/patch.py" \
 		-o yaml --dry-run | kubectl apply -f -
 
@@ -794,8 +802,6 @@ kube.list: networking
 		elif [ "$${svc}" == "grafana" ]; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		elif [ "$${svc}" == "alertmanager" ]; then \
-			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
-		elif [ "$${svc}" == "dashboard" ]; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		elif [ "$${svc}" == "amproxy" ] || [ "$${svc}" == "tedbot" ]; then \
 			continue; \

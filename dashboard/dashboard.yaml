@@ -1,22 +1,34 @@
-# Create a service for the Kubernetes Dashboard that I can control and publish
-#   through nginx.
-# Has to be put into the kube-system namespace, or else it can't find the pods
-#   it needs to serve.
-# Typical solutions include having an ExternalName service, but that doesn't
-#   let me expose an IP address, and proxy via nginx without using the ingress
-#   system.
-apiVersion: v1
-kind: Service
+apiVersion: extensions/v1beta1
+kind: Ingress
 metadata:
   namespace: kube-system
-  labels:
-    app: dashboard
-  name: dashboard-published
+  name: dashboard-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://dashboard.internal.aleemhaji.com
 spec:
-  ports:
-    - port: 8443
-      protocol: TCP
-  type: LoadBalancer
-  loadBalancerIP:
-  selector:
-    k8s-app: kubernetes-dashboard
+  rules:
+    - host: dashboard
+    - host: dashboard.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: kube-system
+  name: dashboard-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/backend-protocol: "https"
+spec:
+  tls:
+    - hosts:
+        - dashboard.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: dashboard.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: kubernetes-dashboard
+              servicePort: 443

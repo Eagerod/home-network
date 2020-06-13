@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
 	auth_header, patch_body, host = sys.argv[1:]
 
-	requests.patch(
+	response = requests.patch(
 		url=host,
 		verify=False,
 		headers={
@@ -25,3 +25,8 @@ if __name__ == '__main__':
 		},
 		data=patch_body
 	)
+
+	print("HTTP status code: {}".format(response.status_code))
+
+	if not response.ok:
+		sys.exit(-1)

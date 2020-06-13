@@ -22,9 +22,8 @@ data:
   monitoring: |
     grafana-published
     alertmanager-published
-  kube-system: |
-    dashboard-published
   ingress:
+    dashboard
     firefly
     pihole-tcp
     registry
