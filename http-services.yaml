@@ -10,7 +10,6 @@ data:
     remindmebot
     unifi-tcp
     resilio
-    pihole-tcp
     plex
     sharelatex
     slackbot
@@ -28,4 +27,5 @@ data:
     dashboard-published
   ingress:
     firefly
+    pihole-tcp
     registry

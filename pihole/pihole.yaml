@@ -12,7 +12,7 @@ data:
   lan.list: |
     192.168.1.42 trunk.internal.aleemhaji.com. trunk
     192.168.2.59 internal.aleemhaji.com heimdall
-    192.168.2.59 pi.hole pihole
+    192.168.2.128 pi.hole pihole
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -128,3 +128,35 @@ spec:
   loadBalancerIP:
   selector:
     app: pihole
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: pihole-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://pihole.internal.aleemhaji.com
+spec:
+  rules:
+    - host: pihole
+    - host: pihole.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: pihole-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - pihole.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: pihole.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: pihole-tcp
+              servicePort: 80
