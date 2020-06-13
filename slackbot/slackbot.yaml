@@ -48,3 +48,35 @@ spec:
   loadBalancerIP:
   selector:
     app: slackbot
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: slackbot-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://slackbot.internal.aleemhaji.com
+spec:
+  rules:
+    - host: slackbot
+    - host: slackbot.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: slackbot-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - slackbot.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: slackbot.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: slackbot
+              servicePort: 80

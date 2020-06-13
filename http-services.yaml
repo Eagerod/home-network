@@ -12,7 +12,6 @@ data:
     resilio
     plex
     sharelatex
-    slackbot
     blobstore
     webcomics
     nodered
@@ -29,3 +28,4 @@ data:
     firefly
     pihole-tcp
     registry
+    slackbot
