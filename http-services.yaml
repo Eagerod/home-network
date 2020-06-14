@@ -15,7 +15,6 @@ data:
     blobstore
     webcomics
     nodered
-    openvpnas-tcp
     heimdall
     guacamole
     browser
@@ -25,6 +24,7 @@ data:
   ingress:
     dashboard
     firefly
+    openvpnas-tcp
     pihole-tcp
     registry
     slackbot
