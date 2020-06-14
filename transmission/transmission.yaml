@@ -51,3 +51,36 @@ spec:
   loadBalancerIP:
   selector:
     app: transmission
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: transmission-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://transmission.internal.aleemhaji.com
+spec:
+  rules:
+    - host: transmission
+    - host: transmission.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: transmission-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+spec:
+  tls:
+    - hosts:
+        - transmission.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: transmission.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: transmission
+              servicePort: 9091

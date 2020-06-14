@@ -6,7 +6,6 @@ data:
   default: |
     certbot
     trilium
-    transmission
     remindmebot
     unifi-tcp
     resilio
@@ -28,3 +27,4 @@ data:
     pihole-tcp
     registry
     slackbot
+    transmission
