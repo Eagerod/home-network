@@ -14,7 +14,6 @@ data:
   grafana: 192.168.2.50
   trilium: 192.168.2.51
   sharelatex: 192.168.2.52
-  alertmanager: 192.168.2.53
   dashboard: 192.168.2.54
   gitea: 192.168.2.55
   heimdall: 192.168.2.58

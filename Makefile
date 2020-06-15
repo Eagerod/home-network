@@ -67,7 +67,6 @@ TRIVIAL_SERVICES:=\
 	pihole \
 	plex \
 	sharelatex \
-	alertmanager \
 	dashboard \
 	blobstore \
 	webcomics \
@@ -90,7 +89,6 @@ SIMPLE_SERVICES:=\
 	util \
 	resilio \
 	slackbot \
-	amproxy \
 	nodered
 
 
@@ -107,7 +105,6 @@ util: util-configurations
 pihole: pihole-configurations
 resilio: resilio-configurations
 slackbot: slackbot-configurations
-alertmanager: alertmanager-configurations
 blobstore: blobstore-configurations
 webcomics: webcomics-configurations
 certbot: certbot-configurations
@@ -194,16 +191,6 @@ prometheus:
 
 	kubectl apply -f kube-prometheus-$(KUBERNETES_PROMETHEUS_VERISON)/manifests/
 	rm -rf kube-prometheus-$(KUBERNETES_PROMETHEUS_VERISON)
-
-
-.PHONY: alertmanager-configurations
-alertmanager-configurations:
-	@kubectl create secret generic alertmanager-main -n monitoring \
-		--from-file alertmanager.yaml=alertmanager/alertmanager-config.yaml \
-		-o yaml --dry-run | \
-			kubectl apply -f -
-	@echo "Alertmanager configuration updated. Run this once volumes have updated:"
-	@echo "    curl -X POST https://alertmanager.internal.aleemhaji.com/-/reload"
 
 
 # Set up the ConfigMaps that are needed to hold network information.
@@ -801,9 +788,7 @@ kube.list: networking
 			printf '%s\t%s\t%s\n' $$ingress_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		elif [ "$${svc}" == "grafana" ]; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
-		elif [ "$${svc}" == "alertmanager" ]; then \
-			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
-		elif [ "$${svc}" == "amproxy" ] || [ "$${svc}" == "tedbot" ]; then \
+		elif [ "$${svc}" == "tedbot" ]; then \
 			continue; \
 		else \
 			printf '%s\t%s\t%s\n' \

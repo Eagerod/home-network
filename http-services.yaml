@@ -19,7 +19,6 @@ data:
     browser
   monitoring: |
     grafana-published
-    alertmanager-published
   ingress:
     dashboard
     firefly
