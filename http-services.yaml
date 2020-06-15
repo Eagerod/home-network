@@ -12,7 +12,6 @@ data:
     sharelatex
     blobstore
     webcomics
-    nodered
     heimdall
     guacamole
     browser
@@ -21,6 +20,7 @@ data:
   ingress:
     dashboard
     firefly
+    nodered
     openvpnas-tcp
     pihole-tcp
     registry

@@ -110,3 +110,35 @@ spec:
   loadBalancerIP:
   selector:
     app: nodered
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nodered-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://nodered.internal.aleemhaji.com
+spec:
+  rules:
+    - host: nodered
+    - host: nodered.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nodered-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - nodered.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: nodered.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: nodered
+              servicePort: 1880
