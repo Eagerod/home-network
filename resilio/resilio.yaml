@@ -62,3 +62,35 @@ spec:
   loadBalancerIP:
   selector:
     app: resilio
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: resilio-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://resilio.internal.aleemhaji.com
+spec:
+  rules:
+    - host: resilio
+    - host: resilio.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: resilio-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - resilio.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: resilio.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: resilio
+              servicePort: 80

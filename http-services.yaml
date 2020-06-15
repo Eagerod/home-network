@@ -7,7 +7,6 @@ data:
     certbot
     trilium
     remindmebot
-    resilio
     plex
     sharelatex
     blobstore
@@ -24,6 +23,7 @@ data:
     openvpnas-tcp
     pihole-tcp
     registry
+    resilio
     slackbot
     transmission
     unifi-tcp
