@@ -7,7 +7,6 @@ data:
     certbot
     trilium
     remindmebot
-    unifi-tcp
     resilio
     plex
     sharelatex
@@ -27,3 +26,4 @@ data:
     registry
     slackbot
     transmission
+    unifi-tcp

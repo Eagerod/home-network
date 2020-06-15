@@ -108,3 +108,36 @@ spec:
   loadBalancerIP:
   selector:
     app: unifi
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: unifi-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://unifi.internal.aleemhaji.com
+spec:
+  rules:
+    - host: unifi
+    - host: unifi.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: unifi-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/backend-protocol: "https"
+spec:
+  tls:
+    - hosts:
+        - unifi.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: unifi.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: unifi-tcp
+              servicePort: 8443
