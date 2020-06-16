@@ -13,11 +13,10 @@ data:
     heimdall
     guacamole
     browser
-  monitoring: |
-    grafana-published
   ingress: |
     dashboard
     firefly
+    grafana
     nodered
     openvpnas-tcp
     pihole-tcp

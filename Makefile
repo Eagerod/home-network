@@ -233,12 +233,6 @@ namesilo-api-key:
 			$$(kubectl get service $${line} -o template={{.spec.loadBalancerIP}}) \
 			$$(kubectl get service $${line} -o jsonpath='{.spec.ports[0].port}') >> $@; \
 	done
-	@kubectl get configmap http-services -o template={{.data.monitoring}} | while read line; do \
-		printf 'upstream %s {\n    server %s:%d;\n}\n\n' \
-			$${line} \
-			$$(kubectl get service -n monitoring $${line} -o template={{.spec.loadBalancerIP}}) \
-			$$(kubectl get service -n monitoring $${line} -o jsonpath='{.spec.ports[0].port}') >> $@; \
-	done
 	@kubectl get configmap http-services -o template='{{ index .data "kube-system" }}' | while read line; do \
 		printf 'upstream %s {\n    server %s:%d;\n}\n\n' \
 			$${line} \
@@ -617,6 +611,14 @@ certbot-configurations:
 		--from-file "certbot/patch.py" \
 		-o yaml --dry-run | kubectl apply -f -
 
+	@kubectl create secret generic -n monitoring internal-certificate-file 2> /dev/null || true
+	@kubectl create secret generic -n monitoring internal-certificate-files 2> /dev/null || true
+	@kubectl create configmap certbot-scripts -n monitoring \
+		--from-file "certbot/dns-renew.sh" \
+		--from-file "certbot/update-secrets-monitoring.sh" \
+		--from-file "certbot/patch.py" \
+		-o yaml --dry-run | kubectl apply -f -
+
 
 .PHONY: nodered-configurations
 nodered-configurations:
@@ -786,8 +788,6 @@ kube.list: networking
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		elif echo "$${nginx_services}" | grep -q "^$${svc}$$\|^$${svc}-tcp$$"; then \
 			printf '%s\t%s\t%s\n' $$ingress_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
-		elif [ "$${svc}" == "grafana" ]; then \
-			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		elif [ "$${svc}" == "tedbot" ]; then \
 			continue; \
 		else \

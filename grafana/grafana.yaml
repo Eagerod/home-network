@@ -1,21 +1,33 @@
-# Create a service for Grafana that I can control and publish through nginx.
-# Has to be put into the monitoring namespace, or else it can't find the
-#   pods it needs to serve.
-# Typical solutions include having an ExternalName service, but that doesn't
-#   let me expose an IP address, and proxy via nginx without using the ingress
-#   system.
-apiVersion: v1
-kind: Service
+apiVersion: extensions/v1beta1
+kind: Ingress
 metadata:
   namespace: monitoring
-  labels:
-    app: grafana
-  name: grafana-published
+  name: grafana-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://grafana.internal.aleemhaji.com
 spec:
-  ports:
-    - port: 3000
-      protocol: TCP
-  type: LoadBalancer
-  loadBalancerIP:
-  selector:
-    app: grafana
+  rules:
+    - host: grafana
+    - host: grafana.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: monitoring
+  name: grafana-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - grafana.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: grafana.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: grafana
+              servicePort: 3000
