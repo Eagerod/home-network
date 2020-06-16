@@ -776,15 +776,15 @@ token:
 # This could probably be done better, considering the hard coding, but it works
 .INTERMEDIATE: kube.list
 kube.list: networking
-	@nginx_lb_ip=$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "nginx-internal" }}') && \
-	ingress_lb_ip=$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "ingress" }}') && \
-	http_services=$$(kubectl get configmap http-services -o template={{.data.default}}) && \
-	nginx_services=$$(kubectl get configmap http-services -o template={{.data.ingress}}) && \
+	@nginx_lb_ip="$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "nginx-internal" }}')" && \
+	ingress_lb_ip="$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "ingress" }}')" && \
+	http_services="$$(kubectl get configmap http-services -o template={{.data.default}})" && \
+	nginx_services="$$(kubectl get configmap http-services -o template={{.data.ingress}})" && \
 	arr=($(KUBERNETES_SERVICES)) && \
 	for svc in "$${arr[@]}"; do \
-		if echo $${http_services} | grep -q $${svc}; then \
+		if echo "$${http_services}" | grep -q "^$${svc}$$"; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
-		elif echo $${nginx_services} | grep -q $${svc}; then \
+		elif echo "$${nginx_services}" | grep -q "^$${svc}$$"; then \
 			printf '%s\t%s\t%s\n' $$ingress_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		elif [ "$${svc}" == "grafana" ]; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
