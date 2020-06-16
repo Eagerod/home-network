@@ -43,3 +43,36 @@ spec:
   loadBalancerIP:
   selector:
     app: trilium
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: trilium-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://trilium.internal.aleemhaji.com
+spec:
+  rules:
+    - host: trilium
+    - host: trilium.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: trilium-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+spec:
+  tls:
+    - hosts:
+        - trilium.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: trilium.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: trilium
+              servicePort: 8080
