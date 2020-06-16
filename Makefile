@@ -782,9 +782,9 @@ kube.list: networking
 	nginx_services="$$(kubectl get configmap http-services -o template={{.data.ingress}})" && \
 	arr=($(KUBERNETES_SERVICES)) && \
 	for svc in "$${arr[@]}"; do \
-		if echo "$${http_services}" | grep -q "^$${svc}$$"; then \
+		if echo "$${http_services}" | grep -q "^$${svc}$$\|^$${svc}-tcp$$"; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
-		elif echo "$${nginx_services}" | grep -q "^$${svc}$$"; then \
+		elif echo "$${nginx_services}" | grep -q "^$${svc}$$\|^$${svc}-tcp$$"; then \
 			printf '%s\t%s\t%s\n' $$ingress_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		elif [ "$${svc}" == "grafana" ]; then \
 			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
