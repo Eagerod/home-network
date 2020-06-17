@@ -17,7 +17,6 @@ data:
   dashboard: 192.168.2.54
   gitea: 192.168.2.55
   heimdall: 192.168.2.58
-  nginx-internal: 192.168.2.59
   guacamole: 192.168.2.60
   browser: 192.168.2.61
   # Back End Services     192.168.2.64/28

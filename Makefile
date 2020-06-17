@@ -62,7 +62,6 @@ TRIVIAL_SERVICES:=\
 	redis \
 	grafana \
 	certbot \
-	nginx-internal \
 	nginx-external \
 	pihole \
 	plex \
@@ -99,8 +98,7 @@ KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 # Those services are included above, and additional prerequisites are listed
 #   here.
 ingress: ingress-controller
-nginx: nginx-internal nginx-external
-nginx-internal nginx-external: nginx-configurations
+nginx-external: nginx-configurations
 util: util-configurations
 pihole: pihole-configurations
 resilio: resilio-configurations
@@ -258,29 +256,7 @@ $(SIMPLE_SERVICES):
 # Do a full deployment of a service, including updating networking info and
 #   having pihole take on new configurations.
 .PHONY: complete-%
-complete-%: networking % reload-nginx reload-pihole
-
-
-.PHONY: reload-nginx-internal
-reload-nginx-internal:
-	@wait_time=60 && \
-	current_nginx_config=$$($(call KUBECTL_APP_EXEC,nginx-internal) -- find /etc/nginx/conf.d -mindepth 1 -type d) && \
-	$(MAKE) nginx-configurations && \
-	printf "Waiting for new nginx configs to be loaded into the container" 1>&2 && \
-	until [ "$$($(call KUBECTL_APP_EXEC,nginx-internal) -- find /etc/nginx/conf.d -mindepth 1 -type d)" != "$${current_nginx_config}" ]; do \
-		printf '.' 1>&2; \
-		sleep 1; \
-		wait_time=$$((wait_time - 1)); \
-		if [ $${wait_time} -eq 0 ]; then \
-			echo >&2 ""; \
-			echo >&2 "Kubernetes hasn't updated nginx configurations in 60 seconds."; \
-			echo >&2 "Configurations are probably unchanged."; \
-			exit; \
-		fi; \
-	done && \
-	printf '\n' 1>&2
-
-	$(call KUBECTL_APP_EXEC,nginx-internal) -- nginx -s reload
+complete-%: networking % reload-pihole
 
 
 .PHONY: reload-nginx-external
@@ -511,11 +487,6 @@ openvpnas:
 nginx-configurations: networking 00-upstream.http.conf
 	@kubectl create configmap nginx-config --from-file nginx.conf -o yaml --dry-run | \
 		kubectl apply -f -
-
-	@kubectl create configmap nginx-servers-internal \
-		--from-file 00-upstream.http.conf \
-		--from-file nginx-internal/internal.http.conf \
-		-o yaml --dry-run | kubectl apply -f -
 
 	@kubectl create configmap nginx-servers-external \
 		--from-file 00-upstream.http.conf \
@@ -778,15 +749,11 @@ token:
 # This could probably be done better, considering the hard coding, but it works
 .INTERMEDIATE: kube.list
 kube.list: networking
-	@nginx_lb_ip="$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "nginx-internal" }}')" && \
-	ingress_lb_ip="$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "ingress" }}')" && \
-	http_services="$$(kubectl get configmap http-services -o template={{.data.default}})" && \
-	nginx_services="$$(kubectl get configmap http-services -o template={{.data.ingress}})" && \
+	@ingress_lb_ip="$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "ingress" }}')" && \
+	ingress_services="$$(kubectl get configmap http-services -o template={{.data.ingress}})" && \
 	arr=($(KUBERNETES_SERVICES)) && \
 	for svc in "$${arr[@]}"; do \
-		if echo "$${http_services}" | grep -q "^$${svc}$$\|^$${svc}-tcp$$"; then \
-			printf '%s\t%s\t%s\n' $$nginx_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
-		elif echo "$${nginx_services}" | grep -q "^$${svc}$$\|^$${svc}-tcp$$"; then \
+		if echo "$${ingress_services}" | grep -q "^$${svc}$$\|^$${svc}-tcp$$"; then \
 			printf '%s\t%s\t%s\n' $$ingress_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
 		elif [ "$${svc}" == "tedbot" ]; then \
 			continue; \
