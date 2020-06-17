@@ -46,3 +46,23 @@ spec:
   loadBalancerIP:
   selector:
     app: heimdall
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: heimdall-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - internal.aleemhaji.com
+      secretName: external-certificate-files
+  rules:
+    - host: internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: heimdall
+              servicePort: 80

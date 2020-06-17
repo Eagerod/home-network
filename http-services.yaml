@@ -10,13 +10,13 @@ data:
     sharelatex
     blobstore
     webcomics
-    heimdall
   ingress: |
     browser
     dashboard
     firefly
     grafana
     guacamole
+    heimdall
     nodered
     openvpnas-tcp
     pihole-tcp
