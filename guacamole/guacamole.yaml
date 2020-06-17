@@ -132,3 +132,36 @@ spec:
   loadBalancerIP:
   selector:
     app: guacamole
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: guacamole-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://guacamole.internal.aleemhaji.com
+spec:
+  rules:
+    - host: guacamole
+    - host: guacamole.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: guacamole-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: /guacamole/$1
+spec:
+  tls:
+    - hosts:
+        - guacamole.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: guacamole.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /(.*)
+            backend:
+              serviceName: guacamole
+              servicePort: 8080

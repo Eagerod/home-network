@@ -11,12 +11,12 @@ data:
     blobstore
     webcomics
     heimdall
-    guacamole
     browser
   ingress: |
     dashboard
     firefly
     grafana
+    guacamole
     nodered
     openvpnas-tcp
     pihole-tcp
