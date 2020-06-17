@@ -55,3 +55,35 @@ spec:
   loadBalancerIP:
   selector:
     app: browser
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: browser-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://browser.internal.aleemhaji.com
+spec:
+  rules:
+    - host: browser
+    - host: browser.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: browser-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - browser.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: browser.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: browser
+              servicePort: 8080

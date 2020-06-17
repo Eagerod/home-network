@@ -11,8 +11,8 @@ data:
     blobstore
     webcomics
     heimdall
-    browser
   ingress: |
+    browser
     dashboard
     firefly
     grafana
