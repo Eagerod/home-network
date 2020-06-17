@@ -7,7 +7,6 @@ data:
     certbot
     remindmebot
     plex
-    sharelatex
     blobstore
     webcomics
   ingress: |
@@ -22,6 +21,7 @@ data:
     pihole-tcp
     registry
     resilio
+    sharelatex
     slackbot
     transmission
     trilium
