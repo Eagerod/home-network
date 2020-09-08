@@ -12,9 +12,12 @@ wget -O - "https://www.namesilo.com/api/dnsListRecords?version=1&type=xml&key=$N
         echo "Skipping CNAME update because there's nothing to with it"
     elif echo $line | grep '<type>TXT</type>' > /dev/null; then
         if [ "$ACTUAL_DOMAIN" == "$(echo $line | sed -E 's/.*<host>([^<]*).*/\1/')" ]; then
+            echo "Updating domain: $ACTUAL_DOMAIN with '$CERTBOT_VALIDATION'..."
             wget -O - "https://www.namesilo.com/api/dnsUpdateRecord?version=1&type=xml&key=$NAMESILO_API_KEY&domain=aleemhaji.com&rrid=$NAMESILO_RECORD_ID&rrhost=$SUBDOMAIN&rrvalue=$CERTBOT_VALIDATION&rrttl=7207"
             # NameSilo pushes DNS updates every 15 minutes, so sleep for 15 minutes
-            sleep 900
+            echo "Sleeping for 30 minutes to wait for NameSilo DNS updates to propagate..."
+            echo "Sleep is double their DNS update duration to ensure other DNS caches have time to expire."
+            sleep 1800
             break
         else
            echo "Skipping TXT records because $ACTUAL_DOMAIN != $(echo $line | sed -E 's/.*<host>([^<]*).*/\1/')"
