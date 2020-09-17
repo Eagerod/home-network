@@ -39,13 +39,13 @@ spec:
       volumes:
         - name: registry-persistent-storage
           nfs:
-            server: 192.168.1.42
-            path: /kubernetes-test/registry
+            server: 192.168.96.4
+            path: /mnt/main/apps/docker-registry
         - name: htpasswd-secrets
           projected:
             sources:
               - secret:
-                  name: registry-htpasswd-secret
+                  name: registry.internal.aleemhaji.com-htpasswd
 ---
 apiVersion: v1
 kind: Service
@@ -57,8 +57,7 @@ spec:
   ports:
     - port: 80
       protocol: TCP
-  type: LoadBalancer
-  loadBalancerIP:
+  type: NodePort
   selector:
     app: registry
 ---

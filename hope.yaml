@@ -119,5 +119,23 @@ resources:
                   backend:
                     serviceName: kubernetes-dashboard
                     servicePort: 443
+  - name: docker-registry-secrets
+    inline: |
+      apiVersion: v1
+      data:
+        .dockerconfigjson: ${DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64}
+      kind: Secret
+      metadata:
+        name: ${DOCKER_REGISTRY_HOSTNAME}
+      type: kubernetes.io/dockerconfigjson
+      ---
+      apiVersion: v1
+      data:
+        htpasswd: ${DOCKER_HTPASSWD_FILE_CONTENTS_BASE64}
+      kind: Secret
+      metadata:
+        name: ${DOCKER_REGISTRY_HOSTNAME}-htpasswd
+  - name: docker-registry
+    file: registry/registry.yaml
   - name: trilium
     file: trilium/trilium.yaml

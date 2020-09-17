@@ -48,7 +48,6 @@ COMPLEX_SERVICES= \
 	mongodb \
 	mysql \
 	firefly \
-	registry \
 	remindmebot \
 	openvpnas
 
@@ -320,43 +319,6 @@ mongodb:
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 	@kubectl apply -f mongodb/mongodb-backup.yaml
 	@kubectl apply -f mongodb/mongodb-trim.yaml
-
-
-.PHONY: registry
-registry:
-	@source .env && \
-		kubectl create secret generic registry-htpasswd-secret \
-			--from-literal "htpasswd=$$(htpasswd -nbB -C 10 $${DOCKER_REGISTRY_USERNAME} $${DOCKER_REGISTRY_PASSWORD})" -o yaml --dry-run | \
-		kubectl apply -f -
-	@# Create the registry secret in the default and monitoring namespaces
-	@source .env && \
-		kubectl create secret docker-registry $(REGISTRY_HOSTNAME) \
-			--docker-server $(REGISTRY_HOSTNAME) \
-			--docker-username $${DOCKER_REGISTRY_USERNAME} \
-			--docker-password $${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
-		kubectl apply -f -
-	@source .env && \
-		kubectl create secret -n monitoring docker-registry $(REGISTRY_HOSTNAME) \
-			--docker-server $(REGISTRY_HOSTNAME) \
-			--docker-username $${DOCKER_REGISTRY_USERNAME} \
-			--docker-password $${DOCKER_REGISTRY_PASSWORD} -o yaml --dry-run | \
-		kubectl apply -f -
-
-	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
-
-	@# Wait for the current registry to possibly be scheduled away if it needs
-	@#   to be.
-	@# This can probably be replaced with something more fancy at some point,
-	@#   but it does what it needs to for now.
-	@sleep 5
-
-	@$(call KUBECTL_WAIT_FOR_POD,$@)
-
-	@source .env && \
-		$(DOCKER) login \
-			--username $${DOCKER_REGISTRY_USERNAME}\
-			--password $${DOCKER_REGISTRY_PASSWORD} \
-			$(REGISTRY_HOSTNAME)
 
 
 .PHONY: mysql
