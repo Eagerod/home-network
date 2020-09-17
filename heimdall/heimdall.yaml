@@ -42,8 +42,7 @@ spec:
   ports:
     - port: 80
       protocol: TCP
-  type: LoadBalancer
-  loadBalancerIP:
+  type: NodePort
   selector:
     app: heimdall
 ---

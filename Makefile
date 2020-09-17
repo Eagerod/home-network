@@ -66,7 +66,6 @@ TRIVIAL_SERVICES:=\
 	tedbot \
 	gitea \
 	postgres \
-	heimdall \
 	guacamole \
 	browser
 

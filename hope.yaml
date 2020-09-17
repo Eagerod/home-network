@@ -137,5 +137,7 @@ resources:
         name: ${DOCKER_REGISTRY_HOSTNAME}-htpasswd
   - name: docker-registry
     file: registry/registry.yaml
+  - name: heimdall
+    file: heimdall/heimdall.yaml
   - name: trilium
     file: trilium/trilium.yaml

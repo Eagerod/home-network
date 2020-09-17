@@ -13,7 +13,6 @@ data:
   firefly: 192.168.2.49
   grafana: 192.168.2.50
   gitea: 192.168.2.55
-  heimdall: 192.168.2.58
   guacamole: 192.168.2.60
   browser: 192.168.2.61
   # Back End Services     192.168.2.64/28

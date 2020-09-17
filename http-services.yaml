@@ -15,7 +15,6 @@ data:
     firefly
     grafana
     guacamole
-    heimdall
     nodered
     openvpnas-tcp
     pihole-tcp
