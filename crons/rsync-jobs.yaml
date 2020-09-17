@@ -6,7 +6,6 @@ data:
   _keys: |
     factorio
     trilium
-    sharelatex
     nodered
     gitea
   factorio: |
@@ -26,15 +25,6 @@ data:
     SOURCE_PATH=/
     DESTINATION_NFS_SERVER=192.168.1.42
     DESTINATION_NFS_DIRECTORY=/kubernetes-test/backups/trilium
-    DEST_PATH=
-  sharelatex: |
-    CRONJOB_NAME=sharelatex
-    RSYNC_OPTIONS="-avhuDH --delete --exclude=.sync"
-    SOURCE_NFS_SERVER=192.168.1.42
-    SOURCE_NFS_DIRECTORY=/kubernetes-test/sharelatex
-    SOURCE_PATH=/
-    DESTINATION_NFS_SERVER=192.168.1.42
-    DESTINATION_NFS_DIRECTORY=/kubernetes-test/backups/sharelatex
     DEST_PATH=
   nodered: |
     CRONJOB_NAME=nodered

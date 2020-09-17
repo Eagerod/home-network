@@ -12,7 +12,6 @@ data:
   nginx-external: 192.168.2.48
   firefly: 192.168.2.49
   grafana: 192.168.2.50
-  sharelatex: 192.168.2.52
   gitea: 192.168.2.55
   heimdall: 192.168.2.58
   guacamole: 192.168.2.60

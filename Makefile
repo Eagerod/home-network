@@ -61,7 +61,6 @@ TRIVIAL_SERVICES:=\
 	nginx-external \
 	pihole \
 	plex \
-	sharelatex \
 	blobstore \
 	webcomics \
 	tedbot \

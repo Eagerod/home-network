@@ -21,7 +21,6 @@ data:
     pihole-tcp
     registry
     resilio
-    sharelatex
     slackbot
     transmission
     trilium

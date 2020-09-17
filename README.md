@@ -17,7 +17,6 @@ It includes docker images, or host-modifying make commands that will allow any m
 - [Plex](/plex)
 - [Redis](/redis)
 - [Resilio Sync Server](/resilio-server)
-- [ShareLaTeX](/sharelatex)
 - [Transmission (OSS)](/transmission-oss)
 - [UniFi Controller](/unifi)
 - [Util Server](/util)
