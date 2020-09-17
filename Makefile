@@ -66,8 +66,7 @@ TRIVIAL_SERVICES:=\
 	tedbot \
 	gitea \
 	postgres \
-	guacamole \
-	browser
+	guacamole
 
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a

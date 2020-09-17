@@ -20,26 +20,11 @@ spec:
           image: klausmeyer/docker-registry-browser:1.3.1
           ports:
             - containerPort: 8080
-          command:
-            - sh
-            - -cex
-            - |
-              DOCKER_REGISTRY_URL=http://$${DOCKER_REGISTRY_URL} puma -C config/puma.rb
-          resources:
-            requests:
-              memory: "128Mi"
-              cpu: "50m"
-            limits:
-              memory: "256Mi"
-              cpu: "50m"
           env:
             - name: ENABLE_DELETE_IMAGES
               value: "true"
             - name: DOCKER_REGISTRY_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: network-ip-assignments
-                  key: registry
+              value: https://registry.internal.aleemhaji.com
 ---
 apiVersion: v1
 kind: Service
@@ -51,8 +36,7 @@ spec:
   ports:
     - port: 8080
       protocol: TCP
-  type: LoadBalancer
-  loadBalancerIP:
+  type: NodePort
   selector:
     app: browser
 ---

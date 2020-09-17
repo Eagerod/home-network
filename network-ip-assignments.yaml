@@ -14,7 +14,6 @@ data:
   grafana: 192.168.2.50
   gitea: 192.168.2.55
   guacamole: 192.168.2.60
-  browser: 192.168.2.61
   # Back End Services     192.168.2.64/28
   util: 192.168.2.65
   factorio: 192.168.2.66
