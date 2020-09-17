@@ -56,7 +56,6 @@ COMPLEX_SERVICES= \
 # TRIVIAL_SERVICES are the set of services that are deployed by only applying
 #   their yaml files.
 TRIVIAL_SERVICES:=\
-	ingress \
 	redis \
 	grafana \
 	certbot \
@@ -64,7 +63,6 @@ TRIVIAL_SERVICES:=\
 	pihole \
 	plex \
 	sharelatex \
-	dashboard \
 	blobstore \
 	webcomics \
 	tedbot \
@@ -95,7 +93,6 @@ KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 #   configuration to be pushed before they can properly start.
 # Those services are included above, and additional prerequisites are listed
 #   here.
-ingress: ingress-controller
 nginx-external: nginx-configurations
 util: util-configurations
 pihole: pihole-configurations
