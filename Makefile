@@ -32,8 +32,6 @@ KUBERNETES_MASTER:=192.168.2.10
 KUBERNETES_HOSTS:=$(shell kubectl get nodes -o jsonpath={.items[*].status.addresses[?\(@.type==\"InternalIP\"\)].address})
 
 KUBERNETES_PROMETHEUS_VERISON=0.1.0
-KUBERNETES_DASHBOARD_VERSION=v1.10.1
-KUBERNETES_METALLB_VERSION=v0.8.3
 
 AP_IPS=\
 	192.168.1.43 \
@@ -151,28 +149,13 @@ services: $(KUBERNETES_SERVICES)
 
 
 .PHONY: initialize-cluster
-initialize-cluster: $(KUBECONFIG)
-	@kubectl taint node util1 node-role.kubernetes.io/master:NoSchedule- || true
-	@kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-	@kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
-	@kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/$(KUBERNETES_DASHBOARD_VERSION)/src/deploy/recommended/kubernetes-dashboard.yaml
+initialize-cluster:
+	hope --config hope.yaml deploy
+
 	@kubectl apply -f metrics-server.yaml
 
-	@kubectl apply -f users.yaml
-
-	@$(MAKE) metallb
 	@$(MAKE) prometheus
 	@$(MAKE) grafana
-
-
-.PHONY: metallb
-metallb:
-	@kubectl apply -f https://raw.githubusercontent.com/google/metallb/$(KUBERNETES_METALLB_VERSION)/manifests/metallb.yaml
-	@kubectl apply -f metallb-config.yaml
-
-
-ingress-controller:
-	@kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-0.32.0/deploy/static/provider/baremetal/deploy.yaml
 
 
 .PHONY: prometheus
@@ -683,16 +666,8 @@ unifi-restore:
 	kubectl scale deployment unifi-deployment --replicas=1
 
 
-.PHONY: mysql-db-shell
-mysql-db-shell:
-	@source .env && $(call KUBECTL_APP_EXEC,mysql) -it -- \
-		sh -c 'MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql'
-
-
 $(KUBECONFIG):
-	@mkdir -p $(@D)
-	@ssh -t util1 "kubectl config view --raw" | sed 's/127.0.0.1/$(KUBERNETES_MASTER)/' > $@
-	@cp $@ ~/.kube/config
+	hope --config hope.yaml kubeconfig
 
 
 .INTERMEDIATE: dns.vbash
@@ -741,7 +716,7 @@ ap-config:
 
 .PHONY: token
 token:
-	@kubectl -n kube-system get secret $$(kubectl -n kube-system get serviceaccount aleem -o jsonpath={.secrets[0].name}) -o jsonpath={.data.token} | base64 -D && echo
+	hope --config hope.yaml token aleem
 
 
 # kube.list creates a pi-hole list that provides the appropriate ip addresses
