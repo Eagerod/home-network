@@ -119,3 +119,5 @@ resources:
                   backend:
                     serviceName: kubernetes-dashboard
                     servicePort: 443
+  - name: trilium
+    file: trilium/trilium.yaml

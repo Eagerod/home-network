@@ -66,7 +66,6 @@ TRIVIAL_SERVICES:=\
 	blobstore \
 	webcomics \
 	tedbot \
-	trilium \
 	gitea \
 	postgres \
 	heimdall \
