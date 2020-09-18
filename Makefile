@@ -75,7 +75,6 @@ SIMPLE_SERVICES:=\
 	transmission \
 	unifi \
 	util \
-	resilio \
 	nodered
 
 
@@ -88,7 +87,6 @@ KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 nginx-external: nginx-configurations
 util: util-configurations
 pihole: pihole-configurations
-resilio: resilio-configurations
 blobstore: blobstore-configurations
 webcomics: webcomics-configurations
 certbot: certbot-configurations
@@ -113,7 +111,6 @@ SAVE_ENV_VARS=\
 	MYSQL_USER\
 	MYSQL_DATABASE\
 	FF_APP_ENV\
-	RESILIO_SERVER_USERNAME\
 	ADVERTISE_IP\
 	DOCKER_REGISTRY_USERNAME\
 	REMINDMEBOT_USERNAME\
@@ -417,18 +414,6 @@ util-configurations:
 		kubectl create secret generic multi-reddit-blob-credentials \
 			--from-literal "read_acl=$${DEFAULT_BLOBSTORE_READ_ACL}" \
 			--from-literal "write_acl=$${DEFAULT_BLOBSTORE_WRITE_ACL}" \
-			-o yaml --dry-run | kubectl apply -f -
-
-
-.PHONY: resilio-configurations
-resilio-configurations:
-	@source .env && \
-		kubectl create configmap resilio-sync-config \
-			--from-literal "username=$${RESILIO_SERVER_USERNAME}" \
-			-o yaml --dry-run | kubectl apply -f -
-	@source .env && \
-		kubectl create secret generic resilio-sync-credentials \
-			--from-literal "password=$${RESILIO_SERVER_PASSWORD}" \
 			-o yaml --dry-run | kubectl apply -f -
 
 

@@ -210,3 +210,24 @@ resources:
     job: guacamole-mysql-init
   - name: guacamole
     file: guacamole/guacamole.yaml
+  - name: resilio-sync-config
+    inline: |
+      apiVersion: v1
+      data:
+        username: ${RESILIO_SERVER_USERNAME}
+      kind: ConfigMap
+      metadata:
+        name: resilio-sync-config
+      ---
+      apiVersion: v1
+      data:
+        password: ${RESILIO_SERVER_PASSWORD_BASE64}
+      kind: Secret
+      metadata:
+        name: resilio-sync-secrets
+  - name: resilio-sync-image
+    build:
+      path: resilio-sync
+      tag: registry.internal.aleemhaji.com/resilio:latest
+  - name: resilio-sync
+    file: resilio-sync/resilio-sync.yaml
