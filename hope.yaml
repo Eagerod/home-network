@@ -143,3 +143,25 @@ resources:
     file: heimdall/heimdall.yaml
   - name: trilium
     file: trilium/trilium.yaml
+  - name: slackbot-image
+    build:
+      path: slackbot
+      tag: registry.internal.aleemhaji.com/slackbot:latest
+  - name: slackbot-config
+    inline: |
+      apiVersion: v1
+      data:
+        alerting_channel: ${SLACK_BOT_ALERTING_CHANNEL}
+        default_channel: ${SLACK_BOT_DEFAULT_CHANNEL}
+      kind: ConfigMap
+      metadata:
+        name: slack-bot-config
+      ---
+      apiVersion: v1
+      data:
+        api_key: ${SLACK_BOT_API_KEY_BASE64}
+      kind: Secret
+      metadata:
+        name: slack-bot-secrets
+  - name: slackbot
+    file: slackbot/slackbot.yaml

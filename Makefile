@@ -78,7 +78,6 @@ SIMPLE_SERVICES:=\
 	unifi \
 	util \
 	resilio \
-	slackbot \
 	nodered
 
 
@@ -92,7 +91,6 @@ nginx-external: nginx-configurations
 util: util-configurations
 pihole: pihole-configurations
 resilio: resilio-configurations
-slackbot: slackbot-configurations
 blobstore: blobstore-configurations
 webcomics: webcomics-configurations
 certbot: certbot-configurations
@@ -464,24 +462,6 @@ pihole-configurations: kube.list
 		--from-file pihole/setupVars.conf \
 		--from-file kube.list \
 		-o yaml --dry-run | kubectl apply -f -
-
-
-.PHONY: slackbot-configurations
-slackbot-configurations:
-	@source .env && \
-		kubectl create configmap slack-bot-config \
-			--from-literal "default_channel=$${SLACK_BOT_DEFAULT_CHANNEL}" \
-			--from-literal "alerting_channel=$${SLACK_BOT_ALERTING_CHANNEL}" \
-			-o yaml --dry-run | kubectl apply -f -
-	@source .env && \
-		kubectl create configmap -n monitoring slack-bot-config \
-			--from-literal "default_channel=$${SLACK_BOT_DEFAULT_CHANNEL}" \
-			--from-literal "alerting_channel=$${SLACK_BOT_ALERTING_CHANNEL}" \
-			-o yaml --dry-run | kubectl apply -f -
-	@source .env && \
-		kubectl create secret generic slack-bot-secrets \
-			--from-literal "api_key=$${SLACK_BOT_API_KEY}" \
-			-o yaml --dry-run | kubectl apply -f -
 
 
 .PHONY: blobstore-configurations
