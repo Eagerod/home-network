@@ -10,7 +10,6 @@ data:
   postgres: 192.168.2.35
   # Front End Services    192.168.2.48/28
   nginx-external: 192.168.2.48
-  firefly: 192.168.2.49
   grafana: 192.168.2.50
   gitea: 192.168.2.55
   guacamole: 192.168.2.60

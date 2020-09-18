@@ -47,7 +47,6 @@ KUBECONFIG=.kube/config
 COMPLEX_SERVICES= \
 	mongodb \
 	mysql \
-	firefly \
 	remindmebot \
 	openvpnas
 
@@ -119,8 +118,6 @@ SAVE_ENV_VARS=\
 	RESILIO_SERVER_USERNAME\
 	ADVERTISE_IP\
 	DOCKER_REGISTRY_USERNAME\
-	FIREFLY_MYSQL_USER\
-	FIREFLY_MYSQL_DATABASE\
 	REMINDMEBOT_USERNAME\
 	NODE_RED_MYSQL_USER\
 	NODE_RED_MYSQL_DATABASE\
@@ -358,23 +355,6 @@ mysql:
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 	@kubectl apply -f mysql/mysql-backup.yaml
-
-.PHONY: firefly
-firefly:
-	@$(call KUBECTL_JOBS,firefly-mysql-init) | xargs kubectl delete
-
-	@source .env && \
-		kubectl create configmap firefly-config \
-			--from-literal "mysql_user=$${FIREFLY_MYSQL_USER}" \
-			--from-literal "mysql_database=$${FIREFLY_MYSQL_DATABASE}" \
-			-o yaml --dry-run | kubectl apply -f -
-	@source .env && \
-		kubectl create secret generic firefly-secrets \
-			--from-literal "mysql_password=$${FIREFLY_MYSQL_PASSWORD}" \
-			--from-literal "app_key=$${FIREFLY_APP_KEY}" \
-			-o yaml --dry-run | kubectl apply -f -
-
-	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 
 
 # Assumes that remindmebot has already shipped an image of its own to the

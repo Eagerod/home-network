@@ -165,3 +165,26 @@ resources:
         name: slack-bot-secrets
   - name: slackbot
     file: slackbot/slackbot.yaml
+  - name: firefly-config
+    inline: |
+      apiVersion: v1
+      data:
+        mysql_user: ${FIREFLY_MYSQL_USER}
+        mysql_database: ${FIREFLY_MYSQL_DATABASE}
+      kind: ConfigMap
+      metadata:
+        name: firefly-config
+      ---
+      apiVersion: v1
+      data:
+        mysql_password: ${FIREFLY_MYSQL_PASSWORD_BASE64}
+        app_key: ${FIREFLY_APP_KEY_BASE64}
+      kind: Secret
+      metadata:
+        name: firefly-secrets
+  - name: firefly-init-job-create
+    file: firefly/firefly-init.yaml
+  - name: firefly-init-job
+    job: firefly-mysql-init
+  - name: firefly
+    file: firefly/firefly.yaml
