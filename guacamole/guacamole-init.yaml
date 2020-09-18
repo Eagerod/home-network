@@ -1,0 +1,68 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: guacamole-mysql-init
+  labels:
+    job: guacamole-mysql-init
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: guacamole-mysql-init
+          image: mysql:5.7.26
+          command:
+            - sh
+            - -ce
+            - |
+              mysql -h ${MYSQL_HOST} -u root -e " \
+                CREATE USER IF NOT EXISTS ${GUACAMOLE_DB_USER}@'10.244.%.%'; \
+                SET PASSWORD FOR ${GUACAMOLE_DB_USER}@'10.244.%.%' = PASSWORD('${GUACAMOLE_DB_PASSWORD}'); \
+                CREATE DATABASE IF NOT EXISTS ${GUACAMOLE_DB_NAME}; \
+                GRANT ALL ON $${GUACAMOLE_DB_NAME}.* TO $${GUACAMOLE_DB_USER}@'10.244.%.%';"
+              until [ -f /scripts/init.sql ]; do
+                echo "Waiting for init script to be created..."
+                sleep 1
+              done
+              mysql -h ${MYSQL_HOST} -u root guacamole < /scripts/init.sql
+          env:
+            - name: MYSQL_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-root-password
+                  key: value
+            - name: MYSQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: network-ip-assignments
+                  key: mysql
+            - name: GUACAMOLE_DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: guacamole-config
+                  key: mysql_user
+            - name: GUACAMOLE_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: guacamole-config
+                  key: mysql_database
+            - name: GUACAMOLE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: guacamole-secrets
+                  key: mysql_password
+          volumeMounts:
+            - name: init-scripts
+              mountPath: /scripts
+        - name: guacamole-mysql-init-script-creator
+          image: guacamole/guacamole
+          command:
+            - sh
+            - -c
+            - /opt/guacamole/bin/initdb.sh --mysql > /scripts/init.sql
+          volumeMounts:
+            - name: init-scripts
+              mountPath: /scripts
+      volumes:
+        - name: init-scripts
+          emptyDir: {}

@@ -188,3 +188,25 @@ resources:
     job: firefly-mysql-init
   - name: firefly
     file: firefly/firefly.yaml
+  - name: guacamole-config
+    inline: |
+      apiVersion: v1
+      data:
+        mysql_user: ${GUACAMOLE_MYSQL_USER}
+        mysql_database: ${GUACAMOLE_MYSQL_DATABASE}
+      kind: ConfigMap
+      metadata:
+        name: guacamole-config
+      ---
+      apiVersion: v1
+      data:
+        mysql_password: ${GUACAMOLE_MYSQL_PASSWORD_BASE64}
+      kind: Secret
+      metadata:
+        name: guacamole-secrets
+  - name: guacamole-init-job-create
+    file: guacamole/guacamole-init.yaml
+  - name: guacamole-init-job
+    job: guacamole-mysql-init
+  - name: guacamole
+    file: guacamole/guacamole.yaml
