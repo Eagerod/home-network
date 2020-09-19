@@ -74,8 +74,7 @@ SIMPLE_SERVICES:=\
 	factorio \
 	transmission \
 	unifi \
-	util \
-	nodered
+	util
 
 
 KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
@@ -90,7 +89,6 @@ pihole: pihole-configurations
 blobstore: blobstore-configurations
 webcomics: webcomics-configurations
 certbot: certbot-configurations
-nodered: nodered-configurations
 tedbot: tedbot-configurations
 postgres: postgres-configurations
 
@@ -468,19 +466,6 @@ certbot-configurations:
 		--from-file "certbot/update-secrets-monitoring.sh" \
 		--from-file "certbot/patch.py" \
 		-o yaml --dry-run | kubectl apply -f -
-
-
-.PHONY: nodered-configurations
-nodered-configurations:
-	@source .env && \
-		kubectl create configmap nodered-config \
-			--from-literal "mysql_database=$${NODE_RED_MYSQL_DATABASE}" \
-			--from-literal "mysql_user=$${NODE_RED_MYSQL_USER}" \
-			-o yaml --dry-run | kubectl apply -f -
-	@source .env && \
-		kubectl create secret generic nodered-secrets \
-			--from-literal "mysql_password=$${NODE_RED_MYSQL_PASSWORD}" \
-			-o yaml --dry-run | kubectl apply -f -
 
 
 .PHONY: tedbot-configurations

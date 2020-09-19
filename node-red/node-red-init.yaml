@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: node-red-mysql-init
+  labels:
+    job: node-red-mysql-init
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: node-red-mysql-init
+          image: mysql:5.7.26
+          command:
+            - sh
+            - -c
+            - |
+              mysql -h ${MYSQL_HOST} -u root -e " \
+                CREATE USER IF NOT EXISTS ${DB_USER}@'10.244.%.%'; \
+                SET PASSWORD FOR ${DB_USER}@'10.244.%.%' = PASSWORD('${DB_PASSWORD}'); \
+                CREATE DATABASE IF NOT EXISTS ${DB_NAME}; \
+                GRANT ALL ON ${DB_NAME}.* TO ${DB_USER}@'10.244.%.%';"
+          env:
+            - name: MYSQL_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-root-password
+                  key: value
+            - name: MYSQL_HOST
+              value: mysql
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: node-red-config
+                  key: mysql_user
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: node-red-config
+                  key: mysql_database
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: node-red-secrets
+                  key: mysql_password

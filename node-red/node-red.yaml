@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-red-deployment
+  labels:
+    app: node-red
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-red
+  template:
+    metadata:
+      labels:
+        app: node-red
+    spec:
+      imagePullSecrets: 
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: node-red
+          image: registry.internal.aleemhaji.com/node-red:latest
+          ports:
+            - containerPort: 1880
+          volumeMounts:
+            - name: node-red-persistent-storage
+              mountPath: /root/.node-red
+          env:
+            - name: MYSQL_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: node-red-config
+                  key: mysql_user
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: node-red-config
+                  key: mysql_database
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: node-red-secrets
+                  key: mysql_password
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "50m"
+            limits:
+              memory: "265Mi"
+              cpu: "50m"
+      volumes:
+        - name: node-red-persistent-storage
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/node-red
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-red
+  labels:
+    app: node-red
+spec:
+  ports:
+    - port: 1880
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: node-red
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: node-red-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://nodered.internal.aleemhaji.com
+spec:
+  rules:
+    - host: nodered
+    - host: nodered.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: node-red-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - nodered.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: nodered.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: node-red
+              servicePort: 1880

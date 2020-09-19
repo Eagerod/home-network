@@ -231,3 +231,29 @@ resources:
       tag: registry.internal.aleemhaji.com/resilio:latest
   - name: resilio-sync
     file: resilio-sync/resilio-sync.yaml
+  - name: node-red-config
+    inline: |
+      apiVersion: v1
+      data:
+        mysql_user: ${NODE_RED_MYSQL_USER}
+        mysql_database: ${NODE_RED_MYSQL_DATABASE}
+      kind: ConfigMap
+      metadata:
+        name: node-red-config
+      ---
+      apiVersion: v1
+      data:
+        mysql_password: ${NODE_RED_MYSQL_PASSWORD_BASE64}
+      kind: Secret
+      metadata:
+        name: node-red-secrets
+  - name: node-red-image
+    build:
+      path: node-red
+      tag: registry.internal.aleemhaji.com/node-red:latest
+  - name: node-red-init-job-create
+    file: node-red/node-red-init.yaml
+  - name: node-red-init-job
+    job: node-red-mysql-init
+  - name: node-red
+    file: node-red/node-red.yaml
