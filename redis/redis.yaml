@@ -56,7 +56,6 @@ spec:
   ports:
     - port: 6379
       protocol: TCP
-  type: LoadBalancer
-  loadBalancerIP:
+  type: NodePort
   selector:
     app: redis

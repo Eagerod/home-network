@@ -52,19 +52,28 @@ resources:
             protocol: layer2
             addresses:
             - 192.168.200.32-192.168.200.224
-  - name: ingress-controller-proxy-configs
+  - name: ingress-controller-configs
     inline: |
       apiVersion: v1
       kind: ConfigMap
       metadata:
         name: tcp-services
       data:
+        6379: "default/redis:6379"
       ---
       apiVersion: v1
       kind: ConfigMap
       metadata:
         name: udp-services
       data:
+      ---
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: ingress-nginx-controller
+        namespace: ingress-nginx
+      data:
+        http-redirect-code: "302"
   - name: ingress-controller
     file: nginx-ingress-plus-tcp-udp-proxy.yaml
   - name: ingress-controller-service
@@ -89,6 +98,9 @@ resources:
         - port: 443
           name: https
           protocol: TCP
+        - port: 6379
+          name: redis
+          protocol: TCP
         type: LoadBalancer
         loadBalancerIP: 192.168.200.128
         selector:
@@ -112,14 +124,6 @@ resources:
         loadBalancerIP: 192.168.200.128
         selector:
           app.kubernetes.io/name: ingress-nginx
-      ---
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        name: ingress-nginx-controller
-        namespace: ingress-nginx
-      data:
-        http-redirect-code: "302"
   - name: kubernetes-dashboard-ingress
     inline: |
       apiVersion: extensions/v1beta1
@@ -294,3 +298,5 @@ resources:
     job: node-red-mysql-init
   - name: node-red
     file: node-red/node-red.yaml
+  - name: redis
+    file: redis/redis.yaml

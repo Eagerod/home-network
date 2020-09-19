@@ -54,7 +54,6 @@ COMPLEX_SERVICES= \
 # TRIVIAL_SERVICES are the set of services that are deployed by only applying
 #   their yaml files.
 TRIVIAL_SERVICES:=\
-	redis \
 	grafana \
 	certbot \
 	nginx-external \
