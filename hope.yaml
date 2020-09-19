@@ -51,26 +51,63 @@ resources:
           - name: default
             protocol: layer2
             addresses:
-            - 192.168.200.32-192.168.200.224     
+            - 192.168.200.32-192.168.200.224
+  - name: ingress-controller-proxy-configs
+    inline: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: tcp-services
+      data:
+      ---
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: udp-services
+      data:
   - name: ingress-controller
-    file: https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-0.32.0/deploy/static/provider/baremetal/deploy.yaml
+    file: nginx-ingress-plus-tcp-udp-proxy.yaml
   - name: ingress-controller-service
     inline: |
       apiVersion: v1
       kind: Service
       metadata:
-        name: nginx-ingress
+        name: nginx-ingress-tcp
         labels:
           app: nginx-ingress
         namespace: ingress-nginx
+        annotations:
+          metallb.universe.tf/allow-shared-ip: ingress
       spec:
         ports:
+        - port: 53
+          name: dns
+          protocol: TCP
         - port: 80
           name: http
           protocol: TCP
         - port: 443
           name: https
           protocol: TCP
+        type: LoadBalancer
+        loadBalancerIP: 192.168.200.128
+        selector:
+          app.kubernetes.io/name: ingress-nginx
+      ---
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: nginx-ingress-udp
+        labels:
+          app: nginx-ingress
+        namespace: ingress-nginx
+        annotations:
+          metallb.universe.tf/allow-shared-ip: ingress
+      spec:
+        ports:
+        - port: 53
+          name: dns
+          protocol: UDP
         type: LoadBalancer
         loadBalancerIP: 192.168.200.128
         selector:
