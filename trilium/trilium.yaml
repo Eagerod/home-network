@@ -26,8 +26,8 @@ spec:
       volumes:
         - name: trilium-persistent-storage
           nfs:
-            server: 192.168.1.42
-            path: /kubernetes-test/trilium
+            server: 192.168.96.4
+            path: /mnt/main/apps/trilium
 ---
 apiVersion: v1
 kind: Service
