@@ -62,8 +62,7 @@ TRIVIAL_SERVICES:=\
 	blobstore \
 	webcomics \
 	tedbot \
-	gitea \
-	postgres
+	gitea
 
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
@@ -89,7 +88,6 @@ blobstore: blobstore-configurations
 webcomics: webcomics-configurations
 certbot: certbot-configurations
 tedbot: tedbot-configurations
-postgres: postgres-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -473,13 +471,6 @@ tedbot-configurations:
 		kubectl create secret generic tedbot-webhook-url \
 			--from-literal "value=$${SLACK_TEDBOT_APP_WEBHOOK}" \
 			-o yaml --dry-run | kubectl apply -f -
-
-
-.PHONY: postgres-configurations
-postgres-configurations:
-	@source .env && kubectl create secret generic postgres-root-password \
-		--from-literal "value=$${PG_PASSWORD}" \
-		-o yaml --dry-run | kubectl apply -f -
 
 
 .PHONY: mysql-restore

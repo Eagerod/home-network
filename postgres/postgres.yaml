@@ -51,8 +51,8 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: postgres-root-password
-                  key: value
+                  name: postgres-secrets
+                  key: root_password
       volumes:
         - name: postgres-persistent-storage
           persistentVolumeClaim:
@@ -75,7 +75,6 @@ spec:
   ports:
   - port: 5432
     protocol: TCP
-  type: LoadBalancer
-  loadBalancerIP:
+  type: NodePort
   selector:
     app: postgres
