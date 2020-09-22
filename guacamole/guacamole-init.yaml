@@ -32,10 +32,7 @@ spec:
                   name: mysql-root-password
                   key: value
             - name: MYSQL_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: network-ip-assignments
-                  key: mysql
+              value: mysql
             - name: GUACAMOLE_DB_USER
               valueFrom:
                 configMapKeyRef:

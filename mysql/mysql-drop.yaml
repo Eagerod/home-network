@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: mysql-drop-job-${MYSQL_DATABASE_NAME}-
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: mysql-drop
+          image: mysql:5.7.26
+          command:
+            - sh
+            - -c
+            - mysql -h ${MYSQL_HOST} -u root -e 'drop database ${MYSQL_DATABASE_NAME}'
+          env:
+            - name: MYSQL_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-root-password
+                  key: value
+            - name: MYSQL_HOST
+              value: mysql

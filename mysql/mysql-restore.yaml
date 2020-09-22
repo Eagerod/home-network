@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: mysql-restore-job-${RESTORE_MYSQL_DATABASE}
+  generateName: mysql-restore-job-${MYSQL_DATABASE_NAME}-
 spec:
   template:
     spec:
@@ -12,7 +12,7 @@ spec:
           command:
             - sh
             - -c
-            - find restore -iname *.sql -print | while read filename; do mysql -h ${MYSQL_HOST} -u root --database=${RESTORE_MYSQL_DATABASE} < $filename; done
+            - find restore -iname *.sql -print | while read filename; do mysql -h ${MYSQL_HOST} -u root --database=${MYSQL_DATABASE_NAME} < $filename; done
           env:
             - name: MYSQL_PWD
               valueFrom:
@@ -20,15 +20,12 @@ spec:
                   name: mysql-root-password
                   key: value
             - name: MYSQL_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: network-ip-assignments
-                  key: mysql
+              value: mysql
           volumeMounts:
             - name: mysql-restore-storage
               mountPath: /restore
       volumes:
         - name: mysql-restore-storage
           nfs:
-            server: 192.168.1.42
-            path: /kubernetes-test/mysql-restore
+            server: 192.168.96.4
+            path: /mnt/dump/mysql-restore/${MYSQL_DATABASE_NAME}
