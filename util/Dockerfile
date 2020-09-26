@@ -1,10 +1,14 @@
-FROM ncfgbase
+FROM ubuntu:16.04
 
 # Install all the primary applications to be used/made available on the util
 #   server.
+# Don't apt-get clean this one, since I'll probably want to install things
+#   on top of the base image randomly.
 RUN \
     apt-get update -y && \
     apt-get install -y \
+        curl \
+        unzip \
         dnsutils \
         iputils-ping \
         traceroute \
@@ -33,9 +37,8 @@ COPY ./docker-entrypoint.sh .
 
 RUN \
     chmod 700 /root/.ssh && \
-    chmod 500 /root/.ssh/authorized_keys && \
+    chmod 600 /root/.ssh/authorized_keys && \
     chmod 755 /usr/sbin/mr && \
-    chmod 755 ./docker-entrypoint.sh && \
     # Privilege separation directory needed by SSH.
     mkdir /var/run/sshd
 

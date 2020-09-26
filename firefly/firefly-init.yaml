@@ -27,7 +27,7 @@ spec:
                   name: mysql-root-password
                   key: value
             - name: MYSQL_HOST
-              value: mysql.internal.aleemhaji.com
+              value: mysql
             - name: FF_DB_USER
               valueFrom:
                 configMapKeyRef:
