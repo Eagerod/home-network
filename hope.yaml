@@ -316,6 +316,16 @@ resources:
     file: postgres/postgres-block-storage.yaml
   - name: postgres
     file: postgres/postgres.yaml
+  - name: mysql-block-storage
+    file: mysql/mysql-block-storage.yaml
+  - name: mysql-config
+    inline: |
+      apiVersion: v1
+      data:
+        root_password: ${MYSQL_ROOT_PASSWORD_BASE64}
+      kind: Secret
+      metadata:
+        name: mysql-secrets
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml
