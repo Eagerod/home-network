@@ -16,10 +16,10 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: dns-updater
-              image: registry.internal.aleemhaji.com/ncfgbase:latest
+              image: registry.internal.aleemhaji.com/crons:latest
               command:
                 - sh
-                - -c
+                - -xec
                 - |
                   curl "https://www.namesilo.com/api/dnsListRecords?version=1&type=xml&key=${NAMESILO_API_KEY}&domain=aleemhaji.com" | \
                     sed 's+<resource_record>+\'$'\n+g' | sed 's+</resource_record>+\'$'\n+g' | grep record_id | while read line; do
