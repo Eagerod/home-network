@@ -65,7 +65,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: webcomic-scraper-schedule
-              image: registry.internal.aleemhaji.com/ncfgbase:latest
+              image: registry.internal.aleemhaji.com/crons:latest
               command:
                 - sh
                 - -c
