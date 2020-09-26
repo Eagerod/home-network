@@ -318,10 +318,10 @@ resources:
     file: postgres/postgres.yaml
 jobs:
   - name: mysql-restore
-    file: mysql/mysql-restore.yaml
+    file: mysql/tasks/mysql-restore.yaml
     parameters:
       - MYSQL_DATABASE_NAME
   - name: mysql-drop
-    file: mysql/mysql-drop.yaml
+    file: mysql/tasks/mysql-drop.yaml
     parameters:
       - MYSQL_DATABASE_NAME
