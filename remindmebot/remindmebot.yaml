@@ -73,11 +73,9 @@ spec:
   template:
     spec:
       restartPolicy: OnFailure
-      imagePullSecrets: 
-        - name: registry.internal.aleemhaji.com
       containers:
         - name: remindmebot-init
-          image: registry.internal.aleemhaji.com/ncfgbase:latest
+          image: curlimages/curl:7.72.0
           command:
             - sh
             - -c
@@ -117,11 +115,9 @@ spec:
       labels:
         app: remindmebot-scheduler
     spec:
-      imagePullSecrets:
-        - name: registry.internal.aleemhaji.com
       containers:
         - name: remindmebot-scheduler
-          image: registry.internal.aleemhaji.com/ncfgbase:latest
+          image: curlimages/curl:7.72.0
           command:
             - sh
             - -c
