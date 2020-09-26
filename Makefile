@@ -277,13 +277,6 @@ restart-%: kill-%
 	$(call KUBECTL_APP_EXEC,$*) -it -- sh
 
 
-.PHONY: mysql-root-shell
-mysql-root-shell:
-	source .env && \
-	$(call KUBECTL_APP_EXEC,mysql) -it -- \
-		sh -c "mysql -uroot -p$${MYSQL_ROOT_PASSWORD}"
-
-
 # Cycle all pods in the cluster. Really should only be used in weird debugging
 #   situations.
 .PHONY: refresh
@@ -471,21 +464,6 @@ tedbot-configurations:
 		kubectl create secret generic tedbot-webhook-url \
 			--from-literal "value=$${SLACK_TEDBOT_APP_WEBHOOK}" \
 			-o yaml --dry-run | kubectl apply -f -
-
-
-.PHONY: mysql-restore
-mysql-restore:
-	@if [ -z "$${RESTORE_MYSQL_DATABASE}" ]; then \
-		echo >&2 "Must supply RESTORE_MYSQL_DATABASE to target restore operation."; \
-		exit 1; \
-	fi
-
-	@$(call KUBECTL_APP_EXEC,mysql) -- \
-		sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -u root -e 'CREATE DATABASE IF NOT EXISTS '$${RESTORE_MYSQL_DATABASE}';'"
-
-	@sed \
-		-e 's/$${RESTORE_MYSQL_DATABASE}/'$${RESTORE_MYSQL_DATABASE}'/g' \
-		 mysql/mysql-restore.yaml | kubectl apply -f -
 
 
 .PHONY: mongodb-restore
