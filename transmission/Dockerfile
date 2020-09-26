@@ -1,4 +1,4 @@
-FROM registry.internal.aleemhaji.com/ncfgbase
+FROM ubuntu:16.04
 
 RUN \
     apt-get update -y && \
@@ -13,6 +13,5 @@ RUN \
 
 COPY settings.json /tmp/settings.json
 COPY docker-entrypoint.sh docker-entrypoint.sh
-RUN chmod 755 docker-entrypoint.sh
 
 CMD ["./docker-entrypoint.sh"]
