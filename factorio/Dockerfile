@@ -1,27 +1,25 @@
-FROM ncfgbase
+FROM ubuntu:16.04
 
 RUN \
     apt-get update -y && \
     apt-get install -y \
-        xz-utils
+    	curl \
+        xz-utils && \
+    apt-get clean
 
-ENV FACTORIO_SERVER_VERSION 0.17.68
+ARG FACTORIO_SERVER_VERSION=1.0.0
 
 RUN \
     curl -sSL https://www.factorio.com/get-download/$FACTORIO_SERVER_VERSION/headless/linux64 -o /tmp/$FACTORIO_SERVER_VERSION.tar.xz && \
     tar -Jxvf /tmp/$FACTORIO_SERVER_VERSION.tar.xz -C /var/lib/ && \
-    rm /tmp/$FACTORIO_SERVER_VERSION.tar.xz 
+    rm /tmp/$FACTORIO_SERVER_VERSION.tar.xz && \
+	ln -s /var/lib/factorio/bin/x64/factorio /usr/bin/factorio && \
+	cp /var/lib/factorio/data/server-settings.example.json /var/lib/factorio/data/server-settings.json
 
-ENV FACTORIO_DIR /var/lib/factorio
-ENV DATA_DIR $FACTORIO_DIR/data
-ENV SAVE_DIR $FACTORIO_DIR/saves
-
-RUN ln -s $FACTORIO_DIR/bin/x64/factorio /usr/bin/factorio
-RUN cp $DATA_DIR/server-settings.example.json $DATA_DIR/server-settings.json
+ENV FACTORIO_SAVE_DIR=/var/lib/factorio/saves
 
 EXPOSE 34197
 
 COPY docker-entrypoint.sh docker-entrypoint.sh
-RUN chmod 755 docker-entrypoint.sh
 
 CMD ["./docker-entrypoint.sh"]
