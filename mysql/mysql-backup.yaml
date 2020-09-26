@@ -36,8 +36,8 @@ spec:
           volumes:
             - name: backups
               nfs:
-                server: 192.168.1.42
-                path: /kubernetes-test/backups/mysql
+                server: 192.168.96.4
+                path: /mnt/main/backup/mysql
             - name: backup-script
               projected:
                 sources:

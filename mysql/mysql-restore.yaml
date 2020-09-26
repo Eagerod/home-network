@@ -12,7 +12,7 @@ spec:
           command:
             - sh
             - -c
-            - find restore -iname *.sql -print | while read filename; do mysql -h ${MYSQL_HOST} -u root --database=${MYSQL_DATABASE_NAME} < $filename; done
+            - find restore/${MYSQL_DATABASE_NAME} -iname *.sql -print | while read filename; do mysql -h ${MYSQL_HOST} -u root --database=${MYSQL_DATABASE_NAME} < $filename; done
           env:
             - name: MYSQL_PWD
               valueFrom:
@@ -28,4 +28,4 @@ spec:
         - name: mysql-restore-storage
           nfs:
             server: 192.168.96.4
-            path: /mnt/dump/mysql-restore/${MYSQL_DATABASE_NAME}
+            path: /mnt/dump/mysql-restore
