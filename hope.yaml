@@ -62,6 +62,7 @@ resources:
         3306: "default/mysql:3306"
         5432: "default/postgres:5432"
         6379: "default/redis:6379"
+        27017: "default/mongodb:27017"
       ---
       apiVersion: v1
       kind: ConfigMap
@@ -108,6 +109,9 @@ resources:
           protocol: TCP
         - port: 6379
           name: redis
+          protocol: TCP
+        - port: 27017
+          name: mongodb
           protocol: TCP
         type: LoadBalancer
         loadBalancerIP: 192.168.200.128
@@ -393,6 +397,42 @@ resources:
         name: mysql-backup
   - name: mysql
     file: mysql/mysql.yaml
+  - name: mongodb-block-storage
+    file: mongodb/mongodb-block-storage.yaml
+  - name: mongodb-backup
+    inline: |
+      apiVersion: v1
+      data:
+        mongodb-backup.sh: |
+          #!/bin/sh
+          set -e
+
+          if [ -z "${MONGODB_HOST}" ]; then
+              echo >&2 "Must provide MONGODB_HOST to backup"
+              exit 1
+          fi
+
+          mongo --host ${MONGODB_HOST} --quiet --eval 'db.getMongo().getDBNames().join("\n");' | while read database; do
+              set -e
+
+              if [ "$database" = "admin" ] || [ "$database" = "local" ] || [ "$database" = "config" ] || [ "$database" = "unifi_stat" ] || [ "$database" = "dev" ]; then
+                  echo >&2 "Skipping database $database"
+                  continue
+              fi
+
+              echo >&2 "Backing up database: $database"
+              if [ "$database" = "remind-me-bot" ] || [ "$database" = "blobstore" ]; then
+                  echo >&2 "Skipping logs collection"
+                  mongodump --host ${MONGODB_HOST} --db "$database" --excludeCollection=logs -o "/var/lib/backups/$database"
+              else
+                  mongodump --host ${MONGODB_HOST} --db "$database" -o "/var/lib/backups/$database"
+              fi
+          done
+      kind: ConfigMap
+      metadata:
+        name: mongodb-backup
+  - name: mongodb
+    file: mongodb/mongodb.yaml
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml
@@ -402,3 +442,7 @@ jobs:
     file: mysql/tasks/mysql-drop.yaml
     parameters:
       - MYSQL_DATABASE_NAME
+  - name: mongodb-restore
+    file: mongodb/tasks/mongodb-restore.yaml
+    parameters:
+      - MONGODB_DATABASE_NAME

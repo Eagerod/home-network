@@ -38,9 +38,8 @@ spec:
               subPath: keycert.pem
       volumes:
         - name: mongodb-persistent-storage
-          nfs:
-            server: 192.168.1.42
-            path: /kubernetes-test/mongodb
+          persistentVolumeClaim:
+            claimName: mongodb-pv-claim
         - name: mongodb-pem
           projected:
             sources:
@@ -57,7 +56,73 @@ spec:
   ports:
   - port: 27017
     protocol: TCP
-  type: LoadBalancer
-  loadBalancerIP:
+  type: NodePort
   selector:
     app: mongodb
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mongodb-backup
+spec:
+  schedule: "0 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: mongodb
+              image: mongo:3.7
+              command:
+                - sh
+                - /scripts/mongodb-backup.sh
+              volumeMounts:
+                - name: backups
+                  mountPath: /var/lib/backups
+                - name: backup-script
+                  mountPath: /scripts
+              env:
+                - name: MONGODB_HOST
+                  value: mongodb
+          volumes:
+            - name: backups
+              nfs:
+                server: 192.168.96.4
+                path: /mnt/main/backup/mongodb
+            - name: backup-script
+              projected:
+                sources:
+                  - configMap:
+                      name: mongodb-backup
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mongodb-trim
+spec:
+  schedule: "0 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: mongodb-trim
+              image: mongo:3.7
+              command:
+                - sh
+                - -xec
+                - |
+                  last_month=$(date -u +%Y-%m-%dT%H:%M:%SZ -d "1 month ago")
+                  mongo $MONGODB_HOST/blobstore --eval 'db.logs.remove({time:{$lt:ISODate("'$last_month'")}})'
+                  mongo $MONGODB_HOST/remind-me-bot --eval 'db.logs.remove({time:{$lt:ISODate("'$last_month'")}})'
+              env:
+                - name: MONGODB_HOST
+                  value: mongodb

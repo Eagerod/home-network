@@ -4,7 +4,6 @@ metadata:
   name: network-ip-assignments
 data:
   # Databases + Caching   192.168.2.32/28
-  mongodb: 192.168.2.33
   # Front End Services    192.168.2.48/28
   nginx-external: 192.168.2.48
   grafana: 192.168.2.50

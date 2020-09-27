@@ -45,7 +45,6 @@ KUBECONFIG=.kube/config
 # COMPLEX_SERVICES are the set of services that require more than just a simple
 #   template rule to be run.
 COMPLEX_SERVICES= \
-	mongodb \
 	remindmebot \
 	openvpnas
 
@@ -283,16 +282,6 @@ refresh:
 	$(foreach s,$(KUBERNETES_SERVICES),$(MAKE) restart-$(s);)
 
 
-.PHONY: mongodb
-mongodb:
-	@kubectl create configmap mongodb-backup --from-file mongodb/mongodb-backup.sh -o yaml --dry-run | \
-		kubectl apply -f -
-
-	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
-	@kubectl apply -f mongodb/mongodb-backup.yaml
-	@kubectl apply -f mongodb/mongodb-trim.yaml
-
-
 # Assumes that remindmebot has already shipped an image of its own to the
 #   registry.
 .PHONY: remindmebot
@@ -419,18 +408,6 @@ tedbot-configurations:
 		kubectl create secret generic tedbot-webhook-url \
 			--from-literal "value=$${SLACK_TEDBOT_APP_WEBHOOK}" \
 			-o yaml --dry-run | kubectl apply -f -
-
-
-.PHONY: mongodb-restore
-mongodb-restore:
-	@if [ -z "$${RESTORE_MONGODB_DATABASE}" ]; then \
-		echo >&2 "Must supply RESTORE_MONGODB_DATABASE to target restore operation."; \
-		exit 1; \
-	fi
-
-	@sed \
-		-e 's/$${RESTORE_MONGODB_DATABASE}/'$${RESTORE_MONGODB_DATABASE}'/g' \
-		 mongodb/mongodb-restore.yaml | kubectl apply -f -
 
 
 .PHONY: unifi-restore
