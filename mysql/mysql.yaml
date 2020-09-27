@@ -76,7 +76,6 @@ spec:
               image: mysql:5.7.26
               command:
                 - sh
-                - -xec
                 - /scripts/mysql-backup.sh
               volumeMounts:
               - name: backups
