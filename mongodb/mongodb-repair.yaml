@@ -1,0 +1,35 @@
+# This has been left in an untested, and mostly commented out state.
+# This job should, in its ultimate form:
+#   - Scale down the existing mongodb statefulset *if it exists*
+#   - Run the mongod repair command
+#   - Rescale up the mongodb stateful set *if it previously existed*
+# This could actually be done as an ops job, rather than a deployment
+job.apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongodb-repair-job
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: dummy
+          image: busybox
+          command:
+            - echo
+            - This job will eventually have to be suped up a bit.
+      # containers:
+      #   - name: mongodb-repair
+      #     image: mongo:3.7
+      #     command:
+      #       - mongod
+      #       - --repair
+      #     env:
+      #     volumeMounts:
+      #       - name: mongodb-storage
+      #         mountPath: /data/db
+      # volumes:
+      #   - name: mongodb-storage
+      #     nfs:
+      #       server: 192.168.1.42
+      #       path: /kubernetes-test/mongodb
