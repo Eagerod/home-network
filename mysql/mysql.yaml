@@ -42,7 +42,7 @@ spec:
                   name: internal-certificate-files
         - name: mysql-persistent-storage
           persistentVolumeClaim:
--           claimName: mysql-pv-claim
+            claimName: mysql-pv-claim
 ---
 apiVersion: v1
 kind: Service
