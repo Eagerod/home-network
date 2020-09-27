@@ -393,6 +393,8 @@ resources:
         name: mysql-backup
   - name: mysql
     file: mysql/mysql.yaml
+  - name: mongodb-block-storage
+    file: mongodb/mongodb-block-storage.yaml
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml
