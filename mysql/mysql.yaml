@@ -41,9 +41,8 @@ spec:
               - secret:
                   name: internal-certificate-files
         - name: mysql-persistent-storage
-          nfs:
-            server: 192.168.1.42
-            path: /kubernetes-test/mysql
+          persistentVolumeClaim:
+-           claimName: mysql-pv-claim
 ---
 apiVersion: v1
 kind: Service
