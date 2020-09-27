@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: mongodb-restore-job-${RESTORE_MONGODB_DATABASE}
+  generateName: mongodb-restore-job-${MONGODB_DATABASE_NAME}-
 spec:
   template:
     spec:
@@ -11,19 +11,16 @@ spec:
           image: mongo:3.7
           command:
             - sh
-            - -c
-            - mongorestore --host ${MONGODB_HOST} --drop --db ${RESTORE_MONGODB_DATABASE} /restore/${RESTORE_MONGODB_DATABASE}
+            - -xec
+            - mongorestore --host ${MONGODB_HOST} --drop --db ${MONGODB_DATABASE_NAME} /restore/${MONGODB_DATABASE_NAME}
           env:
             - name: MONGODB_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: network-ip-assignments
-                  key: mongodb
+              value: mongodb
           volumeMounts:
             - name: mongodb-restore-storage
               mountPath: /restore
       volumes:
         - name: mongodb-restore-storage
           nfs:
-            server: 192.168.1.42
-            path: /kubernetes-test/mongodb-restore
+            server: 192.168.96.4
+            path: /mnt/dump/mongodb-restore
