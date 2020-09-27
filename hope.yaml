@@ -59,6 +59,7 @@ resources:
       metadata:
         name: tcp-services
       data:
+        3306: "default/mysql:3306"
         5432: "default/postgres:5432"
         6379: "default/redis:6379"
       ---
@@ -98,6 +99,9 @@ resources:
           protocol: TCP
         - port: 443
           name: https
+          protocol: TCP
+        - port: 3306
+          name: mysql
           protocol: TCP
         - port: 5432
           name: postgres
