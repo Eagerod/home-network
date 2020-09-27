@@ -180,6 +180,10 @@ resources:
       kind: Secret
       metadata:
         name: ${DOCKER_REGISTRY_HOSTNAME}-htpasswd
+    parameters:
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_HTPASSWD_FILE_CONTENTS_BASE64
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
   - name: docker-registry
     file: registry/registry.yaml
   - name: browser
@@ -208,6 +212,10 @@ resources:
       kind: Secret
       metadata:
         name: slack-bot-secrets
+    parameters:
+      - SLACK_BOT_ALERTING_CHANNEL
+      - SLACK_BOT_DEFAULT_CHANNEL
+      - SLACK_BOT_API_KEY_BASE64
   - name: slackbot
     file: slackbot/slackbot.yaml
   - name: firefly-config
@@ -227,6 +235,11 @@ resources:
       kind: Secret
       metadata:
         name: firefly-secrets
+    parameters:
+      - FIREFLY_MYSQL_USER
+      - FIREFLY_MYSQL_DATABASE
+      - FIREFLY_MYSQL_PASSWORD_BASE64
+      - FIREFLY_APP_KEY_BASE64
   - name: firefly-init-job-create
     file: firefly/firefly-init.yaml
   - name: firefly-init-job
@@ -249,6 +262,10 @@ resources:
       kind: Secret
       metadata:
         name: guacamole-secrets
+    parameters:
+      - GUACAMOLE_MYSQL_USER
+      - GUACAMOLE_MYSQL_DATABASE
+      - GUACAMOLE_MYSQL_PASSWORD_BASE64
   - name: guacamole-init-job-create
     file: guacamole/guacamole-init.yaml
   - name: guacamole-init-job
@@ -270,6 +287,9 @@ resources:
       kind: Secret
       metadata:
         name: resilio-sync-secrets
+    parameters:
+      - RESILIO_SERVER_USERNAME
+      - RESILIO_SERVER_PASSWORD_BASE64
   - name: resilio-sync-image
     build:
       path: resilio-sync
@@ -292,6 +312,10 @@ resources:
       kind: Secret
       metadata:
         name: node-red-secrets
+    parameters:
+      - NODE_RED_MYSQL_USER
+      - NODE_RED_MYSQL_DATABASE
+      - NODE_RED_MYSQL_PASSWORD_BASE64
   - name: node-red-image
     build:
       path: node-red
@@ -312,6 +336,8 @@ resources:
       kind: Secret
       metadata:
         name: postgres-secrets
+    parameters:
+      - POSTGRES_ROOT_PASSWORD_BASE64
   - name: postgres-block-storage
     file: postgres/postgres-block-storage.yaml
   - name: postgres
