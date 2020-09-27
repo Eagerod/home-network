@@ -342,3 +342,59 @@ resources:
     file: postgres/postgres-block-storage.yaml
   - name: postgres
     file: postgres/postgres.yaml
+  - name: mysql-block-storage
+    file: mysql/mysql-block-storage.yaml
+  - name: mysql-config
+    inline: |
+      apiVersion: v1
+      data:
+        root_password: ${MYSQL_ROOT_PASSWORD_BASE64}
+      kind: Secret
+      metadata:
+        name: mysql-secrets
+    parameters:
+      - MYSQL_ROOT_PASSWORD_BASE64
+  - name: mysql-backup
+    inline: |
+      apiVersion: v1
+      data:
+        mysql-backup.sh: |
+          #!/bin/sh
+          set -e
+
+          if [ -z "${MYSQL_HOST}" ]; then
+              echo >&2 "Must provide MYSQL_HOST to backup"
+              exit 1
+          fi
+
+          if [ -z "${MYSQL_PWD}" ]; then
+              echo >&2 "Must provide MYSQL_PWD for root@${MYSQL_HOST}"
+              exit 2
+          fi
+
+          mysql -h ${MYSQL_HOST} -u root -s -N -e "show databases;" | while read database; do
+              if [ "$database" = "information_schema" ] || [ "$database" = "mysql" ] || [ "$database" = "sys" ] || [ "$database" = "performance_schema" ]; then
+                  echo >&2 "Skipping database $database"
+                  continue
+              fi
+
+              echo >&2 "Backing up database: $database"
+              mkdir -p "/var/lib/backups/$database"
+              mysql -h ${MYSQL_HOST} -u root -s -N -c "$database" -e "show tables;" | while read table; do
+                  mysqldump -h ${MYSQL_HOST} -u root --skip-dump-date "$database" "$table" > "/var/lib/backups/$database/$table.sql"
+              done || exit 1
+          done || exit 1
+      kind: ConfigMap
+      metadata:
+        name: mysql-backup
+  - name: mysql
+    file: mysql/mysql.yaml
+jobs:
+  - name: mysql-restore
+    file: mysql/tasks/mysql-restore.yaml
+    parameters:
+      - MYSQL_DATABASE_NAME
+  - name: mysql-drop
+    file: mysql/tasks/mysql-drop.yaml
+    parameters:
+      - MYSQL_DATABASE_NAME

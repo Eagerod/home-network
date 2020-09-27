@@ -41,9 +41,8 @@ spec:
               - secret:
                   name: internal-certificate-files
         - name: mysql-persistent-storage
-          nfs:
-            server: 192.168.1.42
-            path: /kubernetes-test/mysql
+          persistentVolumeClaim:
+            claimName: mysql-pv-claim
 ---
 apiVersion: v1
 kind: Service
@@ -59,3 +58,48 @@ spec:
   loadBalancerIP:
   selector:
     app: mysql
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mysql-backup
+spec:
+  schedule: "0 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: mysql-backup
+              image: mysql:5.7.26
+              command:
+                - sh
+                - -xec
+                - /scripts/mysql-backup.sh
+              volumeMounts:
+              - name: backups
+                mountPath: /var/lib/backups
+              - name: backup-script
+                mountPath: /scripts
+              env:
+                - name: MYSQL_PWD
+                  valueFrom:
+                    secretKeyRef:
+                      name: mysql-root-password
+                      key: value
+                - name: MYSQL_HOST
+                  value: mysql
+          volumes:
+            - name: backups
+              nfs:
+                server: 192.168.96.4
+                path: /mnt/main/backup/mysql
+            - name: backup-script
+              projected:
+                sources:
+                  - configMap:
+                      name: mysql-backup
+          restartPolicy: OnFailure

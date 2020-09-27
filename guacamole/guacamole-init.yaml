@@ -8,6 +8,16 @@ spec:
   template:
     spec:
       restartPolicy: OnFailure
+      initContainers:
+        - name: guacamole-mysql-init-script-creator
+          image: guacamole/guacamole
+          command:
+            - sh
+            - -c
+            - /opt/guacamole/bin/initdb.sh --mysql > /scripts/init.sql
+          volumeMounts:
+            - name: init-scripts
+              mountPath: /scripts
       containers:
         - name: guacamole-mysql-init
           image: mysql:5.7.26
@@ -20,10 +30,6 @@ spec:
                 SET PASSWORD FOR ${GUACAMOLE_DB_USER}@'10.244.%.%' = PASSWORD('${GUACAMOLE_DB_PASSWORD}'); \
                 CREATE DATABASE IF NOT EXISTS ${GUACAMOLE_DB_NAME}; \
                 GRANT ALL ON $${GUACAMOLE_DB_NAME}.* TO $${GUACAMOLE_DB_USER}@'10.244.%.%';"
-              until [ -f /scripts/init.sql ]; do
-                echo "Waiting for init script to be created..."
-                sleep 1
-              done
               mysql -h ${MYSQL_HOST} -u root guacamole < /scripts/init.sql
           env:
             - name: MYSQL_PWD
@@ -32,10 +38,7 @@ spec:
                   name: mysql-root-password
                   key: value
             - name: MYSQL_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: network-ip-assignments
-                  key: mysql
+              value: mysql
             - name: GUACAMOLE_DB_USER
               valueFrom:
                 configMapKeyRef:
@@ -51,15 +54,6 @@ spec:
                 secretKeyRef:
                   name: guacamole-secrets
                   key: mysql_password
-          volumeMounts:
-            - name: init-scripts
-              mountPath: /scripts
-        - name: guacamole-mysql-init-script-creator
-          image: guacamole/guacamole
-          command:
-            - sh
-            - -c
-            - /opt/guacamole/bin/initdb.sh --mysql > /scripts/init.sql
           volumeMounts:
             - name: init-scripts
               mountPath: /scripts

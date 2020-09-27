@@ -46,7 +46,6 @@ KUBECONFIG=.kube/config
 #   template rule to be run.
 COMPLEX_SERVICES= \
 	mongodb \
-	mysql \
 	remindmebot \
 	openvpnas
 
@@ -277,13 +276,6 @@ restart-%: kill-%
 	$(call KUBECTL_APP_EXEC,$*) -it -- sh
 
 
-.PHONY: mysql-root-shell
-mysql-root-shell:
-	source .env && \
-	$(call KUBECTL_APP_EXEC,mysql) -it -- \
-		sh -c "mysql -uroot -p$${MYSQL_ROOT_PASSWORD}"
-
-
 # Cycle all pods in the cluster. Really should only be used in weird debugging
 #   situations.
 .PHONY: refresh
@@ -299,50 +291,6 @@ mongodb:
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 	@kubectl apply -f mongodb/mongodb-backup.yaml
 	@kubectl apply -f mongodb/mongodb-trim.yaml
-
-
-.PHONY: mysql
-mysql:
-	@source .env && \
-		kubectl create secret generic mysql-root-password \
-			--from-literal "value=$${MYSQL_ROOT_PASSWORD}" -o yaml --dry-run | \
-		kubectl apply -f -
-
-	@kubectl apply -f mysql/mysql-volumes.yaml
-
-	@kubectl create configmap mysql-backup --from-file mysql/mysql-backup.sh -o yaml --dry-run | \
-		kubectl apply -f -
-
-	@# Only tear everything down and run mysql-init if the existing service
-	@#   can't be reached for any reason.
-	@# There may be no pods running mysql at all, or there may be issues
-	@#   actually running queries against it.
-	@if [ -z "$$($(call KUBECTL_APP_PODS,mysql))" ] || \
-			! $(call KUBECTL_APP_EXEC,mysql) -- sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -e 'SELECT 1'"; then \
-		kubectl scale statefulset mysql --replicas=0; \
-		kubectl scale statefulset mysql-init --replicas=0; \
-		kubectl apply -f mysql/mysql-init.yaml; \
-		while [ -z "$$($(call KUBECTL_RUNNING_POD,mysql-init))" ]; do \
-			echo >&2 "MySQL pod not up yet. Waiting 1 second..."; \
-			sleep 1; \
-		done; \
-		source .env && while ! $(call KUBECTL_APP_EXEC,mysql-init) -- mysql -e 'select 1;'; do \
-			echo >&2 "MySQL service not up yet. Waiting 1 second..."; \
-			sleep 1; \
-		done; \
-		source .env && $(call KUBECTL_APP_EXEC,mysql-init) -- \
-			mysql -e '\
-				FLUSH PRIVILEGES; \
-				SET PASSWORD FOR root@localhost = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
-				CREATE USER IF NOT EXISTS '"'"'root'"'"'@'"'"'10.244.%.%'"'"'; \
-				SET PASSWORD FOR '"'"'root'"'"'@'"'"'10.244.%.%'"'"' = PASSWORD("'$${MYSQL_ROOT_PASSWORD}'"); \
-				GRANT ALL PRIVILEGES ON *.* to '"'"'root'"'"'@'"'"'10.244.%.%'"'"' WITH GRANT OPTION; \
-				FLUSH PRIVILEGES;'; \
-		kubectl scale statefulset mysql-init --replicas=0; \
-	fi
-
-	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
-	@kubectl apply -f mysql/mysql-backup.yaml
 
 
 # Assumes that remindmebot has already shipped an image of its own to the
@@ -471,21 +419,6 @@ tedbot-configurations:
 		kubectl create secret generic tedbot-webhook-url \
 			--from-literal "value=$${SLACK_TEDBOT_APP_WEBHOOK}" \
 			-o yaml --dry-run | kubectl apply -f -
-
-
-.PHONY: mysql-restore
-mysql-restore:
-	@if [ -z "$${RESTORE_MYSQL_DATABASE}" ]; then \
-		echo >&2 "Must supply RESTORE_MYSQL_DATABASE to target restore operation."; \
-		exit 1; \
-	fi
-
-	@$(call KUBECTL_APP_EXEC,mysql) -- \
-		sh -c "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -u root -e 'CREATE DATABASE IF NOT EXISTS '$${RESTORE_MYSQL_DATABASE}';'"
-
-	@sed \
-		-e 's/$${RESTORE_MYSQL_DATABASE}/'$${RESTORE_MYSQL_DATABASE}'/g' \
-		 mysql/mysql-restore.yaml | kubectl apply -f -
 
 
 .PHONY: mongodb-restore

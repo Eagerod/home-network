@@ -1,36 +1,59 @@
-apiVersion: apps/v1
-kind: StatefulSet
+# This has been left in an untested, and mostly commented out state.
+# This job should, in its ultimate form:
+#   - Scale down the existing mysql statefulset *if it exists*
+#   - Start up the skip grant tables version of mysql
+#   - Run the priviledge setting script
+#   - Kill the skip grant tables version of mysql
+#   - Rescale up the mysql stateful set *if it previously existed*
+# This could actually be done as an ops job, rather than a deployment job.
+apiVersion: batch/v1
+kind: Job
 metadata:
   name: mysql-init
+  labels:
+    job: mysql-init
 spec:
-  revisionHistoryLimit: 0
-  replicas: 1
-  selector:
-    matchLabels:
-      app: mysql-init
-  serviceName: mysql-init
   template:
-    metadata:
-      labels:
-        app: mysql-init
     spec:
+      restartPolicy: OnFailure
       containers:
-        - name: mysql-sgt
-          image: mysql:5.7.26
-          args:
-            - --skip-grant-tables
-            - --skip-networking
-          volumeMounts:
-            - name: mysql-persistent-storage
-              mountPath: /var/lib/mysql
-          env:
-            - name: MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-root-password
-                  key: value
-      volumes:
-        - name: mysql-persistent-storage
-          nfs:
-            server: 192.168.1.42
-            path: /kubernetes-test/mysql
+        - name: dummy
+          image: busybox
+          command:
+            - echo
+            - This job will eventually have to be suped up a bit.
+      #   - name: mysql-skip-grant-tables
+      #     image: mysql:5.7.26
+      #     args:
+      #       - --skip-grant-tables
+      #       - --skip-networking
+      #     volumeMounts:
+      #       - name: mysql-persistent-storage
+      #         mountPath: /var/lib/mysql
+      #     env:
+      #       - name: MYSQL_ROOT_PASSWORD
+      #         valueFrom:
+      #           secretKeyRef:
+      #             name: mysql-secrets
+      #             key: root_password
+      #   - name: mysql-init-script
+      #     image: mysql:5.7.26
+      #     command:
+      #       - sh
+      #       - -ec
+      #       - |
+      #         while ! mysql -e 'select 1;'; do \
+      #           echo >&2 "MySQL service not up yet. Waiting 1 second..."; \
+      #           sleep 1; \
+      #         done; \
+      #         mysql -u root -e " \
+      #           FLUSH PRIVILEGES; \
+      #           SET PASSWORD FOR root@localhost = PASSWORD('${MYSQL_ROOT_PASSWORD}'); \
+      #           CREATE USER IF NOT EXISTS root@10.244.%.%; \
+      #           SET PASSWORD FOR root@10.244.%.% = PASSWORD('${MYSQL_ROOT_PASSWORD}'); \
+      #           GRANT ALL PRIVILEGES ON *.* to root@10.244.%.% WITH GRANT OPTION; \
+      #           FLUSH PRIVILEGES;"
+      # volumes:
+      #   - name: mysql-persistent-storage
+      #     persistentVolumeClaim:
+      #       claimName: mysql-pv-claim
