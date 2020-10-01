@@ -102,8 +102,8 @@ spec:
             - name: OPENVPN_PRIMARY_USERPASS
               valueFrom:
                 secretKeyRef:
-                  name: openvpn-password
-                  key: value
+                  name: openvpn-secrets
+                  key: password
           securityContext:
             capabilities:
               add:
