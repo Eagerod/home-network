@@ -487,6 +487,32 @@ resources:
       - NAMESILO_API_KEY_BASE64
   - name: dns-update-cron
     file: crons/dns-cron.yaml
+  - name: remindmebot-config
+    inline: |
+      apiVersion: v1
+      data:
+        bot_username: ${REMINDMEBOT_USERNAME}
+      kind: ConfigMap
+      metadata:
+        name: remindmebot-config
+      ---
+      apiVersion: v1
+      data:
+        bot_api_key: ${REMINDMEBOT_API_KEY_BASE64}
+        database: ${REMINDMEBOT_DATABASE_BASE64}
+      kind: Secret
+      metadata:
+        name: remindmebot-secrets
+    parameters:
+      - REMINDMEBOT_USERNAME
+      - REMINDMEBOT_API_KEY_BASE64
+      - REMINDMEBOT_DATABASE_BASE64
+  - name: remindmebot-init-job-start
+    file: remindmebot/remindmebot-init.yaml
+  - name: remindmebot-init-job
+    job: remindmebot-init
+  - name: remindmebot
+    file: remindmebot/remindmebot.yaml
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml

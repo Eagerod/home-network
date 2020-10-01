@@ -42,12 +42,6 @@ NETWORK_SEARCH_DOMAIN=internal.aleemhaji.com
 
 KUBECONFIG=.kube/config
 
-# COMPLEX_SERVICES are the set of services that require more than just a simple
-#   template rule to be run.
-COMPLEX_SERVICES= \
-	remindmebot
-
-
 # TRIVIAL_SERVICES are the set of services that are deployed by only applying
 #   their yaml files.
 TRIVIAL_SERVICES:=\
@@ -72,7 +66,7 @@ SIMPLE_SERVICES:=\
 	util
 
 
-KUBERNETES_SERVICES=$(COMPLEX_SERVICES) $(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
+KUBERNETES_SERVICES=$(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 
 # Some services are mostly just basic services, but require an additional
 #   configuration to be pushed before they can properly start.
@@ -105,7 +99,6 @@ SAVE_ENV_VARS=\
 	FF_APP_ENV\
 	ADVERTISE_IP\
 	DOCKER_REGISTRY_USERNAME\
-	REMINDMEBOT_USERNAME\
 	NODE_RED_MYSQL_USER\
 	NODE_RED_MYSQL_DATABASE\
 	OPENVPN_PRIMARY_USERNAME\
@@ -252,25 +245,6 @@ restart-%: kill-%
 .PHONY: refresh
 refresh:
 	$(foreach s,$(KUBERNETES_SERVICES),$(MAKE) restart-$(s);)
-
-
-# Assumes that remindmebot has already shipped an image of its own to the
-#   registry.
-.PHONY: remindmebot
-remindmebot:
-	@$(call KUBECTL_JOBS,remindmebot-init) | xargs kubectl delete
-
-	@source .env && \
-		kubectl create configmap remindmebot-config \
-			--from-literal "bot_username=$${REMINDMEBOT_USERNAME}" \
-			-o yaml --dry-run | kubectl apply -f -
-	@source .env && \
-		kubectl create secret generic remindmebot-secrets \
-			--from-literal "bot_api_key=$${REMINDMEBOT_API_KEY}" \
-			--from-literal "database=$${REMINDMEBOT_DATABASE}" \
-			-o yaml --dry-run | kubectl apply -f -
-
-	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 
 
 # Configuration Recipes
