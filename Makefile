@@ -45,8 +45,7 @@ KUBECONFIG=.kube/config
 # COMPLEX_SERVICES are the set of services that require more than just a simple
 #   template rule to be run.
 COMPLEX_SERVICES= \
-	remindmebot \
-	openvpnas
+	remindmebot
 
 
 # TRIVIAL_SERVICES are the set of services that are deployed by only applying
@@ -299,28 +298,6 @@ remindmebot:
 			-o yaml --dry-run | kubectl apply -f -
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
-
-
-.PHONY: openvpnas
-openvpnas:
-	@source .env && \
-		kubectl create configmap openvpn-config \
-			--from-literal "username=$${OPENVPN_PRIMARY_USERNAME}" \
-			--from-literal "hostname=$${OPENVPN_AS_HOSTNAME}" \
-			-o yaml --dry-run | kubectl apply -f -
-	@source .env && \
-		kubectl create secret generic openvpn-password \
-			--from-literal "value=$${OPENVPN_PRIMARY_USERPASS}" \
-			-o yaml --dry-run | kubectl apply -f -
-
-	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
-
-	@# Wait a while in case a pod was already running, let it die, so we don't
-	@#   try to run the setup script in the dying pod.
-	@sleep 5
-
-	@$(call KUBECTL_WAIT_FOR_POD,$@)
-	@$(call KUBECTL_APP_EXEC,$@) -- sh -c 'set -ex; find scripts -type f | sort | while read line; do sh $$line; done'
 
 
 # Configuration Recipes
