@@ -151,7 +151,6 @@ prometheus:
 networking: $(KUBECONFIG)
 	@kubectl apply -f network-ip-assignments.yaml
 	@kubectl apply -f http-services.yaml
-	@kubectl apply -f metallb-config.yaml
 
 
 .PHONY: crons
@@ -165,22 +164,6 @@ crons: base-image
 	@kubectl get configmap cronjobs -o go-template={{.data._keys}} | while read line; do \
 		sh -c "$$(kubectl get configmap cronjobs -o template={{.data.$${line}}} | tr '\n' ' ') envsubst < crons/rsync-cron.yaml" | \
 			kubectl apply -f -; \
-	done
-
-
-.INTERMEDIATE: 00-upstream.http.conf
-00-upstream.http.conf:
-	@kubectl get configmap http-services -o template={{.data.default}} | while read line; do \
-		printf 'upstream %s {\n    server %s:%d;\n}\n\n' \
-			$${line} \
-			$$(kubectl get service $${line} -o template={{.spec.loadBalancerIP}}) \
-			$$(kubectl get service $${line} -o jsonpath='{.spec.ports[0].port}') >> $@; \
-	done
-	@kubectl get configmap http-services -o template='{{ index .data "kube-system" }}' | while read line; do \
-		printf 'upstream %s {\n    server %s:%d;\n}\n\n' \
-			$${line} \
-			$$(kubectl get service -n kube-system $${line} -o template={{.spec.loadBalancerIP}}) \
-			$$(kubectl get service -n kube-system $${line} -o jsonpath='{.spec.ports[0].port}') >> $@; \
 	done
 
 
@@ -292,12 +275,11 @@ remindmebot:
 
 # Configuration Recipes
 .PHONY: nginx-configurations
-nginx-configurations: networking 00-upstream.http.conf
+nginx-configurations: networking
 	@kubectl create configmap nginx-config --from-file nginx.conf -o yaml --dry-run | \
 		kubectl apply -f -
 
 	@kubectl create configmap nginx-servers-external \
-		--from-file 00-upstream.http.conf \
 		--from-file nginx-external/external.http.conf \
 		-o yaml --dry-run | kubectl apply -f -
 
