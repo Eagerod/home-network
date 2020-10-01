@@ -116,8 +116,8 @@ spec:
       volumes:
         - name: openvpnas-persistent-storage
           nfs:
-            server: 192.168.1.42
-            path: /kubernetes-test/openvpn-as
+            server: 192.168.96.4
+            path: /mnt/main/apps/openvpn-as
         - name: openvpn-as-init-scripts
           projected:
             sources:
