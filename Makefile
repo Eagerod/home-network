@@ -410,11 +410,7 @@ kube.list: networking
 
 
 .gitignore: Makefile .gitignore-extra
-	@rm -f $@
-	@curl -sSL https://raw.githubusercontent.com/github/gitignore/master/Global/macOS.gitignore >> $@
-	@curl -sSL https://raw.githubusercontent.com/github/gitignore/master/Global/Linux.gitignore >> $@
-	@curl -sSL https://raw.githubusercontent.com/github/gitignore/master/Global/SublimeText.gitignore >> $@
-	@curl -sSL https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore >> $@
+	@curl -fsSL https://www.toptal.com/developers/gitignore/api/vim,macos,linux,vscode,windows,intellij,sublimetext,git > $@
 	@cat .gitignore-extra >> $@
 
 
