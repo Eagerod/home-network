@@ -11,26 +11,10 @@ else
 $(error Cannot communicate with docker daemon)
 endif
 
-# Platform specific cleaning
-UNAME=$(shell uname)
-
-ifeq ($(UNAME),Darwin)
-SED_INLINE=sed -i ''
-else ifeq ($(UNAME),Linux)
-SED_INLINE=sed -i
-else ifeq ($(shell uname | grep -iq CYGWIN && echo "Cygwin"),Cygwin)
-SED_INLINE=sed -i
-else
-$(error Unknown distribution ($(UNAME)) for running this project.)
-endif
-
 ROUTER_HOST:=192.168.1.1
 ROUTER_HOST_USER:=ubnt@$(ROUTER_HOST)
 
 # Constants and calculated values
-KUBERNETES_MASTER:=192.168.2.10
-KUBERNETES_HOSTS:=$(shell kubectl get nodes -o jsonpath={.items[*].status.addresses[?\(@.type==\"InternalIP\"\)].address})
-
 KUBERNETES_PROMETHEUS_VERISON=0.1.0
 
 AP_IPS=\
@@ -83,7 +67,6 @@ REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 SERVICE_LB_IP = $$(kubectl get configmap network-ip-assignments -o template='{{index .data "$(1)"}}')
 REPLACE_LB_IP = sed "s/loadBalancerIP:.*/loadBalancerIP: $(call SERVICE_LB_IP,$(1))/" $(1)/$(1).yaml
 
-KUBECTL_JOBS = kubectl get jobs -l 'job=$(1)' -o name
 KUBECTL_APP_PODS = kubectl get pods -l 'app=$(1)' -o name | sed 's:^pod/::'
 KUBECTL_RUNNING_POD = kubectl get pods --field-selector=status.phase=Running -l 'app=$(1)' -o name | sed 's:^pod/::'
 KUBECTL_APP_EXEC = kubectl exec $$($(call KUBECTL_RUNNING_POD,$(1)))
@@ -445,19 +428,3 @@ search-env:
 			exit -1; \
 		fi \
 	done
-
-
-# Target added specifically for linux to disable system dns once the pi-hole
-#   tries to bind to port 53. DNS is needed right up until that point, since
-#   everything before then does require looking up/building containers.
-.PHONY: disable-system-dns
-disable-system-dns:
-	@systemctl disable systemd-resolved.service
-	@systemctl stop systemd-resolved
-
-# When updating the system, somelines the system DNS needs to be enabled
-# again, because the pi-hole has been shut down.
-.PHONY: enable-system-dns
-enable-system-dns:
-	@systemctl enable systemd-resolved.service
-	@systemctl start systemd-resolved.service
