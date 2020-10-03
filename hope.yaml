@@ -513,6 +513,18 @@ resources:
     job: remindmebot-init
   - name: remindmebot
     file: remindmebot/remindmebot.yaml
+  - name: tedbot-config
+    inline: |
+      apiVersion: v1
+      data:
+        slack_webhook_url: ${SLACK_TEDBOT_APP_WEBHOOK_BASE64}
+      kind: Secret
+      metadata:
+        name: tedbot-secrets
+    parameters:
+      - SLACK_TEDBOT_APP_WEBHOOK_BASE64
+  - name: tedbot
+    file: tedbot/tedbot.yaml
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml

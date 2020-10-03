@@ -27,10 +27,10 @@ spec:
                 - name: HOOK_URL 
                   valueFrom:
                     secretKeyRef:
-                      name: tedbot-webhook-url
-                      key: value
+                      name: tedbot-secrets
+                      key: slack_webhook_url
           volumes:
             - name: tedbot-storage
               nfs:
-                server: 192.168.1.42
-                path: /kubernetes-test/tedbot
+                server: 192.168.96.4
+                path: /mnt/main/apps/tedbot

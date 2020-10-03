@@ -52,7 +52,6 @@ TRIVIAL_SERVICES:=\
 	plex \
 	blobstore \
 	webcomics \
-	tedbot \
 	gitea
 
 
@@ -78,7 +77,6 @@ pihole: pihole-configurations
 blobstore: blobstore-configurations
 webcomics: webcomics-configurations
 certbot: certbot-configurations
-tedbot: tedbot-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -325,14 +323,6 @@ certbot-configurations:
 		-o yaml --dry-run | kubectl apply -f -
 
 
-.PHONY: tedbot-configurations
-tedbot-configurations:
-	@source .env && \
-		kubectl create secret generic tedbot-webhook-url \
-			--from-literal "value=$${SLACK_TEDBOT_APP_WEBHOOK}" \
-			-o yaml --dry-run | kubectl apply -f -
-
-
 .PHONY: unifi-restore
 unifi-restore:
 	@if [ ! -f backup.unf ]; then \
@@ -416,8 +406,6 @@ kube.list: networking
 	for svc in "$${arr[@]}"; do \
 		if echo "$${ingress_services}" | grep -q "^$${svc}$$\|^$${svc}-tcp$$"; then \
 			printf '%s\t%s\t%s\n' $$ingress_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
-		elif [ "$${svc}" == "tedbot" ]; then \
-			continue; \
 		else \
 			printf '%s\t%s\t%s\n' \
 				$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "'$${svc}'" }}') \
