@@ -8,10 +8,13 @@ pod_network_cidr: 10.244.0.0/16
 resources:
   - name: flannel
     file: https://raw.githubusercontent.com/coreos/flannel/v0.12.0/Documentation/kube-flannel.yml
+    tags: [network]
   - name: flannel-rbac
     file: https://raw.githubusercontent.com/coreos/flannel/v0.12.0/Documentation/k8s-manifests/kube-flannel-rbac.yml
+    tags: [network]
   - name: dashboard
     file: https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
+    tags: [apps, dashboard]
   - name: metrics-server
     file: https://raw.githubusercontent.com/Eagerod/home-network/9b54ad7ca495b8b64cdd6bcfa974688b7e39e711/metrics-server.yaml
   - name: personal-service-account
@@ -34,10 +37,13 @@ resources:
       - kind: ServiceAccount
         name: aleem
         namespace: kube-system
+    tags: [users]
   - name: load-balancer-namespace
     file: https://raw.githubusercontent.com/metallb/metallb/v0.8.3/manifests/namespace.yaml
+    tags: [network, load-balancer]
   - name: load-balancer
     file: https://raw.githubusercontent.com/metallb/metallb/v0.8.3/manifests/metallb.yaml
+    tags: [network, load-balancer]
   - name: load-balancer-config
     inline: |
       apiVersion: v1
@@ -52,6 +58,7 @@ resources:
             protocol: layer2
             addresses:
             - 192.168.200.32-192.168.200.224
+    tags: [network, load-balancer]
   - name: ingress-controller-configs
     inline: |
       apiVersion: v1
@@ -79,8 +86,10 @@ resources:
         namespace: ingress-nginx
       data:
         http-redirect-code: "302"
+    tags: [network, ingress]
   - name: ingress-controller
     file: nginx-ingress-plus-tcp-udp-proxy.yaml
+    tags: [network, ingress]
   - name: ingress-controller-service
     inline: |
       apiVersion: v1
@@ -144,6 +153,7 @@ resources:
         loadBalancerIP: 192.168.200.128
         selector:
           app.kubernetes.io/name: ingress-nginx
+    tags: [network, ingress]
   - name: kubernetes-dashboard-ingress
     inline: |
       apiVersion: extensions/v1beta1
@@ -180,6 +190,7 @@ resources:
                   backend:
                     serviceName: kubernetes-dashboard
                     servicePort: 443
+    tags: [apps, dashboard]
   - name: docker-registry-secrets
     inline: |
       apiVersion: v1
@@ -200,18 +211,24 @@ resources:
       - DOCKER_REGISTRY_HOSTNAME
       - DOCKER_HTPASSWD_FILE_CONTENTS_BASE64
       - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+    tags: [apps, registry]
   - name: docker-registry
     file: registry/registry.yaml
+    tags: [apps, registry]
   - name: browser
     file: browser/browser.yaml
+    tags: [apps, browser]
   - name: heimdall
     file: heimdall/heimdall.yaml
+    tags: [apps, heimdall]
   - name: trilium
     file: trilium/trilium.yaml
+    tags: [apps, trilium]
   - name: slackbot-image
     build:
       path: slackbot
       tag: registry.internal.aleemhaji.com/slackbot:latest
+    tags: [apps, slackbot]
   - name: slackbot-config
     inline: |
       apiVersion: v1
@@ -232,8 +249,10 @@ resources:
       - SLACK_BOT_ALERTING_CHANNEL
       - SLACK_BOT_DEFAULT_CHANNEL
       - SLACK_BOT_API_KEY_BASE64
+    tags: [apps, slackbot]
   - name: slackbot
     file: slackbot/slackbot.yaml
+    tags: [apps, slackbot]
   - name: firefly-config
     inline: |
       apiVersion: v1
@@ -256,12 +275,16 @@ resources:
       - FIREFLY_MYSQL_DATABASE
       - FIREFLY_MYSQL_PASSWORD_BASE64
       - FIREFLY_APP_KEY_BASE64
+    tags: [apps, firefly]
   - name: firefly-init-job-create
     file: firefly/firefly-init.yaml
+    tags: [apps, firefly]
   - name: firefly-init-job
     job: firefly-mysql-init
+    tags: [apps, firefly]
   - name: firefly
     file: firefly/firefly.yaml
+    tags: [apps, firefly]
   - name: guacamole-config
     inline: |
       apiVersion: v1
@@ -282,12 +305,16 @@ resources:
       - GUACAMOLE_MYSQL_USER
       - GUACAMOLE_MYSQL_DATABASE
       - GUACAMOLE_MYSQL_PASSWORD_BASE64
+    tags: [apps, guacamole]
   - name: guacamole-init-job-create
     file: guacamole/guacamole-init.yaml
+    tags: [apps, guacamole]
   - name: guacamole-init-job
     job: guacamole-mysql-init
+    tags: [apps, guacamole]
   - name: guacamole
     file: guacamole/guacamole.yaml
+    tags: [apps, guacamole]
   - name: resilio-sync-config
     inline: |
       apiVersion: v1
@@ -306,12 +333,15 @@ resources:
     parameters:
       - RESILIO_SERVER_USERNAME
       - RESILIO_SERVER_PASSWORD_BASE64
+    tags: [apps, resilio-sync]
   - name: resilio-sync-image
     build:
       path: resilio-sync
       tag: registry.internal.aleemhaji.com/resilio:latest
+    tags: [apps, resilio-sync]
   - name: resilio-sync
     file: resilio-sync/resilio-sync.yaml
+    tags: [apps, resilio-sync]
   - name: node-red-config
     inline: |
       apiVersion: v1
@@ -332,18 +362,24 @@ resources:
       - NODE_RED_MYSQL_USER
       - NODE_RED_MYSQL_DATABASE
       - NODE_RED_MYSQL_PASSWORD_BASE64
+    tags: [apps, node-red]
   - name: node-red-image
     build:
       path: node-red
       tag: registry.internal.aleemhaji.com/node-red:latest
+    tags: [apps, node-red]
   - name: node-red-init-job-create
     file: node-red/node-red-init.yaml
+    tags: [apps, node-red]
   - name: node-red-init-job
     job: node-red-mysql-init
+    tags: [apps, node-red]
   - name: node-red
     file: node-red/node-red.yaml
+    tags: [apps, node-red]
   - name: redis
     file: redis/redis.yaml
+    tags: [apps, redis]
   - name: postgres-config
     inline: |
       apiVersion: v1
@@ -354,12 +390,16 @@ resources:
         name: postgres-secrets
     parameters:
       - POSTGRES_ROOT_PASSWORD_BASE64
+    tags: [apps, postgres]
   - name: postgres-block-storage
     file: postgres/postgres-block-storage.yaml
+    tags: [apps, postgres]
   - name: postgres
     file: postgres/postgres.yaml
+    tags: [apps, postgres]
   - name: mysql-block-storage
     file: mysql/mysql-block-storage.yaml
+    tags: [apps, mysql]
   - name: mysql-config
     inline: |
       apiVersion: v1
@@ -370,6 +410,7 @@ resources:
         name: mysql-secrets
     parameters:
       - MYSQL_ROOT_PASSWORD_BASE64
+    tags: [apps, mysql]
   - name: mysql-backup
     inline: |
       apiVersion: v1
@@ -403,10 +444,13 @@ resources:
       kind: ConfigMap
       metadata:
         name: mysql-backup
+    tags: [apps, mysql]
   - name: mysql
     file: mysql/mysql.yaml
+    tags: [apps, mysql]
   - name: mongodb-block-storage
     file: mongodb/mongodb-block-storage.yaml
+    tags: [apps, mongodb]
   - name: mongodb-backup
     inline: |
       apiVersion: v1
@@ -439,8 +483,10 @@ resources:
       kind: ConfigMap
       metadata:
         name: mongodb-backup
+    tags: [apps, mongodb]
   - name: mongodb
     file: mongodb/mongodb.yaml
+    tags: [apps, mongodb]
   - name: openvpnas-config
     inline: |
       apiVersion: v1
@@ -461,8 +507,10 @@ resources:
       - OPENVPN_PRIMARY_USERNAME
       - OPENVPN_AS_HOSTNAME
       - OPENVPN_PRIMARY_PASSWORD_BASE64
+    tags: [apps, openvpn]
   - name: openvpnas
     file: openvpnas/openvpnas.yaml
+    tags: [apps, openvpn]
   - name: openvpnas-init
     exec:
       selector: deploy/openvpnas-deployment
@@ -475,6 +523,7 @@ resources:
           find /scripts -type f | sort | while read line; do
             sh $line;
           done
+    tags: [apps, openvpn]
   - name: dns-update-config
     inline: |
       apiVersion: v1
@@ -485,8 +534,10 @@ resources:
         name: namesilo-api-key
     parameters:
       - NAMESILO_API_KEY_BASE64
+    tags: [crons, dns]
   - name: dns-update-cron
     file: crons/dns-cron.yaml
+    tags: [crons, dns]
   - name: remindmebot-config
     inline: |
       apiVersion: v1
@@ -507,12 +558,16 @@ resources:
       - REMINDMEBOT_USERNAME
       - REMINDMEBOT_API_KEY_BASE64
       - REMINDMEBOT_DATABASE_BASE64
+    tags: [apps, remindmebot]
   - name: remindmebot-init-job-start
     file: remindmebot/remindmebot-init.yaml
+    tags: [apps, remindmebot]
   - name: remindmebot-init-job
     job: remindmebot-init
+    tags: [apps, remindmebot]
   - name: remindmebot
     file: remindmebot/remindmebot.yaml
+    tags: [apps, remindmebot]
   - name: tedbot-config
     inline: |
       apiVersion: v1
@@ -523,8 +578,10 @@ resources:
         name: tedbot-secrets
     parameters:
       - SLACK_TEDBOT_APP_WEBHOOK_BASE64
+    tags: [crons, tedbot]
   - name: tedbot
     file: tedbot/tedbot.yaml
+    tags: [crons, tedbot]
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml
