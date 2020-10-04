@@ -79,7 +79,7 @@ resources:
       metadata:
         name: udp-services
       data:
-        1194: "default:openvpnas-udp:1194"
+        1194: "default/openvpnas-udp:1194"
       ---
       apiVersion: v1
       kind: ConfigMap
