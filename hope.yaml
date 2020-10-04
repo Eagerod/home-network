@@ -610,6 +610,20 @@ resources:
   - name: blobstore
     file: blobstore/blobstore.yaml
     tags: [apps, blobstore]
+  - name: webcomics-config
+    inline: |
+      apiVersion: v1
+      data:
+        database: ${WEBCOMICS_DATABASE_BASE64}
+      kind: Secret
+      metadata:
+        name: webcomics-secrets
+    parameters:
+      - WEBCOMICS_DATABASE_BASE64
+    tags: [apps, webcomics]
+  - name: webcomics
+    file: webcomics/webcomics.yaml
+    tags: [apps, webcomics]
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml

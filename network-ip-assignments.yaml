@@ -6,18 +6,13 @@ data:
   # Databases + Caching   192.168.2.32/28
   # Front End Services    192.168.2.48/28
   nginx-external: 192.168.2.48
-  grafana: 192.168.2.50
   gitea: 192.168.2.55
   # Back End Services     192.168.2.64/28
   util: 192.168.2.65
-  factorio: 192.168.2.66
-  remindmebot: 192.168.2.67
   pihole: 192.168.2.68
   plex: 192.168.2.69
-  webcomics: 192.168.2.72
   # Daemon-Like Services  192.168.2.80/28
   certbot: 192.168.2.80
   transmission: 192.168.2.81
   unifi: 192.168.2.82
-  openvpnas: 192.168.2.85
   # Other things; experiments; whatever else.

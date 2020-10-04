@@ -42,8 +42,7 @@ spec:
   ports:
     - port: 80
       protocol: TCP
-  type: LoadBalancer
-  loadBalancerIP:
+  type: NodePort
   selector:
     app: webcomics
 ---
@@ -61,18 +60,13 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
-          imagePullSecrets: 
-            - name: registry.internal.aleemhaji.com
           containers:
             - name: webcomic-scraper-schedule
-              image: registry.internal.aleemhaji.com/crons:latest
+              image: curlimages/curl:7.72.0
               command:
                 - sh
                 - -c
-                - curl -X POST ${WEBCOMICS_IP}/tasks/fetch/comic 
+                - curl -X POST http://${WEBCOMICS_HOST}/tasks/fetch/comic 
               env:
-                - name: WEBCOMICS_IP
-                  valueFrom:
-                    configMapKeyRef:
-                      name: network-ip-assignments
-                      key: webcomics
+                - name: WEBCOMICS_HOST
+                  value: webcomics

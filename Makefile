@@ -33,7 +33,6 @@ TRIVIAL_SERVICES:=\
 	nginx-external \
 	pihole \
 	plex \
-	webcomics \
 	gitea
 
 
@@ -55,7 +54,6 @@ KUBERNETES_SERVICES=$(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 nginx-external: nginx-configurations
 util: util-configurations
 pihole: pihole-configurations
-webcomics: webcomics-configurations
 certbot: certbot-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
@@ -254,14 +252,6 @@ pihole-configurations: kube.list
 		--from-file pihole/setupVars.conf \
 		--from-file kube.list \
 		-o yaml --dry-run | kubectl apply -f -
-
-
-.PHONY: webcomics-configurations
-webcomics-configurations:
-	@source .env && \
-		kubectl create secret generic webcomics-secrets \
-			--from-literal "database=$${WEBCOMICS_DATABASE}" \
-			-o yaml --dry-run | kubectl apply -f -
 
 
 .PHONY: certbot-configurations
