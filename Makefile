@@ -33,7 +33,6 @@ TRIVIAL_SERVICES:=\
 	nginx-external \
 	pihole \
 	plex \
-	blobstore \
 	webcomics \
 	gitea
 
@@ -56,7 +55,6 @@ KUBERNETES_SERVICES=$(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 nginx-external: nginx-configurations
 util: util-configurations
 pihole: pihole-configurations
-blobstore: blobstore-configurations
 webcomics: webcomics-configurations
 certbot: certbot-configurations
 
@@ -256,14 +254,6 @@ pihole-configurations: kube.list
 		--from-file pihole/setupVars.conf \
 		--from-file kube.list \
 		-o yaml --dry-run | kubectl apply -f -
-
-
-.PHONY: blobstore-configurations
-blobstore-configurations:
-	@source .env && \
-		kubectl create secret generic blobstore-secrets \
-			--from-literal "database=$${BLOBSTORE_DATABASE}" \
-			-o yaml --dry-run | kubectl apply -f -
 
 
 .PHONY: webcomics-configurations

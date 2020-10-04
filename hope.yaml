@@ -596,6 +596,20 @@ resources:
   - name: factorio
     file: factorio/factorio.yaml
     tags: [apps, factorio]
+  - name: blobstore-config
+    inline: |
+      apiVersion: v1
+      data:
+        database: ${BLOBSTORE_DATABASE_BASE64}
+      kind: Secret
+      metadata:
+        name: blobstore-secrets
+    parameters:
+      - BLOBSTORE_DATABASE_BASE64
+    tags: [apps, blobstore]
+  - name: blobstore
+    file: blobstore/blobstore.yaml
+    tags: [apps, blobstore]
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml
