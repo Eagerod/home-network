@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: transmission-deployment
+  name: oss-transmission-deployment
   labels:
-    app: transmission
+    app: osstransmission
 spec:
   revisionHistoryLimit: 0
   replicas: 1
   selector:
     matchLabels:
-      app: transmission
+      app: osstransmission
   template:
     metadata:
       labels:
-        app: transmission
+        app: osstransmission
     spec:
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
@@ -22,6 +22,7 @@ spec:
           image: registry.internal.aleemhaji.com/transmission:latest
           ports:
             - containerPort: 9091
+            - containerPort: 51413
           volumeMounts:
             - name: downloads-persistent-storage
               mountPath: /var/lib/downloads
@@ -30,57 +31,61 @@ spec:
       volumes:
         - name: downloads-persistent-storage
           nfs:
-            server: 192.168.1.42
-            path: /kubernetes-test/downloads
+            server: 192.168.96.4
+            path: /mnt/main/oss-downloads
         - name: transmission-persistent-storage
           nfs:
-            server: 192.168.1.42
-            path: /kubernetes-test/transmission
+            server: 192.168.96.4
+            path: /mnt/main/apps/oss-transmission
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: transmission
+  name: osstransmission
   labels:
-    app: transmission
+    app: osstransmission
 spec:
   ports:
     - port: 9091
       protocol: TCP
+      name: web
+    - port: 51413
+      protocol: TCP
+      name: torrent
   type: LoadBalancer
   loadBalancerIP:
   selector:
-    app: transmission
+    app: osstransmission
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: transmission-ingress-redirect
+  name: osstransmission-ingress-redirect
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/temporal-redirect: https://transmission.internal.aleemhaji.com
+    nginx.ingress.kubernetes.io/temporal-redirect: https://osstransmission.internal.aleemhaji.com
 spec:
   rules:
-    - host: transmission
-    - host: transmission.home
+    - host: osstransmission
+    - host: osstransmission.home
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: transmission-ingress
+  name: osstransmission-ingress
   annotations:
     kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
 spec:
   tls:
     - hosts:
-        - transmission.internal.aleemhaji.com
+        - osstransmission.internal.aleemhaji.com
       secretName: internal-certificate-files
   rules:
-    - host: transmission.internal.aleemhaji.com
+    - host: osstransmission.internal.aleemhaji.com
       http:
         paths:
           - path: /
             backend:
-              serviceName: transmission
+              serviceName: osstransmission
               servicePort: 9091
