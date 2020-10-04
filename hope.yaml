@@ -80,6 +80,7 @@ resources:
         name: udp-services
       data:
         1194: "default/openvpnas-udp:1194"
+        34197: "default/factorio:34197"
       ---
       apiVersion: v1
       kind: ConfigMap
@@ -150,6 +151,9 @@ resources:
           protocol: UDP
         - port: 1194
           name: openvpn
+          protocol: UDP
+        - port: 34197
+          name: factorio
           protocol: UDP
         type: LoadBalancer
         loadBalancerIP: 192.168.200.128
@@ -584,6 +588,14 @@ resources:
   - name: tedbot
     file: tedbot/tedbot.yaml
     tags: [crons, tedbot]
+  - name: factorio-image
+    build:
+      path: factorio
+      tag: registry.internal.aleemhaji.com/factorio:latest
+    tags: [apps, factorio]
+  - name: factorio
+    file: factorio/factorio.yaml
+    tags: [apps, factorio]
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml

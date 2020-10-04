@@ -27,12 +27,12 @@ spec:
               mountPath: /var/lib/factorio/saves
           env:
             - name: SAVE_GAME
-              value: abc
+              value: save-game
       volumes:
         - name: factorio-persistent-storage
           nfs:
-            server: 192.168.1.42
-            path: /kubernetes-test/factorio
+            server: 192.168.96.4
+            path: /mnt/main/apps/factorio
 ---
 apiVersion: v1
 kind: Service
@@ -44,7 +44,6 @@ spec:
   ports:
     - port: 34197
       protocol: UDP
-  type: LoadBalancer
-  loadBalancerIP:
+  type: NodePort
   selector:
     app: factorio
