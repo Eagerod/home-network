@@ -29,7 +29,6 @@ KUBECONFIG=.kube/config
 # TRIVIAL_SERVICES are the set of services that are deployed by only applying
 #   their yaml files.
 TRIVIAL_SERVICES:=\
-	grafana \
 	certbot \
 	nginx-external \
 	pihole \
@@ -101,7 +100,6 @@ initialize-cluster:
 	@kubectl apply -f metrics-server.yaml
 
 	@$(MAKE) prometheus
-	@$(MAKE) grafana
 
 
 .PHONY: prometheus

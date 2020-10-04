@@ -16,7 +16,9 @@ resources:
     file: https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
     tags: [apps, dashboard]
   - name: metrics-server
-    file: https://raw.githubusercontent.com/Eagerod/home-network/9b54ad7ca495b8b64cdd6bcfa974688b7e39e711/metrics-server.yaml
+    file: metrics-server.yaml
+  - name: grafana
+    file: grafana/grafana.yaml
   - name: personal-service-account
     inline: |
       apiVersion: v1
