@@ -40,7 +40,6 @@ TRIVIAL_SERVICES:=\
 #   docker image using the Dockerfile in the service's directory, and pushing
 #   it to the container registry before applying its yaml file.
 SIMPLE_SERVICES:=\
-	transmission \
 	unifi \
 	util
 

@@ -23,6 +23,9 @@ spec:
           ports:
             - containerPort: 9091
             - containerPort: 51413
+          env:
+            - name: PEER_PORT
+              value: "51413"
           volumeMounts:
             - name: downloads-persistent-storage
               mountPath: /var/lib/downloads
@@ -52,8 +55,7 @@ spec:
     - port: 51413
       protocol: TCP
       name: torrent
-  type: LoadBalancer
-  loadBalancerIP:
+  type: NodePort
   selector:
     app: osstransmission
 ---
