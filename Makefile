@@ -29,7 +29,6 @@ KUBECONFIG=.kube/config
 # TRIVIAL_SERVICES are the set of services that are deployed by only applying
 #   their yaml files.
 TRIVIAL_SERVICES:=\
-	certbot \
 	nginx-external \
 	pihole \
 	plex \
@@ -53,7 +52,6 @@ KUBERNETES_SERVICES=$(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 nginx-external: nginx-configurations
 util: util-configurations
 pihole: pihole-configurations
-certbot: certbot-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -250,35 +248,6 @@ pihole-configurations: kube.list
 	@kubectl create configmap pihole-config \
 		--from-file pihole/setupVars.conf \
 		--from-file kube.list \
-		-o yaml --dry-run | kubectl apply -f -
-
-
-.PHONY: certbot-configurations
-certbot-configurations:
-	@kubectl create secret generic internal-certificate-file 2> /dev/null || true
-	@kubectl create secret generic internal-certificate-files 2> /dev/null || true
-	@kubectl create secret generic external-certificate-file 2> /dev/null || true
-	@kubectl create secret generic external-certificate-files 2> /dev/null || true
-	@kubectl create configmap certbot-scripts \
-		--from-file "certbot/dns-renew.sh" \
-		--from-file "certbot/update-secrets-default.sh" \
-		--from-file "certbot/patch.py" \
-		-o yaml --dry-run | kubectl apply -f -
-
-	@kubectl create secret generic -n kube-system internal-certificate-file 2> /dev/null || true
-	@kubectl create secret generic -n kube-system internal-certificate-files 2> /dev/null || true
-	@kubectl create configmap certbot-scripts -n kube-system \
-		--from-file "certbot/dns-renew.sh" \
-		--from-file "certbot/update-secrets-kube-system.sh" \
-		--from-file "certbot/patch.py" \
-		-o yaml --dry-run | kubectl apply -f -
-
-	@kubectl create secret generic -n monitoring internal-certificate-file 2> /dev/null || true
-	@kubectl create secret generic -n monitoring internal-certificate-files 2> /dev/null || true
-	@kubectl create configmap certbot-scripts -n monitoring \
-		--from-file "certbot/dns-renew.sh" \
-		--from-file "certbot/update-secrets-monitoring.sh" \
-		--from-file "certbot/patch.py" \
 		-o yaml --dry-run | kubectl apply -f -
 
 

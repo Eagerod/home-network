@@ -636,6 +636,27 @@ resources:
   - name: osstransmission
     file: transmission/transmission.yaml
     tags: [apps, transmission]
+  - name: certbot-update-kube-system
+    file: certbot/certbot-generic-cron.yaml
+    parameters:
+      - KUBERNETES_NAMESPACE=kube-system
+      - INCLUDE_EXTERNAL_CERTS=false
+    tags: [crons, certbot]
+  - name: certbot-update-monitoring
+    file: certbot/certbot-generic-cron.yaml
+    parameters:
+      - KUBERNETES_NAMESPACE=monitoring
+      - INCLUDE_EXTERNAL_CERTS=false
+    tags: [crons, certbot]
+  - name: certbot-update-default
+    file: certbot/certbot-generic-cron.yaml
+    parameters:
+      - KUBERNETES_NAMESPACE=default
+      - INCLUDE_EXTERNAL_CERTS=true
+    tags: [crons, certbot]
+  - name: certbot-cron
+    file: certbot/certbot.yaml
+    tags: [crons, certbot]
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml

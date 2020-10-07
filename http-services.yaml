@@ -4,7 +4,6 @@ metadata:
   name: http-services
 data:
   default: |
-    certbot
     remindmebot
     plex
     blobstore
