@@ -31,9 +31,8 @@ spec:
               mountPath: /config
       volumes:
         - name: plex-persistent-storage
-          nfs:
-            server: 192.168.1.42
-            path: /kubernetes-test/plex
+          persistentVolumeClaim:
+            claimName: plex-pv-claim
 ---
 apiVersion: v1
 kind: Service
