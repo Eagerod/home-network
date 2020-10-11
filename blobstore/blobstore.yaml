@@ -45,3 +45,35 @@ spec:
   type: NodePort
   selector:
     app: blobstore
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: blobstore-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://blob.internal.aleemhaji.com
+spec:
+  rules:
+    - host: blob
+    - host: blob.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: blobstore-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - blob.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: blob.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: blobstore
+              servicePort: 80
