@@ -30,7 +30,6 @@ KUBECONFIG=.kube/config
 #   their yaml files.
 TRIVIAL_SERVICES:=\
 	nginx-external \
-	pihole \
 	plex \
 	gitea
 
@@ -51,7 +50,6 @@ KUBERNETES_SERVICES=$(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 #   here.
 nginx-external: nginx-configurations
 util: util-configurations
-pihole: pihole-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -145,12 +143,6 @@ $(SIMPLE_SERVICES):
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
 
 
-# Do a full deployment of a service, including updating networking info and
-#   having pihole take on new configurations.
-.PHONY: complete-%
-complete-%: networking % reload-pihole
-
-
 .PHONY: reload-nginx-external
 reload-nginx-external:
 	@wait_time=60 && \
@@ -171,21 +163,6 @@ reload-nginx-external:
 	printf '\n' 1>&2
 
 	$(call KUBECTL_APP_EXEC,nginx-external) -- nginx -s reload
-
-
-# Since the pihole mounts its volumes as individual files, Kubernetes doesn't
-#   automatically push updated contents to the pods.
-# Update the pi-hole configs, then update replicas with the new file contents.
-.PHONY: reload-pihole
-reload-pihole: pihole-configurations kube.list
-	@$(call KUBECTL_APP_PODS,pihole) | while read line; do \
-		uuid=$$(uuidgen) && \
-		kubectl cp kube.list $${line}:/etc/pihole/kube.$${uuid}.list; \
-		kubectl exec $${line} -- chown root:root /etc/pihole/kube.$${uuid}.list; \
-		kubectl exec $${line} -- sh -c "echo addn-hosts=/etc/pihole/kube.$${uuid}.list > /etc/dnsmasq.d/03-kube.conf"; \
-		kubectl exec $${line} -- pihole restartdns; \
-		echo >&2 "Reloaded DNS in node $${line}"; \
-	done
 
 
 .PHONY: killall
@@ -242,13 +219,6 @@ util-configurations:
 			--from-literal "write_acl=$${DEFAULT_BLOBSTORE_WRITE_ACL}" \
 			-o yaml --dry-run | kubectl apply -f -
 
-
-.PHONY: pihole-configurations
-pihole-configurations: kube.list
-	@kubectl create configmap pihole-config \
-		--from-file pihole/setupVars.conf \
-		--from-file kube.list \
-		-o yaml --dry-run | kubectl apply -f -
 
 
 .PHONY: unifi-restore
@@ -321,26 +291,6 @@ ap-config:
 .PHONY: token
 token:
 	hope --config hope.yaml token aleem
-
-
-# kube.list creates a pi-hole list that provides the appropriate ip addresses
-#   when DNS requests are sent for internal services.
-# This could probably be done better, considering the hard coding, but it works
-.INTERMEDIATE: kube.list
-kube.list: networking
-	@ingress_lb_ip="$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "ingress" }}')" && \
-	ingress_services="$$(kubectl get configmap http-services -o template={{.data.ingress}})" && \
-	arr=($(KUBERNETES_SERVICES)) && \
-	for svc in "$${arr[@]}"; do \
-		if echo "$${ingress_services}" | grep -q "^$${svc}$$\|^$${svc}-tcp$$"; then \
-			printf '%s\t%s\t%s\n' $$ingress_lb_ip $$svc.$(NETWORK_SEARCH_DOMAIN). $$svc >> $@; \
-		else \
-			printf '%s\t%s\t%s\n' \
-				$$(kubectl get configmap network-ip-assignments -o template='{{ index .data "'$${svc}'" }}') \
-				$$svc.$(NETWORK_SEARCH_DOMAIN). \
-				$$svc >> $@; \
-		fi; \
-	done
 
 
 .git/hooks/pre-push:

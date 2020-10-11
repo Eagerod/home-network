@@ -11,8 +11,56 @@ data:
     addn-hosts=/etc/pihole/kube.list
   lan.list: |
     192.168.1.42 trunk.internal.aleemhaji.com. trunk
-    192.168.2.128 internal.aleemhaji.com heimdall
-    192.168.2.128 pi.hole pihole
+    ${INGRESS_IP} internal.aleemhaji.com heimdall
+    ${INGRESS_IP} pi.hole pihole
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pihole
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pihole-role
+rules:
+  - apiGroups: ["", "extensions"]
+    resources: ["services", "ingresses"]
+    verbs: ["watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pihole-manage-hostsfile
+subjects:
+  - kind: ServiceAccount
+    name: pihole
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: pihole-role
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pihole-update
+rules:
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pihole-update
+subjects:
+  - kind: ServiceAccount
+    name: pihole
+roleRef:
+  kind: Role
+  name: pihole-update
+  apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -32,6 +80,9 @@ spec:
       labels:
         app: pihole
     spec:
+      serviceAccountName: pihole
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       # Since individual files don't reload the way that full directory mount
       #   do, copy files over to where they belong.
       # This prevents them from being read only, and lets me update the files
@@ -40,8 +91,6 @@ spec:
         - name: pihole-config
           image: busybox
           volumeMounts:
-            - name: pihole-config
-              mountPath: pihole-config
             - name: pihole-static-config
               mountPath: pihole-static-config
             - name: config-root
@@ -50,11 +99,9 @@ spec:
             - sh
             - -c
             - |
-              cp pihole-config/setupVars.conf config-root/ && \
               cp pihole-static-config/02-lan.conf config-root/ && \
               cp pihole-static-config/03-kube.conf config-root/ && \
-              cp pihole-static-config/lan.list config-root/ && \
-              cp pihole-config/kube.list config-root/
+              cp pihole-static-config/lan.list config-root/
       containers:
         - name: pihole
           image: pihole/pihole
@@ -65,6 +112,15 @@ spec:
               protocol: TCP
             - containerPort: 53
               protocol: UDP
+          env:
+            - name: WEBPASSWORD
+              value: "123"
+            - name: DNS1
+              value: 8.8.8.8
+            - name: DNS2
+              value: 8.8.4.4
+            - name: DNSSEC
+              value: "true"
           volumeMounts:
             - name: config-root
               mountPath: /etc/dnsmasq.d/02-lan.conf
@@ -78,13 +134,20 @@ spec:
             - name: config-root
               mountPath: /etc/pihole/lan.list
               subPath: lan.list
-            - name: config-root
-              mountPath: /etc/pihole/kube.list
-              subPath: kube.list
+        - name: hostsfile-daemon
+          # This introduces a fun circular dependency.
+          # Pihole tells the network where registry.internal.aleemhaji.com is,
+          #   but it needs to be there to start this pod.
+          # Maybe I should have a temporary pihole pod without this hooked up
+          #   to it, and once the registry is definitely up and resolvable,
+          #   replace it with this pod?
+          image: registry.internal.aleemhaji.com/hostsfile-daemon:latest
+          args:
+            - --ingress-ip
+            - ${INGRESS_IP}
+            - --search-domain
+            - internal.aleemhaji.com
       volumes:
-        - name: pihole-config
-          configMap:
-            name: pihole-config
         - name: pihole-static-config
           configMap:
             name: pihole-static-config
@@ -107,8 +170,7 @@ spec:
     - port: 53
       protocol: TCP
       name: dns
-  type: LoadBalancer
-  loadBalancerIP:
+  type: NodePort
   selector:
     app: pihole
 ---
@@ -124,8 +186,7 @@ spec:
   ports:
     - port: 53
       protocol: UDP
-  type: LoadBalancer
-  loadBalancerIP:
+  type: NodePort
   selector:
     app: pihole
 ---
@@ -140,6 +201,22 @@ spec:
   rules:
     - host: pihole
     - host: pihole.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: pihole-special-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+    - host: pi.hole
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: pihole-tcp
+              servicePort: 80
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress

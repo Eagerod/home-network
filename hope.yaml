@@ -68,6 +68,7 @@ resources:
       metadata:
         name: tcp-services
       data:
+        53: "default/pihole-tcp:53"
         3306: "default/mysql:3306"
         5432: "default/postgres:5432"
         6379: "default/redis:6379"
@@ -80,6 +81,7 @@ resources:
       metadata:
         name: udp-services
       data:
+        53: "default/pihole-udp:53"
         1194: "default/openvpnas-udp:1194"
         34197: "default/factorio:34197"
       ---
@@ -662,6 +664,11 @@ resources:
   - name: plex-block-storage
     file: plex/plex-block-storage.yaml
     tags: [apps, plex]
+  - name: pihole
+    file: pihole/pihole.yaml
+    parameters:
+      - INGRESS_IP=192.168.200.128
+    tags: [apps, pihole]
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml
