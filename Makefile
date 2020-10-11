@@ -112,7 +112,6 @@ prometheus:
 .PHONY: networking
 networking: $(KUBECONFIG)
 	@kubectl apply -f network-ip-assignments.yaml
-	@kubectl apply -f http-services.yaml
 
 
 .PHONY: crons
