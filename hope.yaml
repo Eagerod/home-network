@@ -135,7 +135,7 @@ resources:
           name: osstransmission
           protocol: TCP
         type: LoadBalancer
-        loadBalancerIP: 192.168.200.128
+        loadBalancerIP: ${LOAD_BALANCER_IP}
         selector:
           app.kubernetes.io/name: ingress-nginx
       ---
@@ -160,10 +160,12 @@ resources:
           name: factorio
           protocol: UDP
         type: LoadBalancer
-        loadBalancerIP: 192.168.200.128
+        loadBalancerIP: ${LOAD_BALANCER_IP}
         selector:
           app.kubernetes.io/name: ingress-nginx
     tags: [network, ingress]
+    parameters:
+      - LOAD_BALANCER_IP=192.168.200.128
   - name: kubernetes-dashboard-ingress
     inline: |
       apiVersion: extensions/v1beta1
