@@ -38,8 +38,7 @@ TRIVIAL_SERVICES:=\
 #   docker image using the Dockerfile in the service's directory, and pushing
 #   it to the container registry before applying its yaml file.
 SIMPLE_SERVICES:=\
-	unifi \
-	util
+	unifi
 
 
 KUBERNETES_SERVICES=$(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
@@ -49,7 +48,6 @@ KUBERNETES_SERVICES=$(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
 # Those services are included above, and additional prerequisites are listed
 #   here.
 nginx-external: nginx-configurations
-util: util-configurations
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -203,21 +201,6 @@ nginx-configurations: networking
 	@kubectl create configmap nginx-servers-external \
 		--from-file nginx-external/external.http.conf \
 		-o yaml --dry-run | kubectl apply -f -
-
-
-.PHONY: util-configurations
-util-configurations:
-	@source .env && \
-		kubectl create configmap multi-reddit-blob-config \
-			--from-literal "subreddit_path=$${MULTI_REDDIT_SUBS_LOCATION}" \
-			--from-literal "saved_posts_path=$${MULTI_REDDIT_SAVED_LOCATION}" \
-			-o yaml --dry-run | kubectl apply -f -
-	@source .env && \
-		kubectl create secret generic multi-reddit-blob-credentials \
-			--from-literal "read_acl=$${DEFAULT_BLOBSTORE_READ_ACL}" \
-			--from-literal "write_acl=$${DEFAULT_BLOBSTORE_WRITE_ACL}" \
-			-o yaml --dry-run | kubectl apply -f -
-
 
 
 .PHONY: unifi-restore

@@ -8,7 +8,6 @@ data:
   nginx-external: 192.168.2.48
   gitea: 192.168.2.55
   # Back End Services     192.168.2.64/28
-  util: 192.168.2.65
   plex: 192.168.2.69
   # Daemon-Like Services  192.168.2.80/28
   unifi: 192.168.2.82
