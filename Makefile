@@ -30,8 +30,7 @@ KUBECONFIG=.kube/config
 #   their yaml files.
 TRIVIAL_SERVICES:=\
 	nginx-external \
-	plex \
-	gitea
+	plex
 
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a

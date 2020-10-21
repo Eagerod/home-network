@@ -29,8 +29,8 @@ spec:
       volumes:
         - name: gitea-persistent-storage
           nfs:
-            server: 192.168.1.42
-            path: /kubernetes-test/gitea
+            server: 192.168.96.4
+            path: /mnt/main/apps/gitea
         - name: ssl-cert
           projected:
             sources:
@@ -52,7 +52,40 @@ spec:
     - port: 22
       protocol: TCP
       name: ssh
-  type: LoadBalancer
-  loadBalancerIP:
+  type: NodePort
   selector:
     app: gitea
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: monitoring
+  name: gitea-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://gitea.internal.aleemhaji.com
+spec:
+  rules:
+    - host: gitea
+    - host: gitea.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: monitoring
+  name: gitea-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - gitea.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: gitea.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: gitea
+              servicePort: 3000

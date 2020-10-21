@@ -68,6 +68,7 @@ resources:
       metadata:
         name: tcp-services
       data:
+        22: "default/gitea:22"
         53: "default/pihole-tcp:53"
         3306: "default/mysql:3306"
         5432: "default/postgres:5432"
@@ -109,6 +110,9 @@ resources:
           metallb.universe.tf/allow-shared-ip: ingress
       spec:
         ports:
+        - port: 22
+          name: gitea-ssh
+          protocol: TCP
         - port: 53
           name: dns
           protocol: TCP
@@ -669,6 +673,9 @@ resources:
     parameters:
       - INGRESS_IP=192.168.200.128
     tags: [apps, pihole]
+  - name: gitea
+    file: gitea/gitea.yaml
+    tags: [apps, gitea]
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml
