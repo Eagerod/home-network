@@ -7,7 +7,6 @@ data:
   # Front End Services    192.168.2.48/28
   nginx-external: 192.168.2.48
   # Back End Services     192.168.2.64/28
-  plex: 192.168.2.69
   # Daemon-Like Services  192.168.2.80/28
   unifi: 192.168.2.82
   # Other things; experiments; whatever else.

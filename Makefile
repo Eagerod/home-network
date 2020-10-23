@@ -29,8 +29,7 @@ KUBECONFIG=.kube/config
 # TRIVIAL_SERVICES are the set of services that are deployed by only applying
 #   their yaml files.
 TRIVIAL_SERVICES:=\
-	nginx-external \
-	plex
+	nginx-external
 
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a

@@ -668,6 +668,11 @@ resources:
   - name: plex-block-storage
     file: plex/plex-block-storage.yaml
     tags: [apps, plex]
+  - name: plex
+    file: plex/plex.yaml
+    parameters:
+      - LOAD_BALANCER_IP=192.168.200.69
+    tags: [apps, plex]
   - name: pihole
     file: pihole/pihole.yaml
     parameters:
