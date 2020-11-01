@@ -130,6 +130,8 @@ metadata:
   name: openvpnas-tcp
   labels:
     app: openvpnas
+  annotations:
+    metallb.universe.tf/allow-shared-ip: openvpnas
 spec:
   ports:
     - port: 943
@@ -141,7 +143,8 @@ spec:
     - port: 9443
       protocol: TCP
       name: vpntcp
-  type: NodePort
+  type: LoadBalancer
+  loadBalancerIP: ${LOAD_BALANCER_IP}
   selector:
     app: openvpnas
 ---
@@ -151,11 +154,14 @@ metadata:
   name: openvpnas-udp
   labels:
     app: openvpnas
+  annotations:
+    metallb.universe.tf/allow-shared-ip: openvpnas
 spec:
   ports:
     - port: 1194
       protocol: UDP
-  type: NodePort
+  type: LoadBalancer
+  loadBalancerIP: ${LOAD_BALANCER_IP}
   selector:
     app: openvpnas
 ---
