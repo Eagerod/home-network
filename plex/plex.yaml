@@ -25,7 +25,7 @@ spec:
             - name: ALLOWED_NETWORKS
               value: 192.168.2.0/24
             - name: ADVERTISE_IP
-              value: http://plex.aleemhaji.com:32400
+              value: https://plex.aleemhaji.com:32400
             - name: CHANGE_CONFIG_DIR_OWNERSHIP
               value: "false"
           volumeMounts:
