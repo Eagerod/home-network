@@ -1,9 +1,23 @@
+# Pile of anchors to use just so configurable values are all kept in one spot.
+# Could eventually be replaced with something like a constants/variables key
+#   that could live here, but this does what it needs to.
+_:
+  - &log_level trace
+  - &metallb_address_range ADDRESS_RANGE=192.168.200.32-192.168.200.224
+  - &ingress_controller_service_ip LOAD_BALANCER_IP=192.168.200.128
+  - &openvpn_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.85
+  - &plex_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.69
+  - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.128
+master_load_balancer: api.internal.aleemhaji.com
 masters:
   - root@192.168.200.10
+  # - root@192.168.1.31
+  # - root@192.168.1.80
 nodes:
+  # - root@192.168.1.30
   - ubuntu@192.168.200.10
   - ubuntu@192.168.200.11
-loglevel: trace
+loglevel: *log_level
 pod_network_cidr: 10.244.0.0/16
 resources:
   - name: flannel
@@ -56,10 +70,12 @@ resources:
       data:
         config: |
           address-pools:
-          - name: default
-            protocol: layer2
-            addresses:
-            - 192.168.200.32-192.168.200.224
+            - name: default
+              protocol: layer2
+              addresses:
+                - ${ADDRESS_RANGE}
+    parameters:
+      - *metallb_address_range
     tags: [network, load-balancer]
   - name: ingress-controller
     file: nginx-ingress-plus-tcp-udp-proxy.yaml
@@ -163,7 +179,7 @@ resources:
           app.kubernetes.io/name: ingress-nginx
     tags: [network, ingress]
     parameters:
-      - LOAD_BALANCER_IP=192.168.200.128
+      - *ingress_controller_service_ip
   - name: kubernetes-dashboard-ingress
     inline: |
       apiVersion: extensions/v1beta1
@@ -522,7 +538,7 @@ resources:
     file: openvpnas/openvpnas.yaml
     tags: [apps, openvpn]
     parameters:
-      - LOAD_BALANCER_IP=192.168.200.85
+      - &openvpn_load_balancer_service_ip
   - name: openvpnas-init
     exec:
       selector: deploy/openvpnas-deployment
@@ -665,12 +681,12 @@ resources:
   - name: plex
     file: plex/plex.yaml
     parameters:
-      - LOAD_BALANCER_IP=192.168.200.69
+      - *plex_load_balancer_service_ip
     tags: [apps, plex]
   - name: pihole
     file: pihole/pihole.yaml
     parameters:
-      - INGRESS_IP=192.168.200.128
+      - *pihole_ingress_controller_ip
     tags: [apps, pihole]
   - name: gitea
     file: gitea/gitea.yaml
