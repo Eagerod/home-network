@@ -61,6 +61,9 @@ resources:
             addresses:
             - 192.168.200.32-192.168.200.224
     tags: [network, load-balancer]
+  - name: ingress-controller
+    file: nginx-ingress-plus-tcp-udp-proxy.yaml
+    tags: [network, ingress]
   - name: ingress-controller-configs
     inline: |
       apiVersion: v1
@@ -91,9 +94,6 @@ resources:
         namespace: ingress-nginx
       data:
         http-redirect-code: "302"
-    tags: [network, ingress]
-  - name: ingress-controller
-    file: nginx-ingress-plus-tcp-udp-proxy.yaml
     tags: [network, ingress]
   - name: ingress-controller-service
     inline: |
