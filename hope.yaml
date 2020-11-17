@@ -78,7 +78,7 @@ resources:
       - *metallb_address_range
     tags: [network, load-balancer]
   - name: ingress-controller
-    file: nginx-ingress-plus-tcp-udp-proxy.yaml
+    file: nginx-ingress-daemonset-plus-tcp-udp-proxy.yaml
     tags: [network, ingress]
   - name: ingress-controller-configs
     inline: |
