@@ -110,6 +110,7 @@ resources:
         namespace: ingress-nginx
       data:
         http-redirect-code: "302"
+        enable-real-ip: "true"
     tags: [network, ingress]
   - name: ingress-controller-service
     inline: |
@@ -123,6 +124,7 @@ resources:
         annotations:
           metallb.universe.tf/allow-shared-ip: ingress
       spec:
+        externalTrafficPolicy: Local
         ports:
         - port: 22
           name: gitea-ssh
@@ -166,6 +168,7 @@ resources:
         annotations:
           metallb.universe.tf/allow-shared-ip: ingress
       spec:
+        externalTrafficPolicy: Local
         ports:
         - port: 53
           name: dns
