@@ -91,3 +91,23 @@ spec:
                 curl -X POST -fsSL http://remindmebot/schedule; \
                 sleep 60; \
               done
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: remindmebot-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx-external"
+spec:
+  tls:
+    - hosts:
+        - remindmebot.aleemhaji.com
+      secretName: external-certificate-files
+  rules:
+    - host: remindmebot.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: remindmebot
+              servicePort: 80

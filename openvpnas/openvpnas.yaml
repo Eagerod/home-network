@@ -197,3 +197,24 @@ spec:
             backend:
               serviceName: openvpnas-tcp
               servicePort: 943
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: openvpn-as-ingress-external
+  annotations:
+    kubernetes.io/ingress.class: "nginx-external"
+    nginx.ingress.kubernetes.io/backend-protocol: "https"
+spec:
+  tls:
+    - hosts:
+        - vpn.aleemhaji.com
+      secretName: external-certificate-files
+  rules:
+    - host: vpn.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: openvpnas-tcp
+              servicePort: 944

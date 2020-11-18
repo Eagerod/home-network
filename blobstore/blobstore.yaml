@@ -78,3 +78,24 @@ spec:
             backend:
               serviceName: blobstore
               servicePort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: blobstore-ingress-external
+  annotations:
+    kubernetes.io/ingress.class: "nginx-external"
+    nginx.ingress.kubernetes.io/proxy-body-size: "16M"
+spec:
+  tls:
+    - hosts:
+        - blob.aleemhaji.com
+      secretName: external-certificate-files
+  rules:
+    - host: blob.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: blobstore
+              servicePort: 80

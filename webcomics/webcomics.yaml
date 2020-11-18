@@ -70,3 +70,23 @@ spec:
               env:
                 - name: WEBCOMICS_HOST
                   value: webcomics
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: webcomics-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx-external"
+spec:
+  tls:
+    - hosts:
+        - webcomics.aleemhaji.com
+      secretName: external-certificate-files
+  rules:
+    - host: webcomics.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: webcomics
+              servicePort: 80

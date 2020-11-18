@@ -97,3 +97,41 @@ spec:
               configMap:
                 name: certbot-dns-script
                 defaultMode: 0755
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: bare-ingress-external
+  annotations:
+    kubernetes.io/ingress.class: "nginx-external"
+spec:
+  tls:
+    - hosts:
+        - aleemhaji.com
+  rules:
+    - host: aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: certbot
+              servicePort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: bare-internal-ingress-external
+  annotations:
+    kubernetes.io/ingress.class: "nginx-external"
+spec:
+  tls:
+    - hosts:
+        - internal.aleemhaji.com
+  rules:
+    - host: internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: certbot
+              servicePort: 80

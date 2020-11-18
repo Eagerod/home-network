@@ -5,6 +5,7 @@ _:
   - &log_level trace
   - &metallb_address_range ADDRESS_RANGE=192.168.200.32-192.168.200.224
   - &ingress_controller_service_ip LOAD_BALANCER_IP=192.168.200.128
+  - &ingress_controller_external_service_ip LOAD_BALANCER_IP=192.168.200.129
   - &openvpn_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.85
   - &plex_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.69
   - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.128
@@ -79,7 +80,10 @@ resources:
     tags: [network, load-balancer]
   - name: ingress-controller
     file: nginx-ingress-daemonset-plus-tcp-udp-proxy.yaml
-    tags: [network, ingress]
+    tags: [network, ingress, ingress-internal]
+  - name: ingress-controller-external
+    file: nginx-ingress-daemonset-external.yaml
+    tags: [network, ingress, ingress-external]
   - name: ingress-controller-configs
     inline: |
       apiVersion: v1
@@ -111,7 +115,18 @@ resources:
       data:
         http-redirect-code: "302"
         enable-real-ip: "true"
-    tags: [network, ingress]
+    tags: [network, ingress, ingress-internal]
+  - name: ingress-controller-configs-external
+    inline: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: ingress-nginx-controller
+        namespace: ingress-nginx-external
+      data:
+        http-redirect-code: "302"
+        enable-real-ip: "true"
+    tags: [network, ingress, ingress-external]
   - name: ingress-controller-service
     inline: |
       apiVersion: v1
@@ -180,9 +195,53 @@ resources:
         loadBalancerIP: ${LOAD_BALANCER_IP}
         selector:
           app.kubernetes.io/name: ingress-nginx
-    tags: [network, ingress]
+    tags: [network, ingress, ingress-internal]
     parameters:
       - *ingress_controller_service_ip
+  - name: ingress-controller-service-external
+    inline: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: nginx-ingress-tcp
+        labels:
+          app: nginx-ingress
+        namespace: ingress-nginx-external
+        annotations:
+          metallb.universe.tf/allow-shared-ip: ingress-external
+      spec:
+        externalTrafficPolicy: Local
+        ports:
+        - port: 80
+          name: http
+          protocol: TCP
+        - port: 443
+          name: https
+          protocol: TCP
+        type: LoadBalancer
+        loadBalancerIP: ${LOAD_BALANCER_IP}
+        selector:
+          app.kubernetes.io/name: ingress-nginx
+      # ---
+      # apiVersion: v1
+      # kind: Service
+      # metadata:
+      #   name: nginx-ingress-udp
+      #   labels:
+      #     app: nginx-ingress
+      #   namespace: ingress-nginx-external
+      #   annotations:
+      #     metallb.universe.tf/allow-shared-ip: ingress-external
+      # spec:
+      #   externalTrafficPolicy: Local
+      #   ports:
+      #   type: LoadBalancer
+      #   loadBalancerIP: ${LOAD_BALANCER_IP}
+      #   selector:
+      #     app.kubernetes.io/name: ingress-nginx
+    tags: [network, ingress, ingress-external]
+    parameters:
+      - *ingress_controller_external_service_ip
   - name: kubernetes-dashboard-ingress
     inline: |
       apiVersion: extensions/v1beta1
