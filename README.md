@@ -12,7 +12,6 @@ It includes docker images, or host-modifying make commands that will allow any m
 - [Firefly III](/firefly-iii)
 - [MongoDB](/mongodb)
 - [MySQL](/mysql)
-- [NGINX](/nginx)
 - [Pi-hole](/pi-hole)
 - [Plex](/plex)
 - [Redis](/redis)

@@ -26,11 +26,6 @@ NETWORK_SEARCH_DOMAIN=internal.aleemhaji.com
 
 KUBECONFIG=.kube/config
 
-# TRIVIAL_SERVICES are the set of services that are deployed by only applying
-#   their yaml files.
-TRIVIAL_SERVICES:=\
-	nginx-external
-
 
 # SIMPLE_SERVICES are the set of services that are deployed by creating a
 #   docker image using the Dockerfile in the service's directory, and pushing
@@ -39,13 +34,7 @@ SIMPLE_SERVICES:=\
 	unifi
 
 
-KUBERNETES_SERVICES=$(TRIVIAL_SERVICES) $(SIMPLE_SERVICES)
-
-# Some services are mostly just basic services, but require an additional
-#   configuration to be pushed before they can properly start.
-# Those services are included above, and additional prerequisites are listed
-#   here.
-nginx-external: nginx-configurations
+KUBERNETES_SERVICES=$(SIMPLE_SERVICES)
 
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
@@ -124,11 +113,6 @@ crons: base-image
 	done
 
 
-.PHONY: $(TRIVIAL_SERVICES)
-$(TRIVIAL_SERVICES):
-	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
-
-
 .PHONY: $(SIMPLE_SERVICES)
 $(SIMPLE_SERVICES):
 	@$(DOCKER) pull $(REGISTRY_HOSTNAME)/$@:latest
@@ -136,28 +120,6 @@ $(SIMPLE_SERVICES):
 	@$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
 
 	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
-
-
-.PHONY: reload-nginx-external
-reload-nginx-external:
-	@wait_time=60 && \
-	current_nginx_config=$$($(call KUBECTL_APP_EXEC,nginx-external) -- find /etc/nginx/conf.d -mindepth 1 -type d) && \
-	$(MAKE) nginx-configurations && \
-	printf "Waiting for new nginx configs to be loaded into the container" 1>&2 && \
-	until [ "$$($(call KUBECTL_APP_EXEC,nginx-external) -- find /etc/nginx/conf.d -mindepth 1 -type d)" != "$${current_nginx_config}" ]; do \
-		printf '.' 1>&2; \
-		sleep 1; \
-		wait_time=$$((wait_time - 1)); \
-		if [ $${wait_time} -eq 0 ]; then \
-			echo >&2 ""; \
-			echo >&2 "Kubernetes hasn't updated nginx configurations in 60 seconds."; \
-			echo >&2 "Configurations are probably unchanged."; \
-			exit; \
-		fi; \
-	done && \
-	printf '\n' 1>&2
-
-	$(call KUBECTL_APP_EXEC,nginx-external) -- nginx -s reload
 
 
 .PHONY: killall
@@ -188,17 +150,6 @@ restart-%: kill-%
 .PHONY: refresh
 refresh:
 	$(foreach s,$(KUBERNETES_SERVICES),$(MAKE) restart-$(s);)
-
-
-# Configuration Recipes
-.PHONY: nginx-configurations
-nginx-configurations: networking
-	@kubectl create configmap nginx-config --from-file nginx.conf -o yaml --dry-run | \
-		kubectl apply -f -
-
-	@kubectl create configmap nginx-servers-external \
-		--from-file nginx-external/external.http.conf \
-		-o yaml --dry-run | kubectl apply -f -
 
 
 .PHONY: unifi-restore
