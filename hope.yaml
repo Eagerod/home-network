@@ -601,7 +601,7 @@ resources:
     file: openvpnas/openvpnas.yaml
     tags: [apps, openvpn]
     parameters:
-      - &openvpn_load_balancer_service_ip
+      - *openvpn_load_balancer_service_ip
   - name: openvpnas-init
     exec:
       selector: deploy/openvpnas-deployment
