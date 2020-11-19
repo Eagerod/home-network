@@ -533,7 +533,7 @@ resources:
       kind: ConfigMap
       metadata:
         name: mysql-backup
-    tags: [apps, mysql]
+    tags: [apps, mysql, backups]
   - name: mysql
     file: mysql/mysql.yaml
     tags: [apps, mysql]
@@ -572,7 +572,7 @@ resources:
       kind: ConfigMap
       metadata:
         name: mongodb-backup
-    tags: [apps, mongodb]
+    tags: [apps, mongodb, backups]
   - name: mongodb
     file: mongodb/mongodb.yaml
     tags: [apps, mongodb]
@@ -764,6 +764,59 @@ resources:
     parameters:
       - *unifi_controller_service_ip
     tags: [apps, unifi]
+  - name: rsync-image
+    build:
+      path: crons
+      tag: registry.internal.aleemhaji.com/rsync:latest
+    tags: [backups]
+  - name: factorio-backups
+    file: crons/rsync-cron.yaml
+    parameters:
+      - CRONJOB_NAME=factorio
+      - RSYNC_OPTIONS=-avhuDH --exclude=.sync
+      - SOURCE_NFS_SERVER=192.168.96.4
+      - SOURCE_NFS_SHARE=/mnt/main/apps/factorio
+      - SOURCE_PATH=/
+      - DESTINATION_NFS_SERVER=192.168.96.4
+      - DESTINATION_NFS_SHARE=/mnt/main/backup
+      - DEST_PATH=/game-saves/factorio/saves
+    tags: [factorio, backups]
+  - name: trilium-backups
+    file: crons/rsync-cron.yaml
+    parameters:
+      - CRONJOB_NAME=trilium
+      - RSYNC_OPTIONS=-avhuDH --delete --exclude=.sync --exclude=log
+      - SOURCE_NFS_SERVER=192.168.96.4
+      - SOURCE_NFS_SHARE=/mnt/main/apps/trilium
+      - SOURCE_PATH=/
+      - DESTINATION_NFS_SERVER=192.168.96.4
+      - DESTINATION_NFS_SHARE=/mnt/main/backup
+      - DEST_PATH=/trilium/
+    tags: [trilium, backups]
+  - name: node-red-backups
+    file: crons/rsync-cron.yaml
+    parameters:
+      - CRONJOB_NAME=node-red
+      - RSYNC_OPTIONS=-avhuDH --delete --exclude=.sync
+      - SOURCE_NFS_SERVER=192.168.96.4
+      - SOURCE_NFS_SHARE=/mnt/main/apps/node-red
+      - SOURCE_PATH=/flows.json
+      - DESTINATION_NFS_SERVER=192.168.96.4
+      - DESTINATION_NFS_SHARE=/mnt/main/backup
+      - DEST_PATH=/node-red/
+    tags: [nodered, backups]
+  - name: gitea-backups
+    file: crons/rsync-cron.yaml
+    parameters:
+      - CRONJOB_NAME=gitea
+      - RSYNC_OPTIONS=-avhuDH --delete --exclude=.sync --exclude=gitea/log
+      - SOURCE_NFS_SERVER=192.168.96.4
+      - SOURCE_NFS_SHARE=/mnt/main/apps/gitea
+      - SOURCE_PATH=/
+      - DESTINATION_NFS_SERVER=192.168.96.4
+      - DESTINATION_NFS_SHARE=/mnt/main/backup
+      - DEST_PATH=/gitea
+    tags: [gitea, backups]
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml

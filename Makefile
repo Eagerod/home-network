@@ -85,20 +85,6 @@ networking: $(KUBECONFIG)
 	@kubectl apply -f network-ip-assignments.yaml
 
 
-.PHONY: crons
-crons: base-image
-	@$(DOCKER) pull $(REGISTRY_HOSTNAME)/rsync:latest
-	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/rsync:latest
-	@$(DOCKER) push $(REGISTRY_HOSTNAME)/rsync:latest
-
-	@kubectl apply -f crons/rsync-jobs.yaml
-
-	@kubectl get configmap cronjobs -o go-template={{.data._keys}} | while read line; do \
-		sh -c "$$(kubectl get configmap cronjobs -o template={{.data.$${line}}} | tr '\n' ' ') envsubst < crons/rsync-cron.yaml" | \
-			kubectl apply -f -; \
-	done
-
-
 # Shutdown any service.
 .PHONY: kill-%
 kill-%:

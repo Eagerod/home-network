@@ -23,19 +23,22 @@ spec:
               image: registry.internal.aleemhaji.com/rsync:latest
               command:
                 - sh
-                - -c
-                - rsync ${RSYNC_OPTIONS} /data/source${SOURCE_PATH} /data/dest${DEST_PATH}
+                - -cex
+                - |
+                  echo >&2 "/data/source is ${SOURCE_NFS_SERVER}:${SOURCE_NFS_SHARE}"
+                  echo >&2 "/data/dest is ${DESTINATION_NFS_SERVER}:${DESTINATION_NFS_SHARE}"
+                  rsync ${RSYNC_OPTIONS} "/data/source${SOURCE_PATH}" "/data/dest${DEST_PATH}"
               volumeMounts:
-                - name: ${CRONJOB_NAME}-source
+                - name: source
                   mountPath: /data/source
-                - name: ${CRONJOB_NAME}-destination
+                - name: destination
                   mountPath: /data/dest
           volumes:
-            - name: ${CRONJOB_NAME}-source
+            - name: source
               nfs:
                 server: ${SOURCE_NFS_SERVER}
-                path: ${SOURCE_NFS_DIRECTORY}
-            - name: ${CRONJOB_NAME}-destination
+                path: ${SOURCE_NFS_SHARE}
+            - name: destination
               nfs:
                 server: ${DESTINATION_NFS_SERVER}
-                path: ${DESTINATION_NFS_DIRECTORY}
+                path: ${DESTINATION_NFS_SHARE}
