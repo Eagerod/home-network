@@ -1,16 +1,5 @@
 SHELL=/bin/bash
 
-# Figure out how this machine does docker:
-ifeq ($(shell docker ps > /dev/null 2> /dev/null && echo "pass"),pass)
-DOCKER:=docker
-else ifeq ($(shell type docker-machine > /dev/null && echo "pass"),pass)
-DOCKER:=eval $$(docker-machine env $$(docker-machine ls -q --filter state=Running)) && docker
-else ifeq ($(shell sudo docker ps > /dev/null && echo "pass"),pass)
-DOCKER:=sudo docker
-else
-$(error Cannot communicate with docker daemon)
-endif
-
 ROUTER_HOST:=192.168.1.1
 ROUTER_HOST_USER:=ubnt@$(ROUTER_HOST)
 
@@ -22,20 +11,12 @@ AP_IPS=\
 	192.168.1.46 \
 	192.168.1.56
 
-NETWORK_SEARCH_DOMAIN=internal.aleemhaji.com
-
 KUBECONFIG=.kube/config
 
-REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
-
 SERVICE_LB_IP = $$(kubectl get configmap network-ip-assignments -o template='{{index .data "$(1)"}}')
-REPLACE_LB_IP = sed "s/loadBalancerIP:.*/loadBalancerIP: $(call SERVICE_LB_IP,$(1))/" $(1)/$(1).yaml
 
-KUBECTL_APP_PODS = kubectl get pods -l 'app=$(1)' -o name | sed 's:^pod/::'
 KUBECTL_RUNNING_POD = kubectl get pods --field-selector=status.phase=Running -l 'app=$(1)' -o name | sed 's:^pod/::'
 KUBECTL_APP_EXEC = kubectl exec $$($(call KUBECTL_RUNNING_POD,$(1)))
-
-KUBECTL_WAIT_FOR_POD = while [ -z "$$($(call KUBECTL_RUNNING_POD,$(1)))" ]; do echo >&2 "$(1) not up yet. Waiting 1 second..."; sleep 1; done
 
 # List of environment variables in projects that shouldn't be treated as secret.
 SAVE_ENV_VARS=\
