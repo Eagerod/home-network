@@ -1,26 +1,51 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: unifi-restore
-  labels:
-    app: unifi-restore
-spec:
-  revisionHistoryLimit: 0
-  replicas: 1
-  selector:
-    matchLabels:
-      app: unifi-restore
-  template:
-    metadata:
-      name: unifi-restore
-      labels:
-        app: unifi-restore
-    spec:
-      imagePullSecrets: 
-        - name: registry.internal.aleemhaji.com
-      containers:
-        - name: unifi-restore
-          image: registry.internal.aleemhaji.com/unifi:latest
-          command:
-            - sleep
-            - '1000'
+# This has been left in an untested, and mostly commented out state.
+# This job should, in its ultimate form:
+#   - Scale down the existing unifi controller *if it exists*
+#   - Start up a container with the right image that can run ace.
+#   - Wait for the backup to complete.
+#   - Kill that job container.
+#   - Rescale up the unifi controller *if it previously existed*
+# This could actually be done as an ops job, rather than a deployment job.
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: unifi-restore
+#   labels:
+#     app: unifi-restore
+# spec:
+#   revisionHistoryLimit: 0
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: unifi-restore
+#   template:
+#     metadata:
+#       name: unifi-restore
+#       labels:
+#         app: unifi-restore
+#     spec:
+#       imagePullSecrets:
+#         - name: registry.internal.aleemhaji.com
+#       containers:
+#         - name: unifi-restore
+#           image: registry.internal.aleemhaji.com/unifi:latest
+#           command:
+#             - sleep
+#             - '1000'
+# .PHONY: unifi-restore
+# unifi-restore:
+# 	@if [ ! -f backup.unf ]; then \
+# 		echo >&2 "Can't find backup.unf. Aborting"; \
+# 		exit 1; \
+# 	fi
+
+# 	kubectl scale deployment unifi-deployment --replicas=0
+# 	kubectl apply -f unifi/unifi-restore.yaml
+
+# 	$(call KUBECTL_WAIT_FOR_POD,unifi-restore)
+
+# 	kubectl cp backup.unf $$($(call KUBECTL_APP_PODS,unifi-restore) | head -1):/backup.unf
+# 	$(call KUBECTL_APP_EXEC,unifi-restore) -it -- java -Xmx1024M -jar /usr/lib/unifi/lib/ace.jar restore /backup.unf
+
+# 	kubectl scale deployment unifi-restore --replicas=0
+# 	kubectl scale deployment unifi-deployment --replicas=1

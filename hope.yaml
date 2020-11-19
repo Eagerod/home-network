@@ -9,6 +9,7 @@ _:
   - &openvpn_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.85
   - &plex_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.69
   - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.128
+  - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
 master_load_balancer: api.internal.aleemhaji.com
 masters:
   - root@192.168.200.10
@@ -753,6 +754,16 @@ resources:
   - name: gitea
     file: gitea/gitea.yaml
     tags: [apps, gitea]
+  - name: unifi-controller-image
+    build:
+      path: unifi
+      tag: registry.internal.aleemhaji.com/unifi:latest
+    tags: [apps, unifi]
+  - name: unifi-controller
+    file: unifi/unifi.yaml
+    parameters:
+      - *unifi_controller_service_ip
+    tags: [apps, unifi]
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml

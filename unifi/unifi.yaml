@@ -48,10 +48,7 @@ spec:
               name: unifi-discovery
           env:
             - name: UNIFI_SERVICE_IP
-              valueFrom:
-                configMapKeyRef:
-                  name: network-ip-assignments
-                  key: unifi
+              value: ${LOAD_BALANCER_IP}
 ---
 apiVersion: v1
 kind: Service
@@ -105,7 +102,7 @@ spec:
       protocol: UDP
       name: unifi-discovery-port
   type: LoadBalancer
-  loadBalancerIP:
+  loadBalancerIP: ${LOAD_BALANCER_IP}
   selector:
     app: unifi
 ---

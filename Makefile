@@ -26,16 +26,6 @@ NETWORK_SEARCH_DOMAIN=internal.aleemhaji.com
 
 KUBECONFIG=.kube/config
 
-
-# SIMPLE_SERVICES are the set of services that are deployed by creating a
-#   docker image using the Dockerfile in the service's directory, and pushing
-#   it to the container registry before applying its yaml file.
-SIMPLE_SERVICES:=\
-	unifi
-
-
-KUBERNETES_SERVICES=$(SIMPLE_SERVICES)
-
 REGISTRY_HOSTNAME:=registry.internal.aleemhaji.com
 
 SERVICE_LB_IP = $$(kubectl get configmap network-ip-assignments -o template='{{index .data "$(1)"}}')
@@ -61,11 +51,7 @@ SAVE_ENV_VARS=\
 
 
 .PHONY: all
-all: initialize-cluster $(KUBERNETES_SERVICES)
-
-
-.PHONY: services
-services: $(KUBERNETES_SERVICES)
+all: initialize-cluster
 
 
 .PHONY: initialize-cluster
@@ -113,19 +99,6 @@ crons: base-image
 	done
 
 
-.PHONY: $(SIMPLE_SERVICES)
-$(SIMPLE_SERVICES):
-	@$(DOCKER) pull $(REGISTRY_HOSTNAME)/$@:latest
-	@$(DOCKER) build $@ -t $(REGISTRY_HOSTNAME)/$@:latest
-	@$(DOCKER) push $(REGISTRY_HOSTNAME)/$@:latest
-
-	@$(call REPLACE_LB_IP,$@) | kubectl apply -f -
-
-
-.PHONY: killall
-killall: $(foreach s,$(KUBERNETES_SERVICES), kill-$(s))
-
-
 # Shutdown any service.
 .PHONY: kill-%
 kill-%:
@@ -143,32 +116,6 @@ restart-%: kill-%
 .PHONY: %-shell
 %-shell:
 	$(call KUBECTL_APP_EXEC,$*) -it -- sh
-
-
-# Cycle all pods in the cluster. Really should only be used in weird debugging
-#   situations.
-.PHONY: refresh
-refresh:
-	$(foreach s,$(KUBERNETES_SERVICES),$(MAKE) restart-$(s);)
-
-
-.PHONY: unifi-restore
-unifi-restore:
-	@if [ ! -f backup.unf ]; then \
-		echo >&2 "Can't find backup.unf. Aborting"; \
-		exit 1; \
-	fi
-
-	kubectl scale deployment unifi-deployment --replicas=0
-	kubectl apply -f unifi/unifi-restore.yaml
-
-	$(call KUBECTL_WAIT_FOR_POD,unifi-restore)
-
-	kubectl cp backup.unf $$($(call KUBECTL_APP_PODS,unifi-restore) | head -1):/backup.unf
-	$(call KUBECTL_APP_EXEC,unifi-restore) -it -- java -Xmx1024M -jar /usr/lib/unifi/lib/ace.jar restore /backup.unf
-
-	kubectl scale deployment unifi-restore --replicas=0
-	kubectl scale deployment unifi-deployment --replicas=1
 
 
 $(KUBECONFIG):
