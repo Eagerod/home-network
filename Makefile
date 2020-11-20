@@ -80,15 +80,6 @@ restart-%: kill-%
 	@kubectl scale deployment $*-deployment --replicas=1
 
 
-.PHONY: %-shell
-%-shell:
-	$(call KUBECTL_APP_EXEC,$*) -it -- sh
-
-
-$(KUBECONFIG):
-	hope --config hope.yaml kubeconfig
-
-
 .INTERMEDIATE: dns.vbash
 dns.vbash:
 	sed \
@@ -131,11 +122,6 @@ ap-config:
 	@inform_ip=$$(kubectl get configmap network-ip-assignments -o template='{{index .data "unifi"}}') && \
 	$(foreach ip,$(AP_IPS),ssh $(ip) mca-cli-op set-inform http://$${inform_ip}:8080/inform && ) \
 	echo "Done"
-
-
-.PHONY: token
-token:
-	hope --config hope.yaml token aleem
 
 
 .git/hooks/pre-push:
