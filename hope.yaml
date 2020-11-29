@@ -335,6 +335,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/certbot:latest
     tags: [docker-cache, certbot]
+  - name: mongo-37-image-cache
+    build:
+      source: mongo:3.7
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/mongo:3.7
+    tags: [docker-cache, mongodb]
   # endregion
   - name: browser
     file: browser/browser.yaml
