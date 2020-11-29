@@ -6,9 +6,11 @@ spec:
   template:
     spec:
       restartPolicy: Never
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: mysql-restore
-          image: mysql:5.7.26
+          image: registry.internal.aleemhaji.com/mysql:5.7.26
           command:
             - sh
             - -c

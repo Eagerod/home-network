@@ -8,9 +8,11 @@ spec:
   template:
     spec:
       restartPolicy: OnFailure
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       initContainers:
         - name: firefly-mysql-init
-          image: mysql:5.7.26
+          image: registry.internal.aleemhaji.com/mysql:5.7.26
           command:
             - sh
             - -cx

@@ -16,6 +16,8 @@ spec:
   template:
     spec:
       restartPolicy: OnFailure
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: dummy
           image: busybox
@@ -23,7 +25,7 @@ spec:
             - echo
             - This job will eventually have to be suped up a bit.
       #   - name: mysql-skip-grant-tables
-      #     image: mysql:5.7.26
+      #     image: registry.internal.aleemhaji.com/mysql:5.7.26
       #     args:
       #       - --skip-grant-tables
       #       - --skip-networking
@@ -37,7 +39,7 @@ spec:
       #             name: mysql-secrets
       #             key: root_password
       #   - name: mysql-init-script
-      #     image: mysql:5.7.26
+      #     image: registry.internal.aleemhaji.com/mysql:5.7.26
       #     command:
       #       - sh
       #       - -ec
