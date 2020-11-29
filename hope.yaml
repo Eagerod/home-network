@@ -10,6 +10,8 @@ _:
   - &plex_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.69
   - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.128
   - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
+  - &docker_hub_upstream_pull if-not-present
+  - &local_upstream_pull always
 master_load_balancer: api.internal.aleemhaji.com
 masters:
   - root@192.168.200.10
@@ -304,6 +306,28 @@ resources:
   - name: docker-registry
     file: registry/registry.yaml
     tags: [apps, registry]
+  - name: pihole
+    file: pihole/pihole.yaml
+    parameters:
+      - *pihole_ingress_controller_ip
+    tags: [apps, pihole]
+  # At this point, the registry has been pushed, and all the appropriate
+  #   ingress configurations should be set to allow for images to be cached.
+  # Cache a bunch of images from Docker Hub to the local registry to prevent
+  #   being rate limited during standard operations within the cluster.
+  # The main contributor to Docker Hub pulls may just be the crons, but if the
+  #   cluster has tried enough pulls within the last 6 hours, just doing
+  #   rudimentary dev work gets blocked.
+  # Rehosting the images on the cluster also helps steer things towards images
+  #   being built from same base image any time the same tag appears, rather
+  #   it being based on what base image the build host had at the time.
+  # Similar issues are possible, but are a little more controlled.
+  - name: ubuntu-1604-image-cache
+    build:
+      source: ubuntu:16.04
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/ubuntu:16.04
+    tags: [docker-cache]
   - name: browser
     file: browser/browser.yaml
     tags: [apps, browser]
@@ -316,6 +340,7 @@ resources:
   - name: slackbot-image
     build:
       path: slackbot
+      pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/slackbot:latest
     tags: [apps, slackbot]
   - name: slackbot-config
@@ -426,6 +451,7 @@ resources:
   - name: resilio-sync-image
     build:
       path: resilio-sync
+      pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/resilio:latest
     tags: [apps, resilio-sync]
   - name: resilio-sync
@@ -455,6 +481,7 @@ resources:
   - name: node-red-image
     build:
       path: node-red
+      pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/node-red:latest
     tags: [apps, node-red]
   - name: node-red-init-job-create
@@ -676,6 +703,7 @@ resources:
   - name: factorio-image
     build:
       path: factorio
+      pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/factorio:latest
     tags: [apps, factorio]
   - name: factorio
@@ -712,6 +740,7 @@ resources:
   - name: transmission-image
     build:
       path: transmission
+      pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/transmission:latest
     tags: [apps, transmission]
   - name: osstransmission
@@ -746,17 +775,13 @@ resources:
     parameters:
       - *plex_load_balancer_service_ip
     tags: [apps, plex]
-  - name: pihole
-    file: pihole/pihole.yaml
-    parameters:
-      - *pihole_ingress_controller_ip
-    tags: [apps, pihole]
   - name: gitea
     file: gitea/gitea.yaml
     tags: [apps, gitea]
   - name: unifi-controller-image
     build:
       path: unifi
+      pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/unifi:latest
     tags: [apps, unifi]
   - name: unifi-controller
@@ -767,6 +792,7 @@ resources:
   - name: rsync-image
     build:
       path: crons
+      pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/rsync:latest
     tags: [backups]
   - name: factorio-backups
