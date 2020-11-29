@@ -311,6 +311,7 @@ resources:
     parameters:
       - *pihole_ingress_controller_ip
     tags: [apps, pihole]
+  # region: Docker Image Caching
   # At this point, the registry has been pushed, and all the appropriate
   #   ingress configurations should be set to allow for images to be cached.
   # Cache a bunch of images from Docker Hub to the local registry to prevent
@@ -327,7 +328,14 @@ resources:
       source: ubuntu:16.04
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/ubuntu:16.04
-    tags: [docker-cache]
+    tags: [docker-cache, crons, factorio, resilio-sync, transmission]
+  - name: certbot-image-cache
+    build:
+      source: certbot/certbot
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/certbot:latest
+    tags: [docker-cache, certbot]
+  # endregion
   - name: browser
     file: browser/browser.yaml
     tags: [apps, browser]

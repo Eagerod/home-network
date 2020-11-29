@@ -65,9 +65,11 @@ spec:
         spec:
           restartPolicy: OnFailure
           serviceAccountName: certbot
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
           containers:
             - name: certbot-renew
-              image: certbot/certbot
+              image: registry.internal.aleemhaji.com/certbot:latest
               command:
                 - sh
                 - -c
