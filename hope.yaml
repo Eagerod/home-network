@@ -346,7 +346,7 @@ resources:
       source: busybox
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/busybox:latest
-    tags: [docker-cache, mysql]
+    tags: [docker-cache, mysql, redis]
   - name: mysql-5726-image-cache
     build:
       source: mysql:5.7.26
