@@ -89,7 +89,7 @@ spec:
       #   however I want without needing to restart the pod.
       initContainers:
         - name: pihole-config
-          image: busybox
+          image: registry.internal.aleemhaji.com/busybox:latest
           volumeMounts:
             - name: pihole-static-config
               mountPath: pihole-static-config
@@ -104,7 +104,7 @@ spec:
               cp pihole-static-config/lan.list config-root/
       containers:
         - name: pihole
-          image: pihole/pihole
+          image: registry.internal.aleemhaji.com/pihole:latest
           ports:
             - containerPort: 80
               protocol: TCP
