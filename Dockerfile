@@ -7,9 +7,11 @@ FROM debian:10
 RUN \
     apt-get update && \
     apt-get install -y \
+        apache2-utils \
         apt-transport-https \
         build-essential \
         curl \
+        gettext-base \
         gnupg2 \
         lsb-release \
         python3-pip \
@@ -41,7 +43,8 @@ RUN \
 RUN \
     curl -fsSL https://github.com/Eagerod/hope/releases/download/v0.13.1/linux-amd64 -o /bin/hope && \
     chmod 755 /bin/hope && \
-    ln -s $(which python3) /bin/python
+    ln -s $(which python3) /bin/python && \
+    ln -s $(which pip3) /bin/pip
 
 LABEL org.label-schema.name="home-network"
 
