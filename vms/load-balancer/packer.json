@@ -1,0 +1,47 @@
+{
+    "builders": [
+        {
+            "type": "vmware-iso",
+            "vm_name": "load-balancer",
+
+            "output_directory": "${OUTPUT_DIR}",
+
+            "iso_url": "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-10.7.0-amd64-netinst.iso",
+            "iso_checksum": "sha512:cb6795ca61326e9fa58099898e53dc6c708f4b1473687fab5679f824adc78bbe1d543f3b4aed9e56613e7b150e27d6be317efc499e25a92efefed1ed623a90a6",
+
+            "ssh_username": "packer",
+            "ssh_password": "packer",
+            "ssh_timeout": "1h",
+
+            "shutdown_command": "sudo /sbin/shutdown now",
+            "boot_wait": "5s",
+
+            "disk_size": "8000",
+            "memory": 1024,
+
+            "http_directory": "http",
+            "boot_command": [
+                "<esc><wait>",
+                "auto preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg",
+                "<wait><enter>"
+            ],
+
+            "vnc_disable_password": true,
+
+            "remote_type": "esx5",
+            "remote_host": "${ESXI_HOST}",
+            "remote_username": "root",
+            "remote_password": "${ESXI_ROOT_PASSWORD}",
+            "remote_datastore": "Main",
+
+            "vmx_data": {
+                "ethernet0.present": "TRUE",
+                "ethernet0.startConnected": "TRUE",
+                "ethernet0.addressType": "generated",
+                "ethernet0.networkName": "VM Network",
+
+                "disk.EnableUUID": true
+            }
+        }
+    ]
+}
