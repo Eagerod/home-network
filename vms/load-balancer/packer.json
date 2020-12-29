@@ -10,7 +10,7 @@
             "iso_checksum": "sha512:cb6795ca61326e9fa58099898e53dc6c708f4b1473687fab5679f824adc78bbe1d543f3b4aed9e56613e7b150e27d6be317efc499e25a92efefed1ed623a90a6",
 
             "ssh_username": "packer",
-            "ssh_password": "packer",
+            "ssh_password": "${VM_MANAGEMENT_PASSWORD}",
             "ssh_timeout": "1h",
 
             "shutdown_command": "sudo /sbin/shutdown now",
@@ -30,18 +30,50 @@
 
             "remote_type": "esx5",
             "remote_host": "${ESXI_HOST}",
-            "remote_username": "root",
+            "remote_username": "${ESXI_USERNAME}",
             "remote_password": "${ESXI_ROOT_PASSWORD}",
-            "remote_datastore": "Main",
-
+            "remote_datastore": "${ESXI_DATASTORE}",
+      
             "vmx_data": {
                 "ethernet0.present": "TRUE",
                 "ethernet0.startConnected": "TRUE",
                 "ethernet0.addressType": "generated",
-                "ethernet0.networkName": "VM Network",
+                "ethernet0.networkName": "${ESXI_NETWORK}",
 
-                "disk.EnableUUID": true
+                "disk.EnableUUID": "TRUE"
             }
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "sudo apt-get update",
+                "sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common vim",
+                "curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -",
+                "sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/debian buster stable\"",
+                "sudo apt-get update",
+                "sudo apt-get install -y docker-ce docker-ce-cli containerd.io"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "mkdir -p /tmp/ssh-certs-temp"
+            ]
+        },
+        {
+            "type": "file",
+            "source": "${SERVER_SSH_KEYS_DIR}/",
+            "destination": "/tmp/ssh-certs-temp"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "sudo mv /tmp/ssh-certs-temp/* /etc/ssh/",
+                "sudo chown -R root:root /etc/ssh",
+                "rm -rf /tmp/ssh-certs-temp"
+            ]
         }
     ]
 }
