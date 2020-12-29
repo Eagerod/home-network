@@ -12,15 +12,88 @@ _:
   - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
   - &docker_hub_upstream_pull if-not-present
   - &local_upstream_pull always
-master_load_balancer: api.internal.aleemhaji.com
-masters:
-  - root@192.168.200.10
-  # - root@192.168.1.31
-  # - root@192.168.1.80
+vms:
+  root: vms
+  cache: /var/lib/packer/cache
+  output: /var/lib/packer/images
+  images:
+    - name: load-balancer
+      parameters:
+        - ESXI_ROOT_PASSWORD
+        - SERVER_SSH_KEYS_DIR=/var/lib/packer/etc/ssh
+        - ESXI_NETWORK=VM Network
+        - VM_ROOT_PASSWORD
+        - VM_MANAGEMENT_PASSWORD
+    - name: kubernetes-node
+      parameters:
+        - ESXI_ROOT_PASSWORD
+        - SERVER_SSH_KEYS_DIR=/var/lib/packer/etc/ssh
+        - ESXI_NETWORK=VM Network
+        - VM_ROOT_PASSWORD
+        - VM_MANAGEMENT_PASSWORD
+load_balancer_host: api.internal.aleemhaji.com
 nodes:
-  # - root@192.168.1.30
-  - ubuntu@192.168.200.10
-  - ubuntu@192.168.200.11
+  # Old style; explicit hosts, no hypervisor
+  # - name: util1
+  #   role: master+node
+  #   host: 192.168.200.10
+  #   user: root
+  # - name: util2
+  #   role: node
+  #   host: 192.168.200.11
+  #   user: root
+  # New style; hosts on a hypervisor
+  - name: beast1
+    role: hypervisor
+    host: 192.168.10.40
+    user: root
+    datastore: Main
+    network: Kubernetes Network
+  - name: home-load-balancer
+    role: load-balancer
+    hypervisor: beast1
+    user: packer
+  - name: home-master-01
+    role: master
+    hypervisor: beast1
+    user: packer
+  - name: home-master-02
+    role: master
+    hypervisor: beast1
+    user: packer
+  - name: home-master-03
+    role: master
+    hypervisor: beast1
+    user: packer
+  - name: home-node-01
+    role: node
+    hypervisor: beast1
+    user: packer
+  - name: home-node-02
+    role: node
+    hypervisor: beast1
+    user: packer
+  - name: home-node-03
+    role: node
+    hypervisor: beast1
+    user: packer
+  - name: home-node-04
+    role: node
+    hypervisor: beast1
+    user: packer
+  - name: home-node-05
+    role: node
+    hypervisor: beast1
+    user: packer
+  - name: home-node-06
+    role: node
+    hypervisor: beast1
+    user: packer
+  # Provide extra capacity while cycling other nodes.
+  - name: home-node-temp
+    role: node
+    hypervisor: beast1
+    user: packer
 loglevel: *log_level
 pod_network_cidr: 10.244.0.0/16
 resources:
