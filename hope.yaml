@@ -444,6 +444,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/curl:7.72.0
     tags: [docker-cache, remindmebot, webcomics]
+  - name: postgres-cache
+    build:
+      source: postgres:9
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/postgres:9
+    tags: [docker-cache, postgres]
   # endregion
   - name: browser
     file: browser/browser.yaml
