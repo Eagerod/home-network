@@ -62,7 +62,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: webcomic-scraper-schedule
-              image: curlimages/curl:7.72.0
+              image: registry.internal.aleemhaji.com/curl:7.72.0
               command:
                 - sh
                 - -c
