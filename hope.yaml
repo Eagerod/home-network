@@ -450,6 +450,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/postgres:9
     tags: [docker-cache, postgres]
+  - name: firefly-cache
+    build:
+      source: jc5x/firefly-iii:4.8.2
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/firefly-iii:4.8.2
+    tags: [docker-cache, firefly]
   # endregion
   - name: browser
     file: browser/browser.yaml
