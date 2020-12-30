@@ -17,7 +17,7 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
-    verbs: ["get", "list", "patch"]  # Might actually be able to remove "list"?
+    verbs: ["get", "list", "patch", "create"]  # Might actually be able to remove "list"?
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -67,6 +67,25 @@ data:
 
         echo "Updating ${KUBERNETES_NAMESPACE}/$cert_name..."
         openssl rsa -in $(find "$cert_path" -iname "privkey*.pem" | sort -n | tail -1) -out "$rsa_keyfile"
+
+        # Try to create the secret in case this is the first time the script
+        #   is being run.
+        # If the create fails, run the patch attempt.
+        /scripts/post.py \
+          "Bearer $TOKEN" \
+          '
+          {
+            "apiVersion":"v1",
+            "kind":"Secret",
+            "metadata":{"annotations":{},"name":"'$cert_name'"},
+            "data":{
+              "tls.crt": "'$(base64 $(find "$cert_path" -iname "fullchain*.pem" | sort -n | tail -1) | tr -d '\n')'",
+              "tls.key": "'$(base64 $(find "$cert_path" -iname "privkey*.pem" | sort -n | tail -1) | tr -d '\n')'",
+              "tls.rsa.key": "'$(base64 "$rsa_keyfile" | tr -d '\n')'"
+            }
+          }
+          ' \
+          "https://$KUBERNETES_SERVICE_HOST/api/v1/namespaces/${KUBERNETES_NAMESPACE}/secrets" || \
         /scripts/patch.py \
             "Bearer $TOKEN" \
             '
@@ -97,6 +116,23 @@ data:
         cat \
             $(find "$cert_path" -iname "fullchain*.pem" | sort -n | tail -1) \
             $(find "$cert_path" -iname "privkey*.pem" | sort -n | tail -1) > $combined_file
+
+        # Try to create the secret in case this is the first time the script
+        #   is being run.
+        # If the create fails, run the patch attempt.
+        /scripts/post.py \
+          "Bearer $TOKEN" \
+          '
+          {
+            "apiVersion":"v1",
+            "kind":"Secret",
+            "metadata":{"annotations":{},"name":"'$cert_name'"},
+            "data":{
+              "keycert.pem": "'$(base64 "$combined_file" | tr -d '\n')'"
+            }
+          }
+          ' \
+          "https://$KUBERNETES_SERVICE_HOST/api/v1/namespaces/${KUBERNETES_NAMESPACE}/secrets" || \
         /scripts/patch.py \
             "Bearer $TOKEN" \
             '
@@ -148,6 +184,41 @@ data:
       print("HTTP status code: {}".format(response.status_code))
 
       if not response.ok:
+        print(response.content)
+        sys.exit(-1)
+  post.py: |
+    #!/usr/bin/env python
+    #
+    # This is a stupid python script I have to write because the certbot image
+    #   doesn't come with curl installed, and the wget binary bundled with the
+    #   busybox distro it's built off of doesn't seem to support different HTTP
+    #   methods.
+    # There may be a way to get around it, but the time to figure that out probably
+    #   isn't worth it.
+    import sys
+
+    import requests
+
+    if __name__ == '__main__':
+      if len(sys.argv) != 4:
+        print('Usage:', sys.argv[0], 'auth_header', 'post_body', 'host')
+
+      auth_header, post_body, host = sys.argv[1:]
+
+      response = requests.post(
+        url=host,
+        verify=False,
+        headers={
+          'Authorization': auth_header,
+          'Content-Type': 'application/json'
+        },
+        data=post_body
+      )
+
+      print("HTTP status code: {}".format(response.status_code))
+
+      if not response.ok:
+        print(response.content)
         sys.exit(-1)
 ---
 apiVersion: batch/v1beta1
