@@ -688,7 +688,7 @@ resources:
             sh $line;
           done
     tags: [apps, openvpn]
-  - name: dns-update-config
+  - name: dns-update-secrets
     inline: |
       apiVersion: v1
       data:
@@ -698,7 +698,7 @@ resources:
         name: namesilo-api-key
     parameters:
       - NAMESILO_API_KEY_BASE64
-    tags: [crons, dns]
+    tags: [crons, dns, certbot]
   - name: dns-update-cron
     file: crons/dns-cron.yaml
     tags: [crons, dns]
