@@ -432,6 +432,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/pihole:latest
     tags: [docker-cache, pihole]
+  - name: browser-image-cache
+    build:
+      source: klausmeyer/docker-registry-browser:1.3.5
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/browser:1.3.5
+    tags: [docker-cache, browser]
   # endregion
   - name: browser
     file: browser/browser.yaml
