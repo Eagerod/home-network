@@ -456,6 +456,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/firefly-iii:4.8.2
     tags: [docker-cache, firefly]
+  - name: heimdall-cache
+    build:
+      source: linuxserver/heimdall:version-2.2.2
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/linuxserver/heimdall:version-2.2.2
+    tags: [docker-cache, heimdall]
   # endregion
   - name: browser
     file: browser/browser.yaml
