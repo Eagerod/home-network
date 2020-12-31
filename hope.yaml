@@ -480,6 +480,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/pms-docker:1.21.1.3830-6c22540d5
     tags: [docker-cache, plex]
+  - name: redis-image-cache
+    build:
+      source: redis:5
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/redis:5
+    tags: [docker-cache, redis]
   # endregion
   - name: browser
     file: browser/browser.yaml
