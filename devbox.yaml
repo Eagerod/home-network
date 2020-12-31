@@ -27,7 +27,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: devbox
-          image: registry.internal.aleemhaji.com/busybox:latest
+          image: registry.internal.aleemhaji.com/busybox:1.33.0
           command: 
             - /bin/sh
           stdin: true 
