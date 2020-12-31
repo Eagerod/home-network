@@ -462,11 +462,13 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/postgres:9
     tags: [docker-cache, postgres]
+  # This image has been pulled from dockerhub, so it has to be pulled from the
+  #   local registry, and then re-tagged with the original tag for now.
   - name: firefly-image-cache
     build:
-      source: jc5x/firefly-iii:4.8.2
+      source: jc5x/firefly-iii:release-4.8.2
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/firefly-iii:4.8.2
+      tag: registry.internal.aleemhaji.com/firefly-iii:release-4.8.2
     tags: [docker-cache, firefly]
   - name: heimdall-image-cache
     build:
