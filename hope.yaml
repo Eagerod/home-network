@@ -474,6 +474,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/trilium:0.37.8
     tags: [docker-cache, trilium]
+  - name: plex-image-cache
+    build:
+      source: plexinc/pms-docker:1.21.1.3830-6c22540d5
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/pms-docker:1.21.1.3830-6c22540d5
+    tags: [docker-cache, plex]
   # endregion
   - name: browser
     file: browser/browser.yaml

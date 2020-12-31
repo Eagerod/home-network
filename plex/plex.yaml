@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: plex
-          image: plexinc/pms-docker
+          image: registry.internal.aleemhaji.com/pms-docker:1.21.1.3830-6c22540d5
           ports:
             - containerPort: 32400
           env:
