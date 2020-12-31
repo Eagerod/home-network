@@ -404,9 +404,9 @@ resources:
     tags: [docker-cache, crons, factorio, resilio-sync, transmission]
   - name: certbot-image-cache
     build:
-      source: certbot/certbot
+      source: certbot/certbot:v1.10.1
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/certbot:latest
+      tag: registry.internal.aleemhaji.com/certbot:v1.10.1
     tags: [docker-cache, certbot]
   - name: mongo-37-image-cache
     build:
