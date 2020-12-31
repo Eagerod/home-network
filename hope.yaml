@@ -498,6 +498,18 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/redis:5
     tags: [docker-cache, redis]
+  - name: guacamole-image-cache
+    build:
+      source: guacamole/guacamole:1.2.0
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/guacamole:1.2.0
+    tags: [docker-cache, guacamole]
+  - name: guacd-image-cache
+    build:
+      source: guacamole/guacd:1.2.0
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/guacd:1.2.0
+    tags: [docker-cache, guacamole]
   # endregion
   - name: browser
     file: browser/browser.yaml

@@ -12,7 +12,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       initContainers:
         - name: guacamole-mysql-init-script-creator
-          image: guacamole/guacamole
+          image: registry.internal.aleemhaji.com/guacamole:1.2.0
           command:
             - sh
             - -c
