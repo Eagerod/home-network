@@ -82,7 +82,7 @@ spec:
     spec:
       containers:
         - name: openvpnas
-          image: linuxserver/openvpn-as:2.7.3-ls21
+          image: registry.internal.aleemhaji.com/openvpn-as:2.8.7-c7d6c210-Ubuntu18-ls100
           ports:
             - containerPort: 9443
             - containerPort: 943

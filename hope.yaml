@@ -444,24 +444,30 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/curl:7.72.0
     tags: [docker-cache, remindmebot, webcomics]
-  - name: postgres-cache
+  - name: postgres-image-cache
     build:
       source: postgres:9
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/postgres:9
     tags: [docker-cache, postgres]
-  - name: firefly-cache
+  - name: firefly-image-cache
     build:
       source: jc5x/firefly-iii:4.8.2
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/firefly-iii:4.8.2
     tags: [docker-cache, firefly]
-  - name: heimdall-cache
+  - name: heimdall-image-cache
     build:
       source: linuxserver/heimdall:version-2.2.2
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/linuxserver/heimdall:version-2.2.2
+      tag: registry.internal.aleemhaji.com/heimdall:version-2.2.2
     tags: [docker-cache, heimdall]
+  - name: openvpnas-image-cache
+    build:
+      source: linuxserver/openvpn-as:2.8.7-c7d6c210-Ubuntu18-ls100
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/openvpn-as:2.8.7-c7d6c210-Ubuntu18-ls100
+    tags: [docker-cache, openvpn]
   # endregion
   - name: browser
     file: browser/browser.yaml
