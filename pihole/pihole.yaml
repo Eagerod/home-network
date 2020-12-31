@@ -104,7 +104,7 @@ spec:
               cp pihole-static-config/lan.list config-root/
       containers:
         - name: pihole
-          image: registry.internal.aleemhaji.com/pihole:latest
+          image: registry.internal.aleemhaji.com/pihole:v5.3.4
           ports:
             - containerPort: 80
               protocol: TCP

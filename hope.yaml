@@ -440,9 +440,9 @@ resources:
     tags: [docker-cache, mysql]
   - name: pihole-image-cache
     build:
-      source: pihole/pihole
+      source: pihole/pihole:v5.3.4
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pihole:latest
+      tag: registry.internal.aleemhaji.com/pihole:v5.3.4
     tags: [docker-cache, pihole]
   - name: browser-image-cache
     build:
