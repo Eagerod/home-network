@@ -468,6 +468,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/openvpn-as:2.8.7-c7d6c210-Ubuntu18-ls100
     tags: [docker-cache, openvpn]
+  - name: trilium-image-cache
+    build:
+      source: zadam/trilium:0.37.8
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/trilium:0.37.8
+    tags: [docker-cache, trilium]
   # endregion
   - name: browser
     file: browser/browser.yaml

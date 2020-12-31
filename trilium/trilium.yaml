@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: trilium
-          image: zadam/trilium:0.37.8
+          image: registry.internal.aleemhaji.com/trilium:0.37.8
           ports:
             - containerPort: 8080
           volumeMounts:
