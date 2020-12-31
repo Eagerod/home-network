@@ -355,16 +355,29 @@ resources:
                     serviceName: kubernetes-dashboard
                     servicePort: 443
     tags: [apps, dashboard]
-  - name: docker-registry-secrets
+  - name: cluster-registry-secrets-default
+    file: registry/registry-secrets.yaml
+    parameters:
+      - NAMESPACE=default
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+    tags: [apps, registry]
+  - name: cluster-registry-secrets-monitoring
+    file: registry/registry-secrets.yaml
+    parameters:
+      - NAMESPACE=monitoring
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+    tags: [apps, registry]
+  - name: cluster-registry-secrets-kube-system
+    file: registry/registry-secrets.yaml
+    parameters:
+      - NAMESPACE=kube-system
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+    tags: [apps, registry]
+  - name: docker-registry-htpasswd-secrets
     inline: |
-      apiVersion: v1
-      data:
-        .dockerconfigjson: ${DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64}
-      kind: Secret
-      metadata:
-        name: ${DOCKER_REGISTRY_HOSTNAME}
-      type: kubernetes.io/dockerconfigjson
-      ---
       apiVersion: v1
       data:
         htpasswd: ${DOCKER_HTPASSWD_FILE_CONTENTS_BASE64}
@@ -374,7 +387,6 @@ resources:
     parameters:
       - DOCKER_REGISTRY_HOSTNAME
       - DOCKER_HTPASSWD_FILE_CONTENTS_BASE64
-      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
     tags: [apps, registry]
   - name: docker-registry
     file: registry/registry.yaml
