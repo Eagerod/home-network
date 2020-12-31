@@ -15,9 +15,11 @@ spec:
       labels:
         app: gitea
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: gitea
-          image: gitea/gitea:1.9.1
+          image: registry.internal.aleemhaji.com/gitea:1.9.1
           ports:
             - containerPort: 3000
             - containerPort: 22

@@ -15,9 +15,11 @@ spec:
         app: mysql
     spec:
       terminationGracePeriodSeconds: 120
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: mysql
-          image: mysql:5.7.26
+          image: registry.internal.aleemhaji.com/mysql:5.7.26
           ports:
             - containerPort: 3306
           volumeMounts:
@@ -71,9 +73,11 @@ spec:
     spec:
       template:
         spec:
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
           containers:
             - name: mysql-backup
-              image: mysql:5.7.26
+              image: registry.internal.aleemhaji.com/mysql:5.7.26
               command:
                 - sh
                 - /scripts/mysql-backup.sh

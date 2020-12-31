@@ -23,9 +23,11 @@ spec:
       labels:
         name: devbox
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: devbox
-          image: busybox
+          image: registry.internal.aleemhaji.com/busybox:1.33.0
           command: 
             - /bin/sh
           stdin: true 

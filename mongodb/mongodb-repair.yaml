@@ -12,15 +12,17 @@ spec:
   template:
     spec:
       restartPolicy: Never
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: dummy
-          image: busybox
+          image: registry.internal.aleemhaji.com/busybox:1.33.0
           command:
             - echo
             - This job will eventually have to be suped up a bit.
       # containers:
       #   - name: mongodb-repair
-      #     image: mongo:3.7
+      #     image: registry.internal.aleemhaji.com/mongo:3.7
       #     command:
       #       - mongod
       #       - --repair

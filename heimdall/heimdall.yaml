@@ -15,9 +15,11 @@ spec:
       labels:
         app: heimdall
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: heimdall
-          image: linuxserver/heimdall
+          image: registry.internal.aleemhaji.com/heimdall:version-2.2.2
           ports:
             - containerPort: 80
           env:

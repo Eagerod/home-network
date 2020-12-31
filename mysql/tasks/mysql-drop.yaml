@@ -5,9 +5,11 @@ metadata:
 spec:
   template:
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: mysql-drop
-          image: mysql:5.7.26
+          image: registry.internal.aleemhaji.com/mysql:5.7.26
           command:
             - sh
             - -c

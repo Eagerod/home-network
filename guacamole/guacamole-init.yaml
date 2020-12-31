@@ -8,9 +8,11 @@ spec:
   template:
     spec:
       restartPolicy: OnFailure
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       initContainers:
         - name: guacamole-mysql-init-script-creator
-          image: guacamole/guacamole
+          image: registry.internal.aleemhaji.com/guacamole:1.2.0
           command:
             - sh
             - -c
@@ -20,7 +22,7 @@ spec:
               mountPath: /scripts
       containers:
         - name: guacamole-mysql-init
-          image: mysql:5.7.26
+          image: registry.internal.aleemhaji.com/mysql:5.7.26
           command:
             - sh
             - -ce

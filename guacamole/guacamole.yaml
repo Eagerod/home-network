@@ -16,11 +16,13 @@ spec:
       labels:
         app: guacamole
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: guacd
-          image: guacamole/guacd
+          image: registry.internal.aleemhaji.com/guacd:1.2.0
         - name: guacamole
-          image: guacamole/guacamole
+          image: registry.internal.aleemhaji.com/guacamole:1.2.0
           ports: 
             - containerPort: 8080
           env:

@@ -14,11 +14,13 @@ spec:
       labels:
         app: postgres
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       initContainers:
         # Certificates need to have specific permissions for Postgres to accept
         #   them, so set those in a temporary volume.
         - name: cert-permissions
-          image: postgres:9
+          image: registry.internal.aleemhaji.com/postgres:9
           command:
             - sh
             - -c
@@ -33,7 +35,7 @@ spec:
               mountPath: /dst
       containers:
         - name: postgres
-          image: postgres:9
+          image: registry.internal.aleemhaji.com/postgres:9
           ports:
             - containerPort: 5432
           volumeMounts:

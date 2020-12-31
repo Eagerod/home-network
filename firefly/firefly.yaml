@@ -15,9 +15,11 @@ spec:
       labels:
         app: firefly-iii
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: firefly-iii
-          image: jc5x/firefly-iii:release-4.8.2
+          image: registry.internal.aleemhaji.com/firefly-iii:release-4.8.2
           ports:
             - containerPort: 80
           env:

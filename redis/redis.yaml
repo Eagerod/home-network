@@ -15,9 +15,11 @@ spec:
       labels:
         app: redis
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       initContainers:
         - name: redis-init
-          image: busybox
+          image: registry.internal.aleemhaji.com/busybox:1.33.0
           command:
             - sh
             - -c
@@ -34,7 +36,7 @@ spec:
               mountPath: /config
       containers:
         - name: redis
-          image: redis:5
+          image: registry.internal.aleemhaji.com/redis:5
           ports:
             - containerPort: 6379
           args:

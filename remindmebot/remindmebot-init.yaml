@@ -8,9 +8,11 @@ spec:
   template:
     spec:
       restartPolicy: OnFailure
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: remindmebot-init
-          image: curlimages/curl:7.72.0
+          image: registry.internal.aleemhaji.com/curl:7.72.0
           command:
             - sh
             - -c
