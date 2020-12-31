@@ -16,6 +16,8 @@ spec:
       labels:
         app: guacamole
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: guacd
           image: registry.internal.aleemhaji.com/guacd:1.2.0
