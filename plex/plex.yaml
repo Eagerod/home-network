@@ -16,6 +16,8 @@ spec:
       labels:
         app: plex
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: plex
           image: registry.internal.aleemhaji.com/pms-docker:1.21.1.3830-6c22540d5

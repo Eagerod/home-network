@@ -80,6 +80,8 @@ spec:
       labels:
         app: openvpnas
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: openvpnas
           image: registry.internal.aleemhaji.com/openvpn-as:2.8.7-c7d6c210-Ubuntu18-ls100

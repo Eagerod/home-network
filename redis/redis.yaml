@@ -15,6 +15,8 @@ spec:
       labels:
         app: redis
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       initContainers:
         - name: redis-init
           image: registry.internal.aleemhaji.com/busybox:latest

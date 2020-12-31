@@ -14,6 +14,8 @@ spec:
       labels:
         app: postgres
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       initContainers:
         # Certificates need to have specific permissions for Postgres to accept
         #   them, so set those in a temporary volume.

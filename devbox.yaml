@@ -23,6 +23,8 @@ spec:
       labels:
         name: devbox
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: devbox
           image: registry.internal.aleemhaji.com/busybox:latest

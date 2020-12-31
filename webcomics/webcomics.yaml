@@ -60,6 +60,8 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
           containers:
             - name: webcomic-scraper-schedule
               image: registry.internal.aleemhaji.com/curl:7.72.0
