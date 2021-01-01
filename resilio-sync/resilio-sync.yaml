@@ -31,7 +31,7 @@ spec:
             - name: RESILIO_SERVER_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: resilio-sync-credentials
+                  name: resilio-sync-secrets
                   key: password
           volumeMounts:
             - name: backups-persistent-storage
