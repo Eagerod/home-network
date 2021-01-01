@@ -966,6 +966,9 @@ resources:
   - name: certbot-cron
     file: certbot/certbot.yaml
     tags: [crons, certbot]
+  - name: bitwarden
+    file: bitwarden/bitwarden.yaml
+    tags: [apps, bitwarden]
   - name: plex-block-storage
     file: plex/plex-block-storage.yaml
     tags: [apps, plex]

@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bitwarden-deployment
+  labels:
+    app: bitwarden
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bitwarden
+  template:
+    metadata:
+      name: bitwarden
+      labels:
+        app: bitwarden
+    spec:
+      containers:
+        - name: bitwarden
+          image: bitwardenrs/server:1.13.1
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: bitwarden-data
+              mountPath: /data
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "200m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+      volumes:
+        - name: bitwarden-data
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/bitwarden
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bitwarden
+  labels:
+    app: bitwarden
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: bitwarden
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: bitwarden-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://bitwarden.internal.aleemhaji.com
+spec:
+  rules:
+    - host: bitwarden
+    - host: bitwarden.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: bitwarden-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-redirect-from: "bitwarden"
+    nginx.ingress.kubernetes.io/proxy-redirect-to: "https://bitwarden.internal.aleemhaji.com"
+spec:
+  tls:
+    - hosts:
+        - bitwarden.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: bitwarden.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: bitwarden
+              servicePort: 80
