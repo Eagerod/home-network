@@ -577,12 +577,73 @@ resources:
     file: crons/dns-cron.yaml
     tags: [crons, dns, stateless]
   # endregion
+  # region: NFS-Share Only Services
+  # These services are grouped because they have a pretty small number of
+  #   dependencies outside the cluster itself.
+  # These can easily be stopped in one cluster, and started in another without
+  #   the need to coordinate ordering with other services in the cluster.
+  # Disks management is also entirely outside the responsibility of these
+  #   pods, so they're a bit lower maintenance.
+  # This block should only list services that are internally-accessible.
+  # Anything that's exposed publicly shouldn't be considered NFS-share only.
   - name: heimdall
     file: heimdall/heimdall.yaml
     tags: [apps, heimdall]
   - name: trilium
     file: trilium/trilium.yaml
     tags: [apps, trilium]
+  - name: resilio-sync-config
+    inline: |
+      apiVersion: v1
+      data:
+        username: ${RESILIO_SERVER_USERNAME}
+      kind: ConfigMap
+      metadata:
+        name: resilio-sync-config
+      ---
+      apiVersion: v1
+      data:
+        password: ${RESILIO_SERVER_PASSWORD_BASE64}
+      kind: Secret
+      metadata:
+        name: resilio-sync-secrets
+    parameters:
+      - RESILIO_SERVER_USERNAME
+      - RESILIO_SERVER_PASSWORD_BASE64
+    tags: [apps, resilio-sync]
+  - name: resilio-sync-image
+    build:
+      path: resilio-sync
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/resilio:latest
+    tags: [apps, resilio-sync]
+  - name: resilio-sync
+    file: resilio-sync/resilio-sync.yaml
+    tags: [apps, resilio-sync]
+  - name: tedbot-config
+    inline: |
+      apiVersion: v1
+      data:
+        slack_webhook_url: ${SLACK_TEDBOT_APP_WEBHOOK_BASE64}
+      kind: Secret
+      metadata:
+        name: tedbot-secrets
+    parameters:
+      - SLACK_TEDBOT_APP_WEBHOOK_BASE64
+    tags: [crons, tedbot]
+  - name: tedbot
+    file: tedbot/tedbot.yaml
+    tags: [crons, tedbot]
+  - name: transmission-image
+    build:
+      path: transmission
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/transmission:latest
+    tags: [apps, transmission]
+  - name: osstransmission
+    file: transmission/transmission.yaml
+    tags: [apps, transmission]
+  # endregion
   - name: firefly-config
     inline: |
       apiVersion: v1
@@ -645,34 +706,6 @@ resources:
   - name: guacamole
     file: guacamole/guacamole.yaml
     tags: [apps, guacamole]
-  - name: resilio-sync-config
-    inline: |
-      apiVersion: v1
-      data:
-        username: ${RESILIO_SERVER_USERNAME}
-      kind: ConfigMap
-      metadata:
-        name: resilio-sync-config
-      ---
-      apiVersion: v1
-      data:
-        password: ${RESILIO_SERVER_PASSWORD_BASE64}
-      kind: Secret
-      metadata:
-        name: resilio-sync-secrets
-    parameters:
-      - RESILIO_SERVER_USERNAME
-      - RESILIO_SERVER_PASSWORD_BASE64
-    tags: [apps, resilio-sync]
-  - name: resilio-sync-image
-    build:
-      path: resilio-sync
-      pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/resilio:latest
-    tags: [apps, resilio-sync]
-  - name: resilio-sync
-    file: resilio-sync/resilio-sync.yaml
-    tags: [apps, resilio-sync]
   - name: node-red-config
     inline: |
       apiVersion: v1
@@ -885,20 +918,6 @@ resources:
   - name: remindmebot
     file: remindmebot/remindmebot.yaml
     tags: [apps, remindmebot]
-  - name: tedbot-config
-    inline: |
-      apiVersion: v1
-      data:
-        slack_webhook_url: ${SLACK_TEDBOT_APP_WEBHOOK_BASE64}
-      kind: Secret
-      metadata:
-        name: tedbot-secrets
-    parameters:
-      - SLACK_TEDBOT_APP_WEBHOOK_BASE64
-    tags: [crons, tedbot]
-  - name: tedbot
-    file: tedbot/tedbot.yaml
-    tags: [crons, tedbot]
   - name: factorio-image
     build:
       path: factorio
@@ -936,15 +955,6 @@ resources:
   - name: webcomics
     file: webcomics/webcomics.yaml
     tags: [apps, webcomics]
-  - name: transmission-image
-    build:
-      path: transmission
-      pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/transmission:latest
-    tags: [apps, transmission]
-  - name: osstransmission
-    file: transmission/transmission.yaml
-    tags: [apps, transmission]
   - name: certbot-update-kube-system
     file: certbot/certbot-generic-cron.yaml
     parameters:
