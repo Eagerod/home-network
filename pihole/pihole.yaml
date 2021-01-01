@@ -134,6 +134,16 @@ spec:
             - name: config-root
               mountPath: /etc/pihole/lan.list
               subPath: lan.list
+          startupProbe:
+            exec:
+              command:
+              - dig
+              - +norecurse
+              - +retry=0
+              - "@127.0.0.1"
+              - pi.hole
+            failureThreshold: 30
+            periodSeconds: 10
         - name: hostsfile-daemon
           # This introduces a fun circular dependency.
           # Pihole tells the network where registry.internal.aleemhaji.com is,
