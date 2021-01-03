@@ -634,6 +634,13 @@ resources:
   - name: tedbot
     file: tedbot/tedbot.yaml
     tags: [crons, tedbot]
+  # endregion
+  # region: NFS-Share + Port Forwarded Services
+  # This block of services include resources that need access to shared
+  #   storage, but also have a port forward configured for them.
+  # Deploying these resources will require a little bit of extra care, as they
+  #   will be temporarily unreachable on whatever port they're talking
+  #   externally through.
   - name: transmission-image
     build:
       path: transmission
@@ -643,6 +650,45 @@ resources:
   - name: osstransmission
     file: transmission/transmission.yaml
     tags: [apps, transmission]
+  - name: openvpnas-config
+    inline: |
+      apiVersion: v1
+      data:
+        username: ${OPENVPN_PRIMARY_USERNAME}
+        hostname: ${OPENVPN_AS_HOSTNAME}
+      kind: ConfigMap
+      metadata:
+        name: openvpn-config
+      ---
+      apiVersion: v1
+      data:
+        password: ${OPENVPN_PRIMARY_PASSWORD_BASE64}
+      kind: Secret
+      metadata:
+        name: openvpn-secrets
+    parameters:
+      - OPENVPN_PRIMARY_USERNAME
+      - OPENVPN_AS_HOSTNAME
+      - OPENVPN_PRIMARY_PASSWORD_BASE64
+    tags: [apps, openvpn]
+  - name: openvpnas
+    file: openvpnas/openvpnas.yaml
+    tags: [apps, openvpn]
+    parameters:
+      - *openvpn_load_balancer_service_ip
+  - name: openvpnas-init
+    exec:
+      selector: deployment/openvpnas-deployment
+      # Container is a Linuxserver.io one, so it's going to be slow af.
+      timeout: 5m
+      command:
+        - bash
+        - -xec
+        - |
+          find /scripts -type f | sort | while read line; do
+            sh $line;
+          done
+    tags: [apps, openvpn]
   # endregion
   - name: firefly-config
     inline: |
@@ -849,45 +895,6 @@ resources:
   - name: mongodb
     file: mongodb/mongodb.yaml
     tags: [apps, mongodb]
-  - name: openvpnas-config
-    inline: |
-      apiVersion: v1
-      data:
-        username: ${OPENVPN_PRIMARY_USERNAME}
-        hostname: ${OPENVPN_AS_HOSTNAME}
-      kind: ConfigMap
-      metadata:
-        name: openvpn-config
-      ---
-      apiVersion: v1
-      data:
-        password: ${OPENVPN_PRIMARY_PASSWORD_BASE64}
-      kind: Secret
-      metadata:
-        name: openvpn-secrets
-    parameters:
-      - OPENVPN_PRIMARY_USERNAME
-      - OPENVPN_AS_HOSTNAME
-      - OPENVPN_PRIMARY_PASSWORD_BASE64
-    tags: [apps, openvpn]
-  - name: openvpnas
-    file: openvpnas/openvpnas.yaml
-    tags: [apps, openvpn]
-    parameters:
-      - *openvpn_load_balancer_service_ip
-  - name: openvpnas-init
-    exec:
-      selector: deploy/openvpnas-deployment
-      # Container is a Linuxserver.io one, so it's going to be slow af.
-      timeout: 3m
-      command:
-        - bash
-        - -xec
-        - |
-          find /scripts -type f | sort | while read line; do
-            sh $line;
-          done
-    tags: [apps, openvpn]
   - name: remindmebot-config
     inline: |
       apiVersion: v1

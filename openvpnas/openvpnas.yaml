@@ -63,7 +63,7 @@ data:
     # Required to reliably persist configuration changes.
     /usr/local/openvpn_as/scripts/sacli Reset
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openvpnas-deployment
