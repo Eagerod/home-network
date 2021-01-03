@@ -637,6 +637,9 @@ resources:
   - name: gitea
     file: gitea/gitea.yaml
     tags: [apps, gitea]
+  - name: bitwarden
+    file: bitwarden/bitwarden.yaml
+    tags: [apps, bitwarden]
   # endregion
   # region: NFS-Share + Port Forwarded Services
   # This block of services include resources that need access to shared
@@ -988,9 +991,6 @@ resources:
   - name: certbot-cron
     file: certbot/certbot.yaml
     tags: [crons, certbot]
-  - name: bitwarden
-    file: bitwarden/bitwarden.yaml
-    tags: [apps, bitwarden]
   - name: plex-block-storage
     file: plex/plex-block-storage.yaml
     tags: [apps, plex]
