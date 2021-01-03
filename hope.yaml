@@ -1010,6 +1010,12 @@ resources:
     parameters:
       - *unifi_controller_service_ip
     tags: [apps, unifi]
+  # region: Scheduled rsync Jobs
+  # This block contains all the scheduled jobs that run rsync against the
+  #   various directories things are written to.
+  # The primary objective tends to be creating copies in a consolidated place
+  #   where a resilio-sync shared folder can back up the contents to a remote
+  #   device.
   - name: rsync-image
     build:
       path: crons
@@ -1064,6 +1070,7 @@ resources:
       - DESTINATION_NFS_SHARE=/mnt/main/backup
       - DEST_PATH=/gitea
     tags: [gitea, backups]
+  # endregion
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml
