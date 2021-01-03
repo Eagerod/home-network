@@ -641,6 +641,8 @@ resources:
   # Deploying these resources will require a little bit of extra care, as they
   #   will be temporarily unreachable on whatever port they're talking
   #   externally through.
+  # These shouldn't have any database dependencies, but can have NFS and
+  #   ingress.
   - name: transmission-image
     build:
       path: transmission
@@ -689,6 +691,15 @@ resources:
             sh $line;
           done
     tags: [apps, openvpn]
+  - name: factorio-image
+    build:
+      path: factorio
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/factorio:latest
+    tags: [apps, factorio]
+  - name: factorio
+    file: factorio/factorio.yaml
+    tags: [apps, factorio]
   # endregion
   - name: firefly-config
     inline: |
@@ -925,15 +936,6 @@ resources:
   - name: remindmebot
     file: remindmebot/remindmebot.yaml
     tags: [apps, remindmebot]
-  - name: factorio-image
-    build:
-      path: factorio
-      pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/factorio:latest
-    tags: [apps, factorio]
-  - name: factorio
-    file: factorio/factorio.yaml
-    tags: [apps, factorio]
   - name: blobstore-config
     inline: |
       apiVersion: v1
