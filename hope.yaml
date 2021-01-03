@@ -634,6 +634,9 @@ resources:
   - name: tedbot
     file: tedbot/tedbot.yaml
     tags: [crons, tedbot]
+  - name: gitea
+    file: gitea/gitea.yaml
+    tags: [apps, gitea]
   # endregion
   # region: NFS-Share + Port Forwarded Services
   # This block of services include resources that need access to shared
@@ -996,9 +999,6 @@ resources:
     parameters:
       - *plex_load_balancer_service_ip
     tags: [apps, plex]
-  - name: gitea
-    file: gitea/gitea.yaml
-    tags: [apps, gitea]
   - name: unifi-controller-image
     build:
       path: unifi
