@@ -707,6 +707,33 @@ resources:
     file: factorio/factorio.yaml
     tags: [apps, factorio]
   # endregion
+  # region: Databases
+  # This section contains definitions for databases.
+  # These resources will typically need to refer to block storage that's been
+  #   exposed via another piece of hardware that's outside the scope of hope,
+  #   for now.
+  # These resources will be consumed by others, so they appear in this file
+  #   before any of the services that consume them.
+  # The number of dependencies they have may make migrations a bit more of a
+  #   challenge.
+  - name: postgres-config
+    inline: |
+      apiVersion: v1
+      data:
+        root_password: ${POSTGRES_ROOT_PASSWORD_BASE64}
+      kind: Secret
+      metadata:
+        name: postgres-secrets
+    parameters:
+      - POSTGRES_ROOT_PASSWORD_BASE64
+    tags: [apps, postgres]
+  - name: postgres-block-storage
+    file: postgres/postgres-block-storage.yaml
+    tags: [apps, postgres]
+  - name: postgres
+    file: postgres/postgres.yaml
+    tags: [apps, postgres]
+  # endregion
   - name: firefly-config
     inline: |
       apiVersion: v1
@@ -805,23 +832,6 @@ resources:
   - name: node-red
     file: node-red/node-red.yaml
     tags: [apps, node-red]
-  - name: postgres-config
-    inline: |
-      apiVersion: v1
-      data:
-        root_password: ${POSTGRES_ROOT_PASSWORD_BASE64}
-      kind: Secret
-      metadata:
-        name: postgres-secrets
-    parameters:
-      - POSTGRES_ROOT_PASSWORD_BASE64
-    tags: [apps, postgres]
-  - name: postgres-block-storage
-    file: postgres/postgres-block-storage.yaml
-    tags: [apps, postgres]
-  - name: postgres
-    file: postgres/postgres.yaml
-    tags: [apps, postgres]
   - name: mysql-block-storage
     file: mysql/mysql-block-storage.yaml
     tags: [apps, mysql]

@@ -49,7 +49,7 @@
             "type": "shell",
             "inline": [
                 "sudo apt-get update",
-                "sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common vim nfs-common",
+                "sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common vim nfs-common open-iscsi",
                 "curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -",
                 "curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -",
                 "sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/debian buster stable\"",
