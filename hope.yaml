@@ -12,6 +12,11 @@ _:
   - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
   - &docker_hub_upstream_pull if-not-present
   - &local_upstream_pull always
+access_point_controller: http://192.168.200.81:8080
+access_points:
+  - ubnt@192.168.1.86
+  - ubnt@192.168.1.109
+  - ubnt@192.168.1.152
 vms:
   root: vms
   cache: /var/lib/packer/cache
@@ -426,6 +431,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/mongo:3.7
     tags: [docker-cache, mongodb]
+  - name: mongo-36-image-cache
+    build:
+      source: mongo:3.6
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/mongo:3.6
+    tags: [docker-cache, mongodb, unifi]
   - name: busybox-image-cache
     build:
       source: busybox:1.33.0

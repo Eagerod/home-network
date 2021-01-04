@@ -49,6 +49,18 @@ spec:
           env:
             - name: UNIFI_SERVICE_IP
               value: ${LOAD_BALANCER_IP}
+        - name: mongo
+          image: registry.internal.aleemhaji.com/mongo:3.6
+          volumeMounts:
+            - name: mongodb
+              mountPath: /data/db
+      volumes:
+        - name: mongodb
+          iscsi:
+            targetPortal: 192.168.96.4
+            iqn: iqn.2019-05.com.aleemhaji.internal.ctl:unifi-mongodb
+            lun: 51
+            fsType: ext4
 ---
 apiVersion: v1
 kind: Service
