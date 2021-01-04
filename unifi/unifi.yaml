@@ -80,7 +80,7 @@ spec:
       protocol: TCP
       name: unifi-test-port
   type: LoadBalancer
-  loadBalancerIP:
+  loadBalancerIP: ${LOAD_BALANCER_IP}
   selector:
     app: unifi
 ---
@@ -125,6 +125,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/backend-protocol: "https"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
 spec:
   tls:
     - hosts:
