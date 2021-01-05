@@ -745,6 +745,24 @@ resources:
     file: postgres/postgres.yaml
     tags: [apps, postgres]
   # endregion
+  # region: Database-Dependent Services
+  # This section contains the listing of services that rely on some form of
+  #   datastore outside of just file system.
+  # This could come in the form of network references to resources defined in
+  #   the databases section above, or in the form of a database defined in its
+  #   own pod that requires a special ISCSi device set up for it.
+  - name: unifi-controller-image
+    build:
+      path: unifi
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/unifi:latest
+    tags: [apps, unifi]
+  - name: unifi-controller
+    file: unifi/unifi.yaml
+    parameters:
+      - *unifi_controller_service_ip
+    tags: [apps, unifi]
+  # endregion
   - name: firefly-config
     inline: |
       apiVersion: v1
@@ -1020,17 +1038,6 @@ resources:
     parameters:
       - *plex_load_balancer_service_ip
     tags: [apps, plex]
-  - name: unifi-controller-image
-    build:
-      path: unifi
-      pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/unifi:latest
-    tags: [apps, unifi]
-  - name: unifi-controller
-    file: unifi/unifi.yaml
-    parameters:
-      - *unifi_controller_service_ip
-    tags: [apps, unifi]
   # region: Scheduled rsync Jobs
   # This block contains all the scheduled jobs that run rsync against the
   #   various directories things are written to.
