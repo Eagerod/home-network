@@ -1,7 +1,7 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: unifi-deployment
+  name: unifi-controller
   labels:
     app: unifi
 spec:
@@ -10,9 +10,9 @@ spec:
   selector:
     matchLabels:
       app: unifi
+  serviceName: unifi-tcp
   template:
     metadata:
-      name: unifi
       labels:
         app: unifi
     spec:
