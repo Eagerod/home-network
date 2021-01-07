@@ -717,6 +717,11 @@ resources:
   - name: factorio
     file: factorio/factorio.yaml
     tags: [apps, factorio]
+  - name: plex
+    file: plex/plex.yaml
+    parameters:
+      - *plex_load_balancer_service_ip
+    tags: [apps, plex]
   # endregion
   # region: Databases
   # This section contains definitions for databases.
@@ -741,6 +746,54 @@ resources:
   - name: postgres
     file: postgres/postgres.yaml
     tags: [apps, postgres]
+  - name: mysql-config
+    inline: |
+      apiVersion: v1
+      data:
+        root_password: ${MYSQL_ROOT_PASSWORD_BASE64}
+      kind: Secret
+      metadata:
+        name: mysql-secrets
+    parameters:
+      - MYSQL_ROOT_PASSWORD_BASE64
+    tags: [apps, mysql]
+  - name: mysql-backup
+    inline: |
+      apiVersion: v1
+      data:
+        mysql-backup.sh: |
+          #!/bin/sh
+          set -e
+
+          if [ -z "${MYSQL_HOST}" ]; then
+              echo >&2 "Must provide MYSQL_HOST to backup"
+              exit 1
+          fi
+
+          if [ -z "${MYSQL_PWD}" ]; then
+              echo >&2 "Must provide MYSQL_PWD for root@${MYSQL_HOST}"
+              exit 2
+          fi
+
+          mysql -h ${MYSQL_HOST} -u root -s -N -e "show databases;" | while read database; do
+              if [ "$database" = "information_schema" ] || [ "$database" = "mysql" ] || [ "$database" = "sys" ] || [ "$database" = "performance_schema" ]; then
+                  echo >&2 "Skipping database $database"
+                  continue
+              fi
+
+              echo >&2 "Backing up database: $database"
+              mkdir -p "/var/lib/backups/$database"
+              mysql -h ${MYSQL_HOST} -u root -s -N -c "$database" -e "show tables;" | while read table; do
+                  mysqldump -h ${MYSQL_HOST} -u root --skip-dump-date "$database" "$table" > "/var/lib/backups/$database/$table.sql"
+              done || exit 1
+          done || exit 1
+      kind: ConfigMap
+      metadata:
+        name: mysql-backup
+    tags: [apps, mysql, backups]
+  - name: mysql
+    file: mysql/mysql.yaml
+    tags: [apps, mysql]
   # endregion
   # region: Database-Dependent Services
   # This section contains the listing of services that rely on some form of
@@ -759,7 +812,6 @@ resources:
     parameters:
       - *unifi_controller_service_ip
     tags: [apps, unifi]
-  # endregion
   - name: firefly-config
     inline: |
       apiVersion: v1
@@ -858,57 +910,8 @@ resources:
   - name: node-red
     file: node-red/node-red.yaml
     tags: [apps, node-red]
-  - name: mysql-block-storage
-    file: mysql/mysql-block-storage.yaml
-    tags: [apps, mysql]
-  - name: mysql-config
-    inline: |
-      apiVersion: v1
-      data:
-        root_password: ${MYSQL_ROOT_PASSWORD_BASE64}
-      kind: Secret
-      metadata:
-        name: mysql-secrets
-    parameters:
-      - MYSQL_ROOT_PASSWORD_BASE64
-    tags: [apps, mysql]
-  - name: mysql-backup
-    inline: |
-      apiVersion: v1
-      data:
-        mysql-backup.sh: |
-          #!/bin/sh
-          set -e
+  # endregion
 
-          if [ -z "${MYSQL_HOST}" ]; then
-              echo >&2 "Must provide MYSQL_HOST to backup"
-              exit 1
-          fi
-
-          if [ -z "${MYSQL_PWD}" ]; then
-              echo >&2 "Must provide MYSQL_PWD for root@${MYSQL_HOST}"
-              exit 2
-          fi
-
-          mysql -h ${MYSQL_HOST} -u root -s -N -e "show databases;" | while read database; do
-              if [ "$database" = "information_schema" ] || [ "$database" = "mysql" ] || [ "$database" = "sys" ] || [ "$database" = "performance_schema" ]; then
-                  echo >&2 "Skipping database $database"
-                  continue
-              fi
-
-              echo >&2 "Backing up database: $database"
-              mkdir -p "/var/lib/backups/$database"
-              mysql -h ${MYSQL_HOST} -u root -s -N -c "$database" -e "show tables;" | while read table; do
-                  mysqldump -h ${MYSQL_HOST} -u root --skip-dump-date "$database" "$table" > "/var/lib/backups/$database/$table.sql"
-              done || exit 1
-          done || exit 1
-      kind: ConfigMap
-      metadata:
-        name: mysql-backup
-    tags: [apps, mysql, backups]
-  - name: mysql
-    file: mysql/mysql.yaml
-    tags: [apps, mysql]
   - name: mongodb-block-storage
     file: mongodb/mongodb-block-storage.yaml
     tags: [apps, mongodb]
@@ -1027,14 +1030,6 @@ resources:
   - name: certbot-cron
     file: certbot/certbot.yaml
     tags: [crons, certbot]
-  - name: plex-block-storage
-    file: plex/plex-block-storage.yaml
-    tags: [apps, plex]
-  - name: plex
-    file: plex/plex.yaml
-    parameters:
-      - *plex_load_balancer_service_ip
-    tags: [apps, plex]
   # region: Scheduled rsync Jobs
   # This block contains all the scheduled jobs that run rsync against the
   #   various directories things are written to.
