@@ -34,8 +34,8 @@ spec:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-root-password
-                  key: value
+                  name: mysql-secrets
+                  key: root_password
       volumes:
         - name: mysql-certs
           projected:
@@ -43,8 +43,11 @@ spec:
               - secret:
                   name: internal-certificate-files
         - name: mysql-persistent-storage
-          persistentVolumeClaim:
-            claimName: mysql-pv-claim
+          iscsi:
+            targetPortal: 192.168.96.4
+            iqn: iqn.2019-05.com.aleemhaji.internal.ctl:mysql
+            lun: 12
+            fsType: ext4
 ---
 apiVersion: v1
 kind: Service
