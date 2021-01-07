@@ -59,8 +59,11 @@ spec:
                   key: root_password
       volumes:
         - name: postgres-persistent-storage
-          persistentVolumeClaim:
-            claimName: postgres-pv-claim
+          iscsi:
+            targetPortal: 192.168.96.4
+            iqn: iqn.2019-05.com.aleemhaji.internal.ctl:postgres
+            lun: 15
+            fsType: ext4
         - name: postgres-certs
           emptyDir: {}
         - name: postgres-certs-source
