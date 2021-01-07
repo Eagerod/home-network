@@ -738,9 +738,6 @@ resources:
     parameters:
       - POSTGRES_ROOT_PASSWORD_BASE64
     tags: [apps, postgres]
-  - name: postgres-block-storage
-    file: postgres/postgres-block-storage.yaml
-    tags: [apps, postgres]
   - name: postgres
     file: postgres/postgres.yaml
     tags: [apps, postgres]
