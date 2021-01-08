@@ -794,6 +794,42 @@ resources:
   - name: mysql
     file: mysql/mysql.yaml
     tags: [apps, mysql]
+  - name: mongodb-backup
+    inline: |
+      apiVersion: v1
+      data:
+        mongodb-backup.sh: |
+          #!/bin/sh
+          set -e
+
+          if [ -z "${MONGODB_HOST}" ]; then
+              echo >&2 "Must provide MONGODB_HOST to backup"
+              exit 1
+          fi
+
+          mongo --host ${MONGODB_HOST} --quiet --eval 'db.getMongo().getDBNames().join("\n");' | while read database; do
+              set -e
+
+              if [ "$database" = "admin" ] || [ "$database" = "local" ] || [ "$database" = "config" ] || [ "$database" = "unifi_stat" ] || [ "$database" = "dev" ]; then
+                  echo >&2 "Skipping database $database"
+                  continue
+              fi
+
+              echo >&2 "Backing up database: $database"
+              if [ "$database" = "remind-me-bot" ] || [ "$database" = "blobstore" ]; then
+                  echo >&2 "Skipping logs collection"
+                  mongodump --host ${MONGODB_HOST} --db "$database" --excludeCollection=logs -o "/var/lib/backups/$database"
+              else
+                  mongodump --host ${MONGODB_HOST} --db "$database" -o "/var/lib/backups/$database"
+              fi
+          done
+      kind: ConfigMap
+      metadata:
+        name: mongodb-backup
+    tags: [apps, mongodb, backups]
+  - name: mongodb
+    file: mongodb/mongodb.yaml
+    tags: [apps, mongodb]
   # endregion
   # region: Database-Dependent Services
   # This section contains the listing of services that rely on some form of
@@ -910,47 +946,6 @@ resources:
   - name: node-red
     file: node-red/node-red.yaml
     tags: [apps, node-red]
-  # endregion
-
-  - name: mongodb-block-storage
-    file: mongodb/mongodb-block-storage.yaml
-    tags: [apps, mongodb]
-  - name: mongodb-backup
-    inline: |
-      apiVersion: v1
-      data:
-        mongodb-backup.sh: |
-          #!/bin/sh
-          set -e
-
-          if [ -z "${MONGODB_HOST}" ]; then
-              echo >&2 "Must provide MONGODB_HOST to backup"
-              exit 1
-          fi
-
-          mongo --host ${MONGODB_HOST} --quiet --eval 'db.getMongo().getDBNames().join("\n");' | while read database; do
-              set -e
-
-              if [ "$database" = "admin" ] || [ "$database" = "local" ] || [ "$database" = "config" ] || [ "$database" = "unifi_stat" ] || [ "$database" = "dev" ]; then
-                  echo >&2 "Skipping database $database"
-                  continue
-              fi
-
-              echo >&2 "Backing up database: $database"
-              if [ "$database" = "remind-me-bot" ] || [ "$database" = "blobstore" ]; then
-                  echo >&2 "Skipping logs collection"
-                  mongodump --host ${MONGODB_HOST} --db "$database" --excludeCollection=logs -o "/var/lib/backups/$database"
-              else
-                  mongodump --host ${MONGODB_HOST} --db "$database" -o "/var/lib/backups/$database"
-              fi
-          done
-      kind: ConfigMap
-      metadata:
-        name: mongodb-backup
-    tags: [apps, mongodb, backups]
-  - name: mongodb
-    file: mongodb/mongodb.yaml
-    tags: [apps, mongodb]
   - name: remindmebot-config
     inline: |
       apiVersion: v1
@@ -1009,6 +1004,7 @@ resources:
   - name: webcomics
     file: webcomics/webcomics.yaml
     tags: [apps, webcomics]
+  # endregion
   - name: certbot-update-kube-system
     file: certbot/certbot-generic-cron.yaml
     parameters:
