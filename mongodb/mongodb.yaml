@@ -40,8 +40,11 @@ spec:
               subPath: keycert.pem
       volumes:
         - name: mongodb-persistent-storage
-          persistentVolumeClaim:
-            claimName: mongodb-pv-claim
+          iscsi:
+            targetPortal: 192.168.96.4
+            iqn: iqn.2019-05.com.aleemhaji.internal.ctl:mongodb
+            lun: 13
+            fsType: ext4
         - name: mongodb-pem
           projected:
             sources:
