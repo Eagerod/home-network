@@ -79,6 +79,8 @@ spec:
       labels:
         app: remindmebot-scheduler
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: remindmebot-scheduler
           image: registry.internal.aleemhaji.com/curl:7.72.0
