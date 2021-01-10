@@ -137,10 +137,10 @@ resources:
         namespace: kube-system
     tags: [users]
   - name: load-balancer-namespace
-    file: https://raw.githubusercontent.com/metallb/metallb/v0.8.3/manifests/namespace.yaml
+    file: https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/namespace.yaml
     tags: [network, load-balancer]
   - name: load-balancer
-    file: https://raw.githubusercontent.com/metallb/metallb/v0.8.3/manifests/metallb.yaml
+    file: metallb-ifnotpresent.yaml
     tags: [network, load-balancer]
   - name: load-balancer-config
     inline: |
@@ -156,7 +156,16 @@ resources:
               protocol: layer2
               addresses:
                 - ${ADDRESS_RANGE}
+      ---
+      apiVersion: v1
+      data:
+        secretkey: "${METALLB_SYSTEM_MEMBERLIST_SECRET_KEY_BASE64}"
+      kind: Secret
+      metadata:
+        name: memberlist
+        namespace: metallb-system
     parameters:
+      - METALLB_SYSTEM_MEMBERLIST_SECRET_KEY_BASE64
       - *metallb_address_range
     tags: [network, load-balancer]
   - name: ingress-controller
