@@ -93,8 +93,8 @@ spec:
                 - name: MYSQL_PWD
                   valueFrom:
                     secretKeyRef:
-                      name: mysql-root-password
-                      key: value
+                      name: mysql-secrets
+                      key: root_password
                 - name: MYSQL_HOST
                   value: mysql
           volumes:
