@@ -102,11 +102,8 @@ nodes:
 loglevel: *log_level
 pod_network_cidr: 10.244.0.0/16
 resources:
-  - name: flannel
-    file: https://raw.githubusercontent.com/coreos/flannel/v0.12.0/Documentation/kube-flannel.yml
-    tags: [network]
-  - name: flannel-rbac
-    file: https://raw.githubusercontent.com/coreos/flannel/v0.12.0/Documentation/k8s-manifests/kube-flannel-rbac.yml
+  - name: calico
+    file: https://docs.projectcalico.org/manifests/calico.yaml
     tags: [network]
   - name: dashboard
     file: https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
