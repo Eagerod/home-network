@@ -106,7 +106,7 @@ resources:
     file: https://docs.projectcalico.org/manifests/calico.yaml
     tags: [network]
   - name: dashboard
-    file: https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
+    file: https://raw.githubusercontent.com/kubernetes/dashboard/v2.1.0/aio/deploy/recommended.yaml
     tags: [apps, dashboard]
   - name: metrics-server
     file: metrics-server.yaml
