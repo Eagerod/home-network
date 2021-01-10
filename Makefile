@@ -11,8 +11,6 @@ AP_IPS=\
 	192.168.1.46 \
 	192.168.1.56
 
-KUBECONFIG=.kube/config
-
 SERVICE_LB_IP = $$(kubectl get configmap network-ip-assignments -o template='{{index .data "$(1)"}}')
 
 KUBECTL_RUNNING_POD = kubectl get pods --field-selector=status.phase=Running -l 'app=$(1)' -o name | sed 's:^pod/::'
@@ -58,12 +56,6 @@ prometheus:
 
 	kubectl apply -f kube-prometheus-$(KUBERNETES_PROMETHEUS_VERISON)/manifests/
 	rm -rf kube-prometheus-$(KUBERNETES_PROMETHEUS_VERISON)
-
-
-# Set up the ConfigMaps that are needed to hold network information.
-.PHONY: networking
-networking: $(KUBECONFIG)
-	@kubectl apply -f network-ip-assignments.yaml
 
 
 # Shutdown any service.
