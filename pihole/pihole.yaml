@@ -115,10 +115,8 @@ spec:
           env:
             - name: WEBPASSWORD
               value: "123"
-            - name: DNS1
-              value: 8.8.8.8
-            - name: DNS2
-              value: 8.8.4.4
+            - name: PIHOLE_DNS_
+              value: "8.8.8.8;8.8.4.4"
             - name: DNSSEC
               value: "true"
           volumeMounts:
