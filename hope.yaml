@@ -501,9 +501,9 @@ resources:
     tags: [docker-cache, trilium]
   - name: plex-image-cache
     build:
-      source: plexinc/pms-docker:1.21.1.3830-6c22540d5
+      source: plexinc/pms-docker:1.21.1.3876-3c3adfcb4
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pms-docker:1.21.1.3830-6c22540d5
+      tag: registry.internal.aleemhaji.com/pms-docker:1.21.1.3876-3c3adfcb4
     tags: [docker-cache, plex]
   - name: redis-image-cache
     build:

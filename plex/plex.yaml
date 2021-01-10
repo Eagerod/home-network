@@ -20,14 +20,14 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: plex
-          image: registry.internal.aleemhaji.com/pms-docker:1.21.1.3830-6c22540d5
+          image: registry.internal.aleemhaji.com/pms-docker:1.21.1.3876-3c3adfcb4
           ports:
             - containerPort: 32400
           env:
             - name: ALLOWED_NETWORKS
               value: 192.168.2.0/24
             - name: ADVERTISE_IP
-              value: https://plex.aleemhaji.com:32400
+              value: https://${LOAD_BALANCER_IP}:32400
             - name: CHANGE_CONFIG_DIR_OWNERSHIP
               value: "false"
           volumeMounts:
