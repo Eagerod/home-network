@@ -6,11 +6,6 @@ ROUTER_HOST_USER:=ubnt@$(ROUTER_HOST)
 # Constants and calculated values
 KUBERNETES_PROMETHEUS_VERISON=0.1.0
 
-AP_IPS=\
-	192.168.1.43 \
-	192.168.1.46 \
-	192.168.1.56
-
 SERVICE_LB_IP = $$(kubectl get configmap network-ip-assignments -o template='{{index .data "$(1)"}}')
 
 KUBECTL_RUNNING_POD = kubectl get pods --field-selector=status.phase=Running -l 'app=$(1)' -o name | sed 's:^pod/::'
@@ -88,15 +83,6 @@ router-port-forwarding: networking pf.vbash
 	scp pf.vbash $(ROUTER_HOST_USER):temp.vbash
 	ssh $(ROUTER_HOST_USER) /bin/vbash temp.vbash
 	ssh $(ROUTER_HOST_USER) rm temp.vbash
-
-
-.PHONY: ap-config
-ap-config:
-	@# Use the IP of the service, rather than the domain.
-	@# The domain will point at nginx, so it'll be useless.
-	@inform_ip=$$(kubectl get configmap network-ip-assignments -o template='{{index .data "unifi"}}') && \
-	$(foreach ip,$(AP_IPS),ssh $(ip) mca-cli-op set-inform http://$${inform_ip}:8080/inform && ) \
-	echo "Done"
 
 
 .git/hooks/pre-push:
