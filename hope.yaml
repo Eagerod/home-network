@@ -334,7 +334,7 @@ resources:
       apiVersion: extensions/v1beta1
       kind: Ingress
       metadata:
-        namespace: kube-system
+        namespace: kubernetes-dashboard
         name: dashboard-ingress-redirect
         annotations:
           kubernetes.io/ingress.class: "nginx"
@@ -347,7 +347,7 @@ resources:
       apiVersion: extensions/v1beta1
       kind: Ingress
       metadata:
-        namespace: kube-system
+        namespace: kubernetes-dashboard
         name: dashboard-ingress
         annotations:
           kubernetes.io/ingress.class: "nginx"
@@ -1011,10 +1011,10 @@ resources:
     file: webcomics/webcomics.yaml
     tags: [apps, webcomics]
   # endregion
-  - name: certbot-update-kube-system
+  - name: certbot-update-kubernetes-dashboard
     file: certbot/certbot-generic-cron.yaml
     parameters:
-      - KUBERNETES_NAMESPACE=kube-system
+      - KUBERNETES_NAMESPACE=kubernetes-dashboard
       - INCLUDE_EXTERNAL_CERTS=false
     tags: [crons, certbot]
   - name: certbot-update-monitoring
