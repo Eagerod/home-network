@@ -16,6 +16,9 @@ SERVICE_LB_IP = $$(kubectl get configmap network-ip-assignments -o template='{{i
 KUBECTL_RUNNING_POD = kubectl get pods --field-selector=status.phase=Running -l 'app=$(1)' -o name | sed 's:^pod/::'
 KUBECTL_APP_EXEC = kubectl exec $$($(call KUBECTL_RUNNING_POD,$(1)))
 
+HOPE = hope --config hope.yaml
+
+
 # List of environment variables in projects that shouldn't be treated as secret.
 SAVE_ENV_VARS=\
 	MYSQL_USER\
@@ -35,7 +38,7 @@ all: initialize-cluster
 
 .PHONY: initialize-cluster
 initialize-cluster:
-	hope --config hope.yaml deploy
+	$(HOPE) deploy
 
 
 # Shutdown any service.
