@@ -3,13 +3,7 @@ SHELL=/bin/bash
 ROUTER_HOST:=192.168.1.1
 ROUTER_HOST_USER:=ubnt@$(ROUTER_HOST)
 
-# Constants and calculated values
-KUBERNETES_PROMETHEUS_VERISON=0.1.0
-
 SERVICE_LB_IP = $$(kubectl get configmap network-ip-assignments -o template='{{index .data "$(1)"}}')
-
-KUBECTL_RUNNING_POD = kubectl get pods --field-selector=status.phase=Running -l 'app=$(1)' -o name | sed 's:^pod/::'
-KUBECTL_APP_EXEC = kubectl exec $$($(call KUBECTL_RUNNING_POD,$(1)))
 
 HOPE = hope --config hope.yaml
 
