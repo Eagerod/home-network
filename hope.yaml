@@ -110,8 +110,6 @@ resources:
     tags: [apps, dashboard]
   - name: metrics-server
     file: metrics-server.yaml
-  - name: grafana
-    file: grafana/grafana.yaml
   - name: personal-service-account
     inline: |
       apiVersion: v1
@@ -535,7 +533,21 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/gitea:1.9.1
     tags: [docker-cache, gitea]
+  - name: kubectl-image-cache
+    build:
+      source: bitnami/kubectl:1.16.15
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/kubectl:1.16.15
+    tags: [docker-cache, kubectl]
   # endregion
+  # https://github.com/prometheus-operator/kube-prometheus#quickstart
+  - name: prometheus
+    file: opsbox.yaml
+    parameters:
+      - JOB_NAME=deploy-prometheus
+      - SCRIPT=cd /tmp; curl -fsSL https://github.com/prometheus-operator/kube-prometheus/archive/v0.7.0.tar.gz | tar xvz; cd kube-prometheus-0.7.0; kubectl create -f manifests/setup; until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done; kubectl create -f manifests;
+  - name: grafana
+    file: grafana/grafana.yaml
   # region: Stateless Services
   # The set of services in this block are services that don't rely on storing
   #   any state on disk.

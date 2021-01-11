@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+metadata:
+  name: ops-${JOB_NAME}
+  namespace: kube-system
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: aleem
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: devbox
+          image: registry.internal.aleemhaji.com/kubectl:1.16.15
+          command: 
+            - /bin/sh
+            - -ce
+            - ${SCRIPT}
