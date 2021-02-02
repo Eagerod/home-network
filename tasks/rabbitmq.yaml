@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+  namespace: playground
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  serviceName: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:3.8.11-management
+          ports:
+            - containerPort: 5672
+            - containerPort: 15672
+          volumeMounts:
+            - name: rabbitmq-persistent-storage
+              mountPath: /var/lib/rabbitmq
+          env:
+            - name: RABBITMQ_NODENAME
+              value: rabbitmq
+            - name: RABBITMQ_ERLANG_COOKIE
+              valueFrom:
+                secretKeyRef:
+                  name: playground-secrets
+                  key: rabbitmq_erlang_cookie
+      volumes:
+        - name: rabbitmq-persistent-storage
+          iscsi:
+            targetPortal: 192.168.96.4
+            iqn: iqn.2019-05.com.aleemhaji.internal.ctl:rabbitmq-dev
+            lun: 61
+            fsType: ext4
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: playground
+  labels:
+    app: rabbitmq
+spec:
+  ports:
+    - port: 5672
+      name: rmq
+      protocol: TCP
+    - port: 15672
+      name: management
+      protocol: TCP
+  type: LoadBalancer
+  loadBalancerIP: 192.168.200.223
+  selector:
+    app: rabbitmq
