@@ -33,6 +33,14 @@ spec:
           volumeMounts:
             - name: plex-persistent-storage
               mountPath: /config
+          # Confirm config volume hasn't been mounted as read-only.
+          livenessProbe:
+            exec:
+              command:
+              - touch
+              - /config/Library/Application Support/Plex Media Server/.liveness-probe
+            initialDelaySeconds: 120
+            periodSeconds: 60
       volumes:
         - name: plex-persistent-storage
           iscsi:
