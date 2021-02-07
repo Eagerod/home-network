@@ -66,7 +66,7 @@ data:
         rsa_keyfile="$(mktemp).rsa.key"
 
         echo "Updating ${KUBERNETES_NAMESPACE}/$cert_name..."
-        openssl rsa -in $(find "$cert_path" -iname "privkey*.pem" | sort -n | tail -1) -out "$rsa_keyfile"
+        openssl rsa -in $(find "$cert_path" -iname "privkey*.pem" | sort -V | tail -1) -out "$rsa_keyfile"
 
         # Try to create the secret in case this is the first time the script
         #   is being run.
@@ -79,8 +79,8 @@ data:
             "kind":"Secret",
             "metadata":{"annotations":{},"name":"'$cert_name'"},
             "data":{
-              "tls.crt": "'$(base64 $(find "$cert_path" -iname "fullchain*.pem" | sort -n | tail -1) | tr -d '\n')'",
-              "tls.key": "'$(base64 $(find "$cert_path" -iname "privkey*.pem" | sort -n | tail -1) | tr -d '\n')'",
+              "tls.crt": "'$(base64 $(find "$cert_path" -iname "fullchain*.pem" | sort -V | tail -1) | tr -d '\n')'",
+              "tls.key": "'$(base64 $(find "$cert_path" -iname "privkey*.pem" | sort -V | tail -1) | tr -d '\n')'",
               "tls.rsa.key": "'$(base64 "$rsa_keyfile" | tr -d '\n')'"
             }
           }
@@ -91,8 +91,8 @@ data:
             '
             {
                 "data":{
-                    "tls.crt": "'$(base64 $(find "$cert_path" -iname "fullchain*.pem" | sort -n | tail -1) | tr -d '\n')'",
-                    "tls.key": "'$(base64 $(find "$cert_path" -iname "privkey*.pem" | sort -n | tail -1) | tr -d '\n')'",
+                    "tls.crt": "'$(base64 $(find "$cert_path" -iname "fullchain*.pem" | sort -V | tail -1) | tr -d '\n')'",
+                    "tls.key": "'$(base64 $(find "$cert_path" -iname "privkey*.pem" | sort -V | tail -1) | tr -d '\n')'",
                     "tls.rsa.key": "'$(base64 "$rsa_keyfile" | tr -d '\n')'"
                 }
             }' \
@@ -114,8 +114,8 @@ data:
 
         echo "Updating ${KUBERNETES_NAMESPACE}/$cert_name..."
         cat \
-            $(find "$cert_path" -iname "fullchain*.pem" | sort -n | tail -1) \
-            $(find "$cert_path" -iname "privkey*.pem" | sort -n | tail -1) > $combined_file
+            $(find "$cert_path" -iname "fullchain*.pem" | sort -V | tail -1) \
+            $(find "$cert_path" -iname "privkey*.pem" | sort -V | tail -1) > $combined_file
 
         # Try to create the secret in case this is the first time the script
         #   is being run.
