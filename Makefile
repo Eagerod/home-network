@@ -6,7 +6,13 @@ ROUTER_HOST_USER:=ubnt@$(ROUTER_HOST)
 SERVICE_LB_IP = $$(kubectl get configmap network-ip-assignments -o template='{{index .data "$(1)"}}')
 
 HOPE = hope --config hope.yaml
+PACKER_IMAGES_DIR=/var/lib/packer/images
 
+VM_SSH_HOST_KEYS=\
+	/var/lib/packer/etc/ssh/ssh_host_dsa_key \
+	/var/lib/packer/etc/ssh/ssh_host_ecdsa_key \
+	/var/lib/packer/etc/ssh/ssh_host_ed25519_key \
+	/var/lib/packer/etc/ssh/ssh_host_rsa_key
 
 # List of environment variables in projects that shouldn't be treated as secret.
 SAVE_ENV_VARS=\
@@ -24,6 +30,14 @@ SAVE_ENV_VARS=\
 .PHONY: all
 all: initialize-cluster
 
+$(PACKER_IMAGES_DIR)/load-balancer/load-balancer.ovf: $(shell find vms/load-balancer -type f) $(VM_SSH_HOST_KEYS)
+	$(HOPE) vm image --force beast1 load-balancer
+
+$(PACKER_IMAGES_DIR)/kubernetes-node/kubernetes-node.ovf: $(shell find vms/kubernetes-node -type f) $(VM_SSH_HOST_KEYS)
+	$(HOPE) vm image --force beast1 kubernetes-node
+
+$(VM_SSH_HOST_KEYS):
+	ssh-keygen -A -f /var/lib/packer
 
 .PHONY: initialize-cluster
 initialize-cluster:
