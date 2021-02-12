@@ -30,6 +30,13 @@ SAVE_ENV_VARS=\
 .PHONY: all
 all: initialize-cluster
 
+
+.PHONY: load-balancer-image
+load-balancer-image: $(PACKER_IMAGES_DIR)/load-balancer/load-balancer.ovf
+
+.PHONY: kubernetes-node-image
+kubernetes-node-image: $(PACKER_IMAGES_DIR)/kubernetes-node/kubernetes-node.ovf
+
 $(PACKER_IMAGES_DIR)/load-balancer/load-balancer.ovf: $(shell find vms/load-balancer -type f) $(VM_SSH_HOST_KEYS)
 	$(HOPE) vm image --force beast1 load-balancer
 
@@ -38,6 +45,7 @@ $(PACKER_IMAGES_DIR)/kubernetes-node/kubernetes-node.ovf: $(shell find vms/kuber
 
 $(VM_SSH_HOST_KEYS):
 	ssh-keygen -A -f /var/lib/packer
+
 
 .PHONY: initialize-cluster
 initialize-cluster:
