@@ -16,9 +16,11 @@ spec:
       labels:
         app: bitwarden
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
         - name: bitwarden
-          image: bitwardenrs/server:1.13.1
+          image: registry.internal.aleemhaji.com/bitwardenrs/server:1.19.0
           ports:
             - containerPort: 80
           volumeMounts:
@@ -26,11 +28,17 @@ spec:
               mountPath: /data
           resources:
             requests:
-              memory: "128Mi"
+              memory: "256Mi"
               cpu: "200m"
             limits:
               memory: "256Mi"
               cpu: "200m"
+          env:
+            - name: ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: bitwarden-secrets
+                  key: admin_token
       volumes:
         - name: bitwarden-data
           nfs:

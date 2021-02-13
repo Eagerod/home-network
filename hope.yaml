@@ -533,6 +533,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/kubectl:1.16.15
     tags: [docker-cache, kubectl]
+  - name: bitwarden-image-cache
+    build:
+      source: bitwardenrs/server:1.19.0
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/bitwardenrs/server:1.19.0
+    tags: [docker-cache, bitwarden]
   # endregion
   # https://github.com/prometheus-operator/kube-prometheus#quickstart
   - name: prometheus
@@ -660,6 +666,17 @@ resources:
   - name: gitea
     file: gitea/gitea.yaml
     tags: [apps, gitea]
+  - name: bitwarden-config
+    inline: |
+      apiVersion: v1
+      data:
+        admin_token: ${BITWARDEN_ADMIN_TOKEN_BASE64}
+      kind: Secret
+      metadata:
+        name: bitwarden-secrets
+    parameters:
+      - BITWARDEN_ADMIN_TOKEN_BASE64
+    tags: [apps, bitwarden]
   - name: bitwarden
     file: bitwarden/bitwarden.yaml
     tags: [apps, bitwarden]
