@@ -38,16 +38,6 @@ vms:
         - VM_MANAGEMENT_PASSWORD
 load_balancer_host: api.internal.aleemhaji.com
 nodes:
-  # Old style; explicit hosts, no hypervisor
-  # - name: util1
-  #   role: master+node
-  #   host: 192.168.200.10
-  #   user: root
-  # - name: util2
-  #   role: node
-  #   host: 192.168.200.11
-  #   user: root
-  # New style; hosts on a hypervisor
   - name: beast1
     role: hypervisor
     host: 192.168.10.40
