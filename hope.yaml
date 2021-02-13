@@ -89,6 +89,10 @@ nodes:
     role: node
     hypervisor: beast1
     user: packer
+  - name: home-master-temp
+    role: master
+    hypervisor: beast1
+    user: packer
 loglevel: *log_level
 pod_network_cidr: 10.244.0.0/16
 resources:
