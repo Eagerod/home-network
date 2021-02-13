@@ -27,8 +27,90 @@ SAVE_ENV_VARS=\
 	OPENVPN_AS_HOSTNAME
 
 
-.PHONY: all
-all: initialize-cluster
+.PHONY: default
+default:
+	@#Do nothing
+
+
+.PHONY: ops/load-balancer/create
+ops/load-balancer/create: load-balancer-image
+	if ! $(HOPE) vm list beast1 | grep -q $@; then \
+		$(HOPE) vm create beast1 load-balancer -n $@ --memory 256 --cpu 2; \
+	fi
+
+	$(HOPE) vm start beast1 $@
+	$(HOPE) vm ip beast1 $@
+	sshpass -p "$$VM_MANAGEMENT_PASSWORD" $(HOPE) node ssh $@
+	$(HOPE) node hostname $@ api
+	$(HOPE) node init --force $@
+
+
+# Cycles all nodes in the cluster.
+.PHONY: ops/cluster/cycle
+ops/cluster/cycle:
+	$(MAKE) ops/master/home-master-temp/create
+	for i in "01" "02" "03"; do \
+		$(MAKE) ops/master/home-master-$$i/cycle
+	done
+	$(MAKE) ops/master/home-master-temp/delete
+
+	$(MAKE) ops/node/home-node-temp/create
+	for i in "01" "02" "03" "04" "05" "06"; do \
+		$(MAKE) ops/node/home-node-$$i/cycle
+	done
+	$(MAKE) ops/node/home-node-temp/delete
+
+
+.PHONY: ops/master/%/cycle
+ops/master/%/cycle:
+	$(MAKE) ops/master/$*/delete
+	$(MAKE) ops/master/$*/create
+
+
+.PHONY: ops/master/%/create
+ops/master/%/create: kubernetes-node-image
+	if ! $(HOPE) vm list beast1 | grep -q $*; then \
+		$(HOPE) vm create beast1 kubernetes-node -n $* --memory 2048 --cpu 2; \
+	fi
+
+	$(HOPE) vm start beast1 $*
+	$(HOPE) vm ip beast1 $*
+	sshpass -p "$$VM_MANAGEMENT_PASSWORD" $(HOPE) node ssh $*
+	$(HOPE) node hostname $* $*
+	$(HOPE) node init --force $*
+
+
+.PHONY: ops/master/%/delete
+ops/master/%/delete:
+	$(HOPE) node reset --force --delete-local-data $*
+	$(HOPE) vm stop beast1 $*
+	$(HOPE) vm delete beast1 $*
+
+
+.PHONY: ops/node/%/cycle
+ops/node/%/cycle:
+	$(MAKE) ops/node/$*/delete
+	$(MAKE) ops/node/$*/create
+
+
+.PHONY: ops/node/%/create
+ops/node/%/create: kubernetes-node-image
+	if ! $(HOPE) vm list beast1 | grep -q $*; then \
+		$(HOPE) vm create beast1 kubernetes-node -n $* --memory 8192 --cpu 2; \
+	fi
+
+	$(HOPE) vm start beast1 $*
+	$(HOPE) vm ip beast1 $*
+	sshpass -p "$$VM_MANAGEMENT_PASSWORD" $(HOPE) node ssh $*
+	$(HOPE) node hostname $* $*
+	$(HOPE) node init --force $*
+
+
+.PHONY: ops/node/%/delete
+ops/node/%/delete:
+	$(HOPE) node reset --force --delete-local-data $*
+	$(HOPE) vm stop beast1 $*
+	$(HOPE) vm delete beast1 $*
 
 
 .PHONY: load-balancer-image
@@ -45,25 +127,6 @@ $(PACKER_IMAGES_DIR)/kubernetes-node/kubernetes-node.ovf: $(shell find vms/kuber
 
 $(VM_SSH_HOST_KEYS):
 	ssh-keygen -A -f /var/lib/packer
-
-
-.PHONY: initialize-cluster
-initialize-cluster:
-	$(HOPE) deploy
-
-
-# Shutdown any service.
-.PHONY: kill-%
-kill-%:
-	@kubectl scale deployment $*-deployment --replicas=0
-
-
-# Restart any service.
-# Currently makes the assumption that 1 replica is needed; could be upgraded to
-#   check current scale.
-.PHONY: restart-%
-restart-%: kill-%
-	@kubectl scale deployment $*-deployment --replicas=1
 
 
 .INTERMEDIATE: dns.vbash
