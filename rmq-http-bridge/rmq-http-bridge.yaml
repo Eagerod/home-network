@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rmq-http-bridge-server-deployment
+  labels:
+    app: rmq-http-bridge
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rmq-http-bridge-server
+  template:
+    metadata:
+      labels:
+        app: rmq-http-bridge-server
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: rmq-http-bridge-server
+          image: registry.internal.aleemhaji.com/rmq-http-bridge:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "100Mi"
+              cpu: "100m"
+            limits:
+              memory: "100Mi"
+              cpu: "100m"
+          env:
+            - name: RABBITMQ_CONNECTION_STRING
+              value: amqp://rabbitmq.internal.aleemhaji.com/
+          args:
+            - server
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rmq-http-bridge-worker-deployment
+  labels:
+    app: rmq-http-bridge
+spec:
+  revisionHistoryLimit: 0
+  replicas: 4
+  selector:
+    matchLabels:
+      app: rmq-http-bridge-worker
+  template:
+    metadata:
+      labels:
+        app: rmq-http-bridge-worker
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: rmq-http-bridge-worker
+          image: registry.internal.aleemhaji.com/rmq-http-bridge:latest
+          env:
+            - name: RABBITMQ_CONNECTION_STRING
+              value: amqp://rabbitmq.internal.aleemhaji.com/
+          args:
+            - worker
+            - --queue
+            - tasks
+          resources:
+            requests:
+              memory: "100Mi"
+              cpu: "100m"
+            limits:
+              memory: "100Mi"
+              cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rmq-http-bridge
+  labels:
+    app: rmq-http-bridge
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: rmq-http-bridge-server
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: rmq-http-bridge-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - tasks.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: tasks.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: rmq-http-bridge
+              servicePort: 8080

@@ -816,6 +816,9 @@ resources:
       - WIREGUARD_PEER_1_PUBLIC_KEY
       - WIREGUARD_PEER_1_IP=172.27.224.32/32
     tags: [apps, wireguard]
+  - name: rmq-http-bridge
+    file: rmq-http-bridge/rmq-http-bridge.yaml
+    tags: [apps, rmq]
   # endregion
   # region: Databases
   # This section contains definitions for databases.
