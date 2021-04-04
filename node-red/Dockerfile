@@ -1,6 +1,6 @@
 FROM node:10
 
-ENV NODE_RED_VERSION 0.20.5
+ENV NODE_RED_VERSION 1.2.9
 
 RUN npm install -g --unsafe-perm node-red@$NODE_RED_VERSION
 
