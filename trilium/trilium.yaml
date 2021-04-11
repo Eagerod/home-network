@@ -19,12 +19,12 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: trilium
-          image: registry.internal.aleemhaji.com/trilium:0.37.8
+          image: registry.internal.aleemhaji.com/trilium:0.46.7
           ports:
             - containerPort: 8080
           volumeMounts:
             - name: trilium-persistent-storage
-              mountPath: /root/trilium-data
+              mountPath: /home/node/trilium-data
       volumes:
         - name: trilium-persistent-storage
           nfs:

@@ -493,9 +493,9 @@ resources:
     tags: [docker-cache, openvpn]
   - name: trilium-image-cache
     build:
-      source: zadam/trilium:0.37.8
+      source: zadam/trilium:0.46.7
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/trilium:0.37.8
+      tag: registry.internal.aleemhaji.com/trilium:0.46.7
     tags: [docker-cache, trilium]
   - name: plex-image-cache
     build:
