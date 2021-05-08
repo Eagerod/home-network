@@ -20,7 +20,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: plex
-          image: registry.internal.aleemhaji.com/pms-docker:1.21.1.3876-3c3adfcb4
+          image: registry.internal.aleemhaji.com/pms-docker:1.22.3.4392-d7c624def
           ports:
             - containerPort: 32400
           env:

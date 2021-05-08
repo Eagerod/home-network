@@ -244,7 +244,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: certbot-copy-to-${KUBERNETES_NAMESPACE}
-              image: registry.internal.aleemhaji.com/certbot:v1.10.1
+              image: registry.internal.aleemhaji.com/certbot:v1.15.0
               command:
                 - sh
                 - /scripts/update-secrets.sh

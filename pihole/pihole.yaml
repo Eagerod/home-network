@@ -89,7 +89,7 @@ spec:
       #   however I want without needing to restart the pod.
       initContainers:
         - name: pihole-config
-          image: registry.internal.aleemhaji.com/busybox:1.33.0
+          image: registry.internal.aleemhaji.com/busybox:1.33.1
           volumeMounts:
             - name: pihole-static-config
               mountPath: pihole-static-config

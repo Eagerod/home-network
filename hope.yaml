@@ -419,9 +419,9 @@ resources:
     tags: [docker-cache, crons, factorio, resilio-sync, transmission]
   - name: certbot-image-cache
     build:
-      source: certbot/certbot:v1.10.1
+      source: certbot/certbot:v1.15.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/certbot:v1.10.1
+      tag: registry.internal.aleemhaji.com/certbot:v1.15.0
     tags: [docker-cache, certbot]
   - name: mongo-37-image-cache
     build:
@@ -437,9 +437,9 @@ resources:
     tags: [docker-cache, mongodb, unifi]
   - name: busybox-image-cache
     build:
-      source: busybox:1.33.0
+      source: busybox:1.33.1
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/busybox:1.33.0
+      tag: registry.internal.aleemhaji.com/busybox:1.33.1
     tags: [docker-cache, mysql, redis, pihole]
   - name: mysql-5726-image-cache
     build:
@@ -487,9 +487,9 @@ resources:
     tags: [docker-cache, heimdall]
   - name: openvpnas-image-cache
     build:
-      source: linuxserver/openvpn-as:2.8.7-c7d6c210-Ubuntu18-ls100
+      source: linuxserver/openvpn-as:2.8.8-cbf850a0-Ubuntu18-ls118
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/openvpn-as:2.8.7-c7d6c210-Ubuntu18-ls100
+      tag: registry.internal.aleemhaji.com/openvpn-as:2.8.8-cbf850a0-Ubuntu18-ls118
     tags: [docker-cache, openvpn]
   - name: trilium-image-cache
     build:
@@ -499,9 +499,9 @@ resources:
     tags: [docker-cache, trilium]
   - name: plex-image-cache
     build:
-      source: plexinc/pms-docker:1.21.1.3876-3c3adfcb4
+      source: plexinc/pms-docker:1.22.3.4392-d7c624def
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pms-docker:1.21.1.3876-3c3adfcb4
+      tag: registry.internal.aleemhaji.com/pms-docker:1.22.3.4392-d7c624def
     tags: [docker-cache, plex]
   - name: redis-image-cache
     build:
