@@ -82,9 +82,13 @@ ops/master/%/create: kubernetes-node-image
 
 .PHONY: ops/master/%/delete
 ops/master/%/delete:
-	$(HOPE) node reset --force --delete-local-data $*
-	$(HOPE) vm stop beast1 $*
-	$(HOPE) vm delete beast1 $*
+	if $(HOPE) kubectl get node $* 2> /dev/null; then \
+		$(HOPE) node reset --force --delete-local-data $*; \
+	fi
+	if $(HOPE) vm list beast1 | grep $*; then \
+		$(HOPE) vm stop beast1 $*; \
+		$(HOPE) vm delete beast1 $*; \
+	fi
 
 
 .PHONY: ops/node/%/cycle
@@ -108,9 +112,13 @@ ops/node/%/create: kubernetes-node-image
 
 .PHONY: ops/node/%/delete
 ops/node/%/delete:
-	$(HOPE) node reset --force --delete-local-data $*
-	$(HOPE) vm stop beast1 $*
-	$(HOPE) vm delete beast1 $*
+	if $(HOPE) kubectl get node $* 2> /dev/null; then \
+		$(HOPE) node reset --force --delete-local-data $*; \
+	fi
+	if $(HOPE) vm list beast1 | grep $*; then \
+		$(HOPE) vm stop beast1 $*; \
+		$(HOPE) vm delete beast1 $*; \
+	fi
 
 
 .PHONY: load-balancer-image
