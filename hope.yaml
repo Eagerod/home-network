@@ -535,9 +535,9 @@ resources:
     tags: [docker-cache, kubectl]
   - name: bitwarden-image-cache
     build:
-      source: bitwardenrs/server:1.19.0
+      source: vaultwarden/server:1.21.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/bitwardenrs/server:1.19.0
+      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.21.0
     tags: [docker-cache, bitwarden]
   - name: diun-image-cache
     build:
