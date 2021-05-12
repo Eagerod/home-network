@@ -13,7 +13,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: devbox
-          image: registry.internal.aleemhaji.com/kubectl:1.16.15
+          image: registry.internal.aleemhaji.com/kubectl:1.21.0
           command: 
             - /bin/sh
             - -ce

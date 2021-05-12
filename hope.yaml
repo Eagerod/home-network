@@ -529,9 +529,9 @@ resources:
     tags: [docker-cache, gitea]
   - name: kubectl-image-cache
     build:
-      source: bitnami/kubectl:1.16.15
+      source: bitnami/kubectl:1.21.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/kubectl:1.16.15
+      tag: registry.internal.aleemhaji.com/kubectl:1.21.0
     tags: [docker-cache, kubectl]
   - name: bitwarden-image-cache
     build:
