@@ -20,7 +20,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: bitwarden
-          image: registry.internal.aleemhaji.com/bitwardenrs/server:1.19.0
+          image: registry.internal.aleemhaji.com/vaultwarden/server:1.21.0
           ports:
             - containerPort: 80
           volumeMounts:

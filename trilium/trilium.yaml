@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: trilium
-          image: registry.internal.aleemhaji.com/trilium:0.46.7
+          image: registry.internal.aleemhaji.com/trilium:0.47.2
           ports:
             - containerPort: 8080
           volumeMounts:

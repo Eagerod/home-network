@@ -493,9 +493,9 @@ resources:
     tags: [docker-cache, openvpn]
   - name: trilium-image-cache
     build:
-      source: zadam/trilium:0.46.7
+      source: zadam/trilium:0.47.2
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/trilium:0.46.7
+      tag: registry.internal.aleemhaji.com/trilium:0.47.2
     tags: [docker-cache, trilium]
   - name: plex-image-cache
     build:
@@ -523,21 +523,21 @@ resources:
     tags: [docker-cache, guacamole]
   - name: gitea-image-cache
     build:
-      source: gitea/gitea:1.9.1
+      source: gitea/gitea:1.14.2
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/gitea:1.9.1
+      tag: registry.internal.aleemhaji.com/gitea:1.14.2
     tags: [docker-cache, gitea]
   - name: kubectl-image-cache
     build:
-      source: bitnami/kubectl:1.16.15
+      source: bitnami/kubectl:1.21.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/kubectl:1.16.15
+      tag: registry.internal.aleemhaji.com/kubectl:1.21.0
     tags: [docker-cache, kubectl]
   - name: bitwarden-image-cache
     build:
-      source: bitwardenrs/server:1.19.0
+      source: vaultwarden/server:1.21.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/bitwardenrs/server:1.19.0
+      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.21.0
     tags: [docker-cache, bitwarden]
   - name: diun-image-cache
     build:
