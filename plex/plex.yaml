@@ -66,10 +66,6 @@ spec:
             iqn: iqn.2019-05.com.aleemhaji.internal.ctl:plex
             lun: 14
             fsType: ext4
-        - name: plex-transcode-storage
-          nfs:
-            server: 192.168.96.4
-            path: /mnt/dump/transcode
 ---
 apiVersion: v1
 kind: Service
