@@ -1135,6 +1135,18 @@ resources:
       - DESTINATION_NFS_SHARE=/mnt/main/backup
       - DEST_PATH=/gitea
     tags: [gitea, backups]
+  - name: bitwarden-backups
+    file: crons/rsync-cron.yaml
+    parameters:
+      - CRONJOB_NAME=bitwarden
+      - RSYNC_OPTIONS=-avhuDH --delete --exclude=.sync
+      - SOURCE_NFS_SERVER=192.168.96.4
+      - SOURCE_NFS_SHARE=/mnt/main/apps/bitwarden
+      - SOURCE_PATH=/
+      - DESTINATION_NFS_SERVER=192.168.96.4
+      - DESTINATION_NFS_SHARE=/mnt/main/backup/apps
+      - DEST_PATH=/bitwarden
+    tags: [bitwarden, backups]
   # endregion
 jobs:
   - name: mysql-restore
