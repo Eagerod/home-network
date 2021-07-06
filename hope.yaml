@@ -1053,6 +1053,22 @@ resources:
   - name: diun
     file: diun/diun.yaml
     tags: [apps, diun]
+  - name: tiddlywiki-secrets
+    inline: |
+      apiVersion: v1
+      data:
+        username: ${TIDDLYWIKI_USERNAME_BASE64}
+        password: ${TIDDLYWIKI_PASSWORD_BASE64}
+      kind: Secret
+      metadata:
+        name: tiddlywiki-secrets
+    parameters:
+      - TIDDLYWIKI_USERNAME_BASE64
+      - TIDDLYWIKI_PASSWORD_BASE64
+    tags: [apps, tiddlywiki]
+  - name: tiddlywiki
+    file: tiddlywiki/tiddlywiki.yaml
+    tags: [apps, tiddlywiki]
   # endregion
   - name: certbot-update-kubernetes-dashboard
     file: certbot/certbot-generic-cron.yaml
@@ -1147,6 +1163,18 @@ resources:
       - DESTINATION_NFS_SHARE=/mnt/main/backup/apps
       - DEST_PATH=/bitwarden
     tags: [bitwarden, backups]
+  - name: tiddlywiki-backups
+    file: crons/rsync-cron.yaml
+    parameters:
+      - CRONJOB_NAME=tiddlywiki
+      - RSYNC_OPTIONS=-avhuDH --delete --exclude=.sync --exclude=log
+      - SOURCE_NFS_SERVER=192.168.96.4
+      - SOURCE_NFS_SHARE=/mnt/main/apps/tiddlywiki
+      - SOURCE_PATH=/
+      - DESTINATION_NFS_SERVER=192.168.96.4
+      - DESTINATION_NFS_SHARE=/mnt/main/backup/apps
+      - DEST_PATH=/tiddlywiki
+    tags: [tiddlywiki, backups]
   # endregion
 jobs:
   - name: mysql-restore

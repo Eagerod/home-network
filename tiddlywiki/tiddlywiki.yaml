@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tiddlywiki-deployment
+  labels:
+    app: tiddlywiki
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tiddlywiki
+  template:
+    metadata:
+      labels:
+        app: tiddlywiki
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: tiddlywiki
+          image: registry.internal.aleemhaji.com/tiddlywiki:5.1.23
+          command:
+            - sh
+            - -ec
+            - |
+              ./tiddlywiki.js /mnt/wiki --listen host=0.0.0.0 username="${TIDDYWIKI_USERNAME}" password="${TIDDYWIKI_PASSWORD}" root-tiddler=$:/core/save/lazy-all
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "200m"
+            limits:
+              memory: "1024Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TIDDYWIKI_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: tiddlywiki-secrets
+                  key: username
+            - name: TIDDYWIKI_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tiddlywiki-secrets
+                  key: password
+          volumeMounts:
+            - name: tiddlywiki-persistent-storage
+              mountPath: /mnt/wiki
+      volumes:
+        - name: tiddlywiki-persistent-storage
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/tiddlywiki
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tiddlywiki
+  labels:
+    app: tiddlywiki
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: tiddlywiki
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: tiddlywiki-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://wiki.internal.aleemhaji.com
+spec:
+  rules:
+    - host: wiki
+    - host: wiki.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: tiddlywiki-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+spec:
+  tls:
+    - hosts:
+        - wiki.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: wiki.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: tiddlywiki
+              servicePort: 8080
