@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: syncthing-deployment
+  labels:
+    app: syncthing
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: syncthing
+  template:
+    metadata:
+      labels:
+        app: syncthing
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: syncthing
+          image: registry.internal.aleemhaji.com/syncthing:1.17.0
+          ports:
+            - containerPort: 8384
+          env:
+            - name: STNODEFAULTFOLDER
+              value: "true"
+          volumeMounts:
+            - name: backups-persistent-storage
+              mountPath: /mnt/folders
+            - name: syncthing-persistent-storage
+              mountPath: /var/syncthing
+      volumes:
+        - name: backups-persistent-storage
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/backup
+        - name: syncthing-persistent-storage
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/syncthing
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: syncthing
+  labels:
+    app: syncthing
+spec:
+  ports:
+    - port: 8384
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: syncthing
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: syncthing-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://syncthing.internal.aleemhaji.com
+spec:
+  rules:
+    - host: syncthing
+    - host: syncthing.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: syncthing-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+spec:
+  tls:
+    - hosts:
+        - syncthing.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: syncthing.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: syncthing
+              servicePort: 8384

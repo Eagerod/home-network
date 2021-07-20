@@ -416,7 +416,7 @@ resources:
       source: ubuntu:16.04
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/ubuntu:16.04
-    tags: [docker-cache, crons, factorio, resilio-sync, transmission]
+    tags: [docker-cache, crons, factorio, transmission]
   - name: certbot-image-cache
     build:
       source: certbot/certbot:v1.15.0
@@ -539,6 +539,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/vaultwarden/server:1.21.0
     tags: [docker-cache, bitwarden]
+  - name: syncthing-image-cache
+    build:
+      source: syncthing/syncthing:1.17.0
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/syncthing:1.17.0
+    tags: [docker-cache, syncthing]
   - name: diun-image-cache
     build:
       source: crazymax/diun:4.16.1
@@ -627,34 +633,6 @@ resources:
   - name: trilium
     file: trilium/trilium.yaml
     tags: [apps, trilium]
-  - name: resilio-sync-config
-    inline: |
-      apiVersion: v1
-      data:
-        username: ${RESILIO_SERVER_USERNAME}
-      kind: ConfigMap
-      metadata:
-        name: resilio-sync-config
-      ---
-      apiVersion: v1
-      data:
-        password: ${RESILIO_SERVER_PASSWORD_BASE64}
-      kind: Secret
-      metadata:
-        name: resilio-sync-secrets
-    parameters:
-      - RESILIO_SERVER_USERNAME
-      - RESILIO_SERVER_PASSWORD_BASE64
-    tags: [apps, resilio-sync]
-  - name: resilio-sync-image
-    build:
-      path: resilio-sync
-      pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/resilio:latest
-    tags: [apps, resilio-sync]
-  - name: resilio-sync
-    file: resilio-sync/resilio-sync.yaml
-    tags: [apps, resilio-sync]
   - name: tedbot-config
     inline: |
       apiVersion: v1
@@ -1039,6 +1017,9 @@ resources:
   - name: webcomics
     file: webcomics/webcomics.yaml
     tags: [apps, webcomics]
+  - name: syncthing
+    file: syncthing/syncthing.yaml
+    tags: [apps, syncthing]
   - name: diun-config
     inline: |
       apiVersion: v1
@@ -1095,7 +1076,7 @@ resources:
   # This block contains all the scheduled jobs that run rsync against the
   #   various directories things are written to.
   # The primary objective tends to be creating copies in a consolidated place
-  #   where a resilio-sync shared folder can back up the contents to a remote
+  #   where a syncthing shared folder can back up the contents to a remote
   #   device.
   - name: rsync-image
     build:
