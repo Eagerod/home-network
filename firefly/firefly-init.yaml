@@ -47,7 +47,7 @@ spec:
                   key: mysql_password
       containers:
         - name: firefly-app-init
-          image: registry.internal.aleemhaji.com/firefly-iii:release-4.8.2
+          image: registry.internal.aleemhaji.com/firefly-iii:5.5.13
           command:
             - sh
             - -c

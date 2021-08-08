@@ -475,9 +475,9 @@ resources:
   #   local registry, and then re-tagged with the original tag for now.
   - name: firefly-image-cache
     build:
-      source: jc5x/firefly-iii:release-4.8.2
+      source: fireflyiii/core:version-5.5.13
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/firefly-iii:release-4.8.2
+      tag: registry.internal.aleemhaji.com/firefly-iii:5.5.13
     tags: [docker-cache, firefly]
   - name: heimdall-image-cache
     build:

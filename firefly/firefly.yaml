@@ -19,9 +19,9 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: firefly-iii
-          image: registry.internal.aleemhaji.com/firefly-iii:release-4.8.2
+          image: registry.internal.aleemhaji.com/firefly-iii:5.5.13
           ports:
-            - containerPort: 80
+            - containerPort: 8080
           env:
             - name: TRUSTED_PROXIES
               value: '**'
@@ -72,7 +72,7 @@ metadata:
     app: firefly
 spec:
   ports:
-    - port: 80
+    - port: 8080
       protocol: TCP
   type: NodePort
   selector:
@@ -112,4 +112,4 @@ spec:
           - path: /
             backend:
               serviceName: firefly
-              servicePort: 80
+              servicePort: 8080
