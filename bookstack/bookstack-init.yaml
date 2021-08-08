@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bookstack-mysql-init
+  labels:
+    job: bookstack-mysql-init
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: bookstack-mysql-init
+          image: registry.internal.aleemhaji.com/mysql:5.7.26
+          command:
+            - sh
+            - -cx
+            - |
+              mysql -h ${MYSQL_HOST} -u root -e " \
+                CREATE USER IF NOT EXISTS ${BOOKSTACK_DB_USER}@'10.244.%.%'; \
+                SET PASSWORD FOR ${BOOKSTACK_DB_USER}@'10.244.%.%' = PASSWORD('${BOOKSTACK_DB_PASSWORD}'); \
+                CREATE DATABASE IF NOT EXISTS ${BOOKSTACK_DB_NAME}; \
+                GRANT ALL ON ${BOOKSTACK_DB_NAME}.* TO ${BOOKSTACK_DB_USER}@'10.244.%.%';"
+          env:
+            - name: MYSQL_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secrets
+                  key: root_password
+            - name: MYSQL_HOST
+              value: mysql
+            - name: BOOKSTACK_DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: bookstack-config
+                  key: mysql_user
+            - name: BOOKSTACK_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: bookstack-config
+                  key: mysql_database
+            - name: BOOKSTACK_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: bookstack-secrets
+                  key: mysql_password

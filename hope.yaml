@@ -491,12 +491,6 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/openvpn-as:2.8.8-cbf850a0-Ubuntu18-ls118
     tags: [docker-cache, openvpn]
-  - name: trilium-image-cache
-    build:
-      source: zadam/trilium:0.47.2
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/trilium:0.47.2
-    tags: [docker-cache, trilium]
   - name: plex-image-cache
     build:
       source: plexinc/pms-docker:1.22.3.4392-d7c624def
@@ -551,6 +545,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/diun:4.16.1
     tags: [docker-cache, diun]
+  - name: bookstack-image-cache
+    build:
+      source: ghcr.io/linuxserver/bookstack:version-v21.05.2
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/bookstack:version-v21.05.2
+    tags: [docker-cache, bookstack]
   # endregion
   # https://github.com/prometheus-operator/kube-prometheus#quickstart
   - name: prometheus
@@ -630,9 +630,6 @@ resources:
   - name: heimdall
     file: heimdall/heimdall.yaml
     tags: [apps, heimdall]
-  - name: trilium
-    file: trilium/trilium.yaml
-    tags: [apps, trilium]
   - name: tedbot-config
     inline: |
       apiVersion: v1
@@ -1034,6 +1031,36 @@ resources:
   - name: diun
     file: diun/diun.yaml
     tags: [apps, diun]
+  - name: bookstack-config
+    inline: |
+      apiVersion: v1
+      data:
+        mysql_user: ${BOOKSTACK_MYSQL_USER}
+        mysql_database: ${BOOKSTACK_MYSQL_DATABASE}
+      kind: ConfigMap
+      metadata:
+        name: bookstack-config
+      ---
+      apiVersion: v1
+      data:
+        mysql_password: ${BOOKSTACK_MYSQL_PASSWORD_BASE64}
+      kind: Secret
+      metadata:
+        name: bookstack-secrets
+    parameters:
+      - BOOKSTACK_MYSQL_USER
+      - BOOKSTACK_MYSQL_DATABASE
+      - BOOKSTACK_MYSQL_PASSWORD_BASE64
+    tags: [apps, bookstack]
+  - name: bookstack-init-job-create
+    file: bookstack/bookstack-init.yaml
+    tags: [apps, bookstack]
+  - name: bookstack-init-job
+    job: bookstack-mysql-init
+    tags: [apps, bookstack]
+  - name: bookstack
+    file: bookstack/bookstack.yaml
+    tags: [apps, bookstack]
   # endregion
   - name: certbot-update-kubernetes-dashboard
     file: certbot/certbot-generic-cron.yaml
@@ -1080,18 +1107,18 @@ resources:
       - DESTINATION_NFS_SHARE=/mnt/main/backup
       - DEST_PATH=/game-saves/factorio/saves
     tags: [factorio, backups]
-  - name: trilium-backups
+  - name: bookstack-backups
     file: crons/rsync-cron.yaml
     parameters:
-      - CRONJOB_NAME=trilium
+      - CRONJOB_NAME=bookstack
       - RSYNC_OPTIONS=-avhuDH --delete --exclude=.sync --exclude=log
       - SOURCE_NFS_SERVER=192.168.96.4
-      - SOURCE_NFS_SHARE=/mnt/main/apps/trilium
+      - SOURCE_NFS_SHARE=/mnt/main/apps/bookstack
       - SOURCE_PATH=/
       - DESTINATION_NFS_SERVER=192.168.96.4
-      - DESTINATION_NFS_SHARE=/mnt/main/backup
-      - DEST_PATH=/trilium/
-    tags: [trilium, backups]
+      - DESTINATION_NFS_SHARE=/mnt/main/backup/apps
+      - DEST_PATH=/bookstack
+    tags: [bookstack, backups]
   - name: node-red-backups
     file: crons/rsync-cron.yaml
     parameters:
