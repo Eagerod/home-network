@@ -1067,6 +1067,23 @@ resources:
   - name: drone-init-job
     job: drone-postgres-init
     tags: [apps, drone]
+  - name: drone-config
+    inline: |
+      apiVersion: v1
+      data:
+        connection_string: ${DRONE_CONNECTION_STRING_BASE64}
+        rpc_secret: ${DRONE_RPC_SECRET_BASE64}
+        gitea_client_id: ${DRONE_GITEA_CLIENT_ID_BASE64}
+        gitea_client_secret: ${DRONE_GITEA_CLIENT_SECRET_BASE64}
+      kind: Secret
+      metadata:
+        name: drone-secrets
+    parameters:
+      - DRONE_CONNECTION_STRING_BASE64
+      - DRONE_RPC_SECRET_BASE64
+      - DRONE_GITEA_CLIENT_ID_BASE64
+      - DRONE_GITEA_CLIENT_SECRET_BASE64
+    tags: [apps, drone]
   # endregion
   - name: certbot-update-kubernetes-dashboard
     file: certbot/certbot-generic-cron.yaml
