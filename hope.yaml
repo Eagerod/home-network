@@ -1061,6 +1061,12 @@ resources:
   - name: bookstack
     file: bookstack/bookstack.yaml
     tags: [apps, bookstack]
+  - name: drone-init
+    file: drone/drone-init.yaml
+    tags: [apps, drone]
+  - name: drone-init-job
+    job: drone-postgres-init
+    tags: [apps, drone]
   # endregion
   - name: certbot-update-kubernetes-dashboard
     file: certbot/certbot-generic-cron.yaml
