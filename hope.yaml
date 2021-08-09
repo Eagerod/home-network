@@ -551,6 +551,18 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/bookstack:version-v21.05.2
     tags: [docker-cache, bookstack]
+  - name: drone-image-cache
+    build:
+      source: drone/drone:2.0.4
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/drone/drone:2.0.4
+    tags: [docker-cache, drone]
+  - name: drone-agent-image-cache
+    build:
+      source: drone/drone-runner-docker:1.6.3
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/drone/drone-runner-docker:1.6.3
+    tags: [docker-cache, drone]
   # endregion
   # https://github.com/prometheus-operator/kube-prometheus#quickstart
   - name: prometheus
@@ -1083,6 +1095,9 @@ resources:
       - DRONE_RPC_SECRET_BASE64
       - DRONE_GITEA_CLIENT_ID_BASE64
       - DRONE_GITEA_CLIENT_SECRET_BASE64
+    tags: [apps, drone]
+  - name: drone
+    file: drone/drone.yaml
     tags: [apps, drone]
   # endregion
   - name: certbot-update-kubernetes-dashboard

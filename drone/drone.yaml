@@ -1,0 +1,146 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drone-deployment
+  labels:
+    app: drone
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: drone
+  template:
+    metadata:
+      labels:
+        app: drone
+    spec:
+      imagePullSecrets: 
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: drone
+          image: registry.internal.aleemhaji.com/drone/drone:2.0.4
+          env:
+            - name: DRONE_USER_CREATE
+              value: username:aleem,admin:true
+            - name: DRONE_GITEA_SERVER
+              value: https://gitea.internal.aleemhaji.com
+            - name: DRONE_GITEA_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: drone-secrets
+                  key: gitea_client_id
+            - name: DRONE_GITEA_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: drone-secrets
+                  key: gitea_client_secret
+            - name: DRONE_SERVER_HOST
+              value: drone.internal.aleemhaji.com
+            - name: DRONE_SERVER_PROTO
+              value: https
+            - name: DRONE_DATABASE_DRIVER
+              value: postgres
+            - name: DRONE_DATABASE_DATASOURCE
+              valueFrom:
+                secretKeyRef:
+                  name: drone-secrets
+                  key: connection_string
+            - name: DRONE_RPC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: drone-secrets
+                  key: rpc_secret
+          ports:
+            - containerPort: 80
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: drone-agent
+  labels:
+    app: drone-agent
+spec:
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: drone-agent
+  template:
+    metadata:
+      labels:
+        app: drone-agent
+    spec:
+      imagePullSecrets: 
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: drone-agent
+          image: registry.internal.aleemhaji.com/drone/drone-runner-docker:1.6.3
+          env:
+            - name: DRONE_RPC_HOST
+              value: drone.internal.aleemhaji.com
+            - name: DRONE_RPC_PROTO
+              value: https
+            - name: DRONE_RUNNER_CAPACITY
+              value: "2"
+            - name: DRONE_RUNNER_MAX_PROCS
+              value: "4"
+            - name: DRONE_RPC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: drone-secrets
+                  key: rpc_secret
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+      volumes:
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: drone
+  labels:
+    app: drone
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: drone
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: drone-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://drone.internal.aleemhaji.com
+spec:
+  rules:
+    - host: drone
+    - host: drone.home
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: drone-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - drone.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: drone.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: drone
+              servicePort: 80
