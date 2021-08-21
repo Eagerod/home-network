@@ -1,19 +1,64 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: drone
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: drone
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - create
+  - delete
+  - list
+  - watch
+  - update
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: drone
+subjects:
+- kind: ServiceAccount
+  name: drone
+roleRef:
+  kind: Role
+  name: drone
+  apiGroup: rbac.authorization.k8s.io
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: drone-deployment
   labels:
     app: drone
+    module: web
 spec:
   revisionHistoryLimit: 0
   replicas: 1
   selector:
     matchLabels:
       app: drone
+      module: web
   template:
     metadata:
       labels:
         app: drone
+        module: web
     spec:
       imagePullSecrets: 
         - name: registry.internal.aleemhaji.com
@@ -55,49 +100,41 @@ spec:
             - containerPort: 80
 ---
 apiVersion: apps/v1
-kind: DaemonSet
+kind: Deployment
 metadata:
-  name: drone-agent
+  name: drone-runner-deployment
   labels:
-    app: drone-agent
+    app: drone
+    module: runner
 spec:
   revisionHistoryLimit: 0
+  replicas: 1
   selector:
     matchLabels:
-      app: drone-agent
+      app: drone
+      module: runner
   template:
     metadata:
       labels:
-        app: drone-agent
+        app: drone
+        module: runner
     spec:
+      serviceAccountName: drone
       imagePullSecrets: 
         - name: registry.internal.aleemhaji.com
       containers:
-        - name: drone-agent
-          image: registry.internal.aleemhaji.com/drone/drone-runner-docker:1.6.3
+        - name: drone
+          image: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-beta.8
           env:
             - name: DRONE_RPC_HOST
               value: drone.internal.aleemhaji.com
             - name: DRONE_RPC_PROTO
               value: https
-            - name: DRONE_RUNNER_CAPACITY
-              value: "2"
-            - name: DRONE_RUNNER_MAX_PROCS
-              value: "4"
             - name: DRONE_RPC_SECRET
               valueFrom:
                 secretKeyRef:
                   name: drone-secrets
                   key: rpc_secret
-          ports:
-            - containerPort: 3000
-          volumeMounts:
-            - name: docker-sock
-              mountPath: /var/run/docker.sock
-      volumes:
-        - name: docker-sock
-          hostPath:
-            path: /var/run/docker.sock
 ---
 apiVersion: v1
 kind: Service
@@ -105,6 +142,7 @@ metadata:
   name: drone
   labels:
     app: drone
+    module: web
 spec:
   ports:
     - port: 80
@@ -112,6 +150,7 @@ spec:
   type: NodePort
   selector:
     app: drone
+    module: web
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
