@@ -45,9 +45,7 @@ RUN apt-get update && \
 RUN \
     curl -fsSL https://www.fontdload.com/fp02 -o calibri.zip && \
     unzip calibri.zip -d Calibri && \
-    find Calibri -type f -iname "*.zip" -exec unzip "{}" -d /usr/local/share/fonts/ \; && \
-    mktexlsr && \
-    luaotfload-tool -u
+    find Calibri -type f -iname "*.zip" -exec unzip "{}" -d /usr/local/share/fonts/ \;
 
 # RUN tlmgr option repository ftp://tug.org/historic/systems/texlive/2018/tlnet-final
 RUN \
@@ -61,6 +59,6 @@ RUN \
 
 USER latex
 
-# RUN \
-#     mktexlsr && \
-#     luaotfload-tool -u
+RUN \
+    mktexlsr && \
+    luaotfload-tool -u
