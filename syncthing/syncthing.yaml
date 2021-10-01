@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: syncthing
-          image: registry.internal.aleemhaji.com/syncthing:1.18.1
+          image: registry.internal.aleemhaji.com/syncthing:1.18.2
           ports:
             - containerPort: 8384
           env:
