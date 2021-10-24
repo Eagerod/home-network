@@ -559,9 +559,9 @@ resources:
     tags: [docker-cache, drone]
   - name: drone-agent-image-cache
     build:
-      source: drone/drone-runner-kube:1.0.0-beta.8
+      source: drone/drone-runner-kube:1.0.0-rc.1
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-beta.8
+      tag: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.1
     tags: [docker-cache, drone]
   # endregion
   # https://github.com/prometheus-operator/kube-prometheus#quickstart
