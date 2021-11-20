@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: drone-postgres-init
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: drone-postgres-init
+          image: postgres:9
+          command:
+            - sh
+            - -c
+            - |
+              if ! psql -h postgres --user postgres -t -c "SELECT 1 FROM pg_database WHERE datname = 'drone';" | grep -q 1; then
+                psql -h postgres --user postgres -c "CREATE DATABASE drone;"
+              else
+                echo 'Database "drone" already exists; skipping creation.'
+              fi
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: root_password
