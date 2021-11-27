@@ -40,6 +40,7 @@ load_balancer_host: api.internal.aleemhaji.com
 nodes:
   - name: beast1
     role: hypervisor
+    engine: esxi
     host: 192.168.10.40
     user: root
     datastore: Main
