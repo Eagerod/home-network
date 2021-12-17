@@ -56,7 +56,7 @@ data:
     SLACK_URL="https://slackbot.internal.aleemhaji.com/message"
 
     slack() {
-        curl -sS -X POST -H "X-SLACK-CHANNEL-ID: CKE1AKEAV" -d "$@" "$SLACK_URL"
+        curl -sS -X POST -H "X-SLACK-CHANNEL-ID: ${SLACK_BOT_ALERTING_CHANNEL}" -d "$@" "$SLACK_URL"
     }
 
     if [ $# -ne 1 ]; then
