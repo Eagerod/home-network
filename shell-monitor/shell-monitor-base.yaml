@@ -65,7 +65,7 @@ data:
     }
 
     set_value() {
-      curl -XPATCH -H "Content-Type: application/merge-patch+json" -H "Authorization: Bearer $TOKEN" -d '{
+      curl -fsS -XPATCH -H "Content-Type: application/merge-patch+json" -H "Authorization: Bearer $TOKEN" -d '{
         "data": {
           "'"$DATA_KEY"'": "'"${1:1:-1}"'"
         }
