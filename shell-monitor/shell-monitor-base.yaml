@@ -69,7 +69,7 @@ data:
         "data": {
           "'"$DATA_KEY"'": "'"${1:1:-1}"'"
         }
-      }' --insecure "$FULL_RESOURCE"
+      }' --insecure "$FULL_RESOURCE" > /dev/null
     }
 
     # Check to see if the ConfigMap already exists.
