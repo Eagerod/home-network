@@ -99,7 +99,12 @@ data:
       if [ "$new_value" != "$current_value" ]; then
         set_value "$new_value"
         current_value="$new_value"
-        slack "Monitor changed value of $RESOURCE_PATH to: $(echo $current_value | jq -r '.')"
+
+        if [ -z "$current_value" ]; then
+          slack "Monitor cleared value of $RESOURCE_PATH"
+        else
+          slack "Monitor changed value of $RESOURCE_PATH to: $(echo $current_value | jq -r '.')"
+        fi
       fi
 
       sleep "$UPDATE_INTERVAL"
