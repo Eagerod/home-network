@@ -72,10 +72,16 @@ data:
       }' --insecure "$FULL_RESOURCE" > /dev/null
     }
 
+    # Eats the trailing newling.
+    # Can't really explain why, but it does what I want.
+    strip_trailing_newline() {
+      printf "%s" "$(cat -)"
+    }
+
     # Check to see if the ConfigMap already exists.
     # If not, create it.
     set +e
-    current_value="$(get_value)"
+    current_value="$(get_value | strip_trailing_newline | jq -R -s '.')"
     ec="$?"
     set -e
 
@@ -94,7 +100,7 @@ data:
     fi
 
     while true; do
-      new_value="$($UPDATE_SCRIPT | jq -R -s '.')"
+      new_value="$($UPDATE_SCRIPT | strip_trailing_newline | jq -R -s '.')"
 
       if [ "$new_value" != "$current_value" ]; then
         set_value "$new_value"
