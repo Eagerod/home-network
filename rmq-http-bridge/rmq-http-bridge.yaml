@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: rmq-http-bridge-server
-          image: registry.internal.aleemhaji.com/rmq-http-bridge:latest
+          image: registry.internal.aleemhaji.com/rmq-http-bridge:0.0.2
           ports:
             - containerPort: 8080
           resources:
@@ -58,7 +58,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: rmq-http-bridge-worker
-          image: registry.internal.aleemhaji.com/rmq-http-bridge:latest
+          image: registry.internal.aleemhaji.com/rmq-http-bridge:0.0.2
           env:
             - name: RABBITMQ_CONNECTION_STRING
               value: amqp://rabbitmq.internal.aleemhaji.com/
