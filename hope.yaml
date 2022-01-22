@@ -1200,6 +1200,15 @@ resources:
       - DEST_PATH=/bitwarden
     tags: [bitwarden, backups]
   # endregion
+  - name: shell-monitor-base-default
+    file: shell-monitor/shell-monitor-base.yaml
+    parameters:
+      - SHELL_MONITOR_NAMESPACE=default
+      - SLACK_BOT_ALERTING_CHANNEL
+    tags: [shell-monitor]
+  - name: events-shell-monitor
+    file: shell-monitor/events-shell-monitor.yaml
+    tags: [shell-monitor]
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml
