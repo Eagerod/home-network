@@ -400,6 +400,25 @@ resources:
     parameters:
       - *pihole_ingress_controller_ip
     tags: [apps, pihole]
+  - name: domain-namespace
+    inline: |
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: domains
+    tags: [domains]
+  - name: beast1-domain
+    file: beast-ingress.yaml
+    parameters:
+      - MACHINE_NAME=beast1
+      - MACHINE_IP=192.168.10.40
+    tags: [domains]
+  - name: beast2-domain
+    file: beast-ingress.yaml
+    parameters:
+      - MACHINE_NAME=beast2
+      - MACHINE_IP=192.168.10.41
+    tags: [domains]
   # region: Docker Image Caching
   # At this point, the registry has been pushed, and all the appropriate
   #   ingress configurations should be set to allow for images to be cached.
@@ -1123,6 +1142,12 @@ resources:
     parameters:
       - KUBERNETES_NAMESPACE=default
       - INCLUDE_EXTERNAL_CERTS=true
+    tags: [crons, certbot]
+  - name: certbot-update-domains
+    file: certbot/certbot-generic-cron.yaml
+    parameters:
+      - KUBERNETES_NAMESPACE=domains
+      - INCLUDE_EXTERNAL_CERTS=false
     tags: [crons, certbot]
   - name: certbot-cron
     file: certbot/certbot.yaml

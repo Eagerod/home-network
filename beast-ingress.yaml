@@ -1,0 +1,33 @@
+# Allow domain names across subnets to propagate more easily.
+# Lets the hostname monitor pick up hosts that aren't managed by services in
+#   the cluster itself, while also getting SSL for free.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${MACHINE_NAME}
+  namespace: domains
+spec:
+  type: ExternalName
+  externalName: ${MACHINE_IP}
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ${MACHINE_NAME}-ingress
+  namespace: domains
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/backend-protocol: "https"
+spec:
+  tls:
+    - hosts:
+        - ${MACHINE_NAME}.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: ${MACHINE_NAME}.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: ${MACHINE_NAME}
+              servicePort: 443
