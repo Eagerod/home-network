@@ -1209,6 +1209,18 @@ resources:
   - name: events-shell-monitor
     file: shell-monitor/events-shell-monitor.yaml
     tags: [shell-monitor]
+  - name: dev-namespace
+    inline: |
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: dev
+  - name: dev-ssh-key
+    file: ssh-key.yaml
+    parameters:
+      - SSH_KEY_NAMESPACE=dev
+      - DEV_SSH_KEY_BASE64
+      - DEV_KNOWN_HOSTS_BASE64
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml
