@@ -1215,6 +1215,11 @@ resources:
       kind: Namespace
       metadata:
         name: dev
+  - name: network-manager
+    build:
+      path: .
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/home-network:latest
   - name: dev-ssh-key
     file: ssh-key.yaml
     parameters:
