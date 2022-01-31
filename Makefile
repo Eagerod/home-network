@@ -184,7 +184,7 @@ router-port-forwarding: networking pf.vbash
 
 
 .gitignore: Makefile .gitignore-extra
-	@curl -fsSL https://www.toptal.com/developers/gitignore/api/vim,macos,linux,vscode,windows,intellij,sublimetext,git > $@
+	@curl -fsSL https://www.toptal.com/developers/gitignore/api/vim,macos,linux,visualstudiocode,windows,intellij,sublimetext,git > $@
 	@cat .gitignore-extra >> $@
 
 

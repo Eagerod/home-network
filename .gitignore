@@ -1,6 +1,6 @@
 
-# Created by https://www.toptal.com/developers/gitignore/api/vim,macos,linux,vscode,windows,intellij,sublimetext,git
-# Edit at https://www.toptal.com/developers/gitignore?templates=vim,macos,linux,vscode,windows,intellij,sublimetext,git
+# Created by https://www.toptal.com/developers/gitignore/api/vim,macos,linux,visualstudiocode,windows,intellij,sublimetext,git
+# Edit at https://www.toptal.com/developers/gitignore?templates=vim,macos,linux,visualstudiocode,windows,intellij,sublimetext,git
 
 ### Git ###
 # Created by git for backups. To disable backups in Git:
@@ -27,6 +27,9 @@
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+
+# AWS User-specific
+.idea/**/aws.xml
 
 # Generated files
 .idea/**/contentModel.xml
@@ -77,6 +80,9 @@ atlassian-ide-plugin.xml
 
 # Cursive Clojure plugin
 .idea/replstate.xml
+
+# SonarLint plugin
+.idea/sonarlint/
 
 # Crashlytics plugin (for Android Studio and IntelliJ)
 com_crashlytics_export_strings.xml
@@ -178,6 +184,7 @@ Temporary Items
 
 # SFTP configuration file
 sftp-config.json
+sftp-config-alt*.json
 
 # Package control specific files
 Package Control.last-run
@@ -215,13 +222,26 @@ tags
 # Persistent undo
 [._]*.un~
 
-### vscode ###
+### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-*.code-workspace
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+.ionide
+
+# Support for Project snippet scope
 
 ### Windows ###
 # Windows thumbnail cache files
@@ -249,6 +269,7 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.toptal.com/developers/gitignore/api/vim,macos,linux,vscode,windows,intellij,sublimetext,git
+# End of https://www.toptal.com/developers/gitignore/api/vim,macos,linux,visualstudiocode,windows,intellij,sublimetext,git
 .kube
 .env.new
+VMware-ovftool-*
