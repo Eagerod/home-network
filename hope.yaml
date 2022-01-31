@@ -10,6 +10,7 @@ _:
   - &plex_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.69
   - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.128
   - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
+  - &devbox_service_ip LOAD_BALANCER_IP=192.168.200.224
   - &docker_hub_upstream_pull if-not-present
   - &local_upstream_pull always
 access_point_controller: http://192.168.200.81:8080
@@ -29,6 +30,7 @@ vms:
         - ESXI_NETWORK=VM Network
         - VM_ROOT_PASSWORD
         - VM_MANAGEMENT_PASSWORD
+        - *devbox_service_ip
     - name: kubernetes-node
       parameters:
         - ESXI_ROOT_PASSWORD
@@ -36,6 +38,7 @@ vms:
         - ESXI_NETWORK=VM Network
         - VM_ROOT_PASSWORD
         - VM_MANAGEMENT_PASSWORD
+        - *devbox_service_ip
 load_balancer_host: api.internal.aleemhaji.com
 nodes:
   - name: beast1
@@ -363,6 +366,13 @@ resources:
     file: registry/registry-secrets.yaml
     parameters:
       - NAMESPACE=default
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+    tags: [apps, registry]
+  - name: cluster-registry-secrets-dev
+    file: registry/registry-secrets.yaml
+    parameters:
+      - NAMESPACE=dev
       - DOCKER_REGISTRY_HOSTNAME
       - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
     tags: [apps, registry]
@@ -1226,6 +1236,10 @@ resources:
       - SSH_KEY_NAMESPACE=dev
       - DEV_SSH_KEY_BASE64
       - DEV_KNOWN_HOSTS_BASE64
+  - name: devbox
+    file: devbox.yaml
+    parameters:
+      - *devbox_service_ip
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml
