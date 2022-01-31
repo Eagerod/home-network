@@ -3,7 +3,7 @@
 # Lives in its own namespace to keep itself a little further away from all
 #   other services.
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: devbox
   namespace: dev
@@ -12,21 +12,39 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      name: devbox
+      app: devbox
+  serviceName: devbox
   template:
     metadata:
       labels:
-        name: devbox
+        app: devbox
     spec:
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: devbox
-          image: registry.internal.aleemhaji.com/busybox:1.33.1
+          image: registry.internal.aleemhaji.com/home-network:latest
           command: 
             - /bin/sh
           stdin: true 
           tty: true
+          ports:
+          - containerPort: 8067
+            protocol: TCP
+          volumeMounts:
+            - name: packer-data
+              mountPath: /var/lib/packer
+            - name: ssh-key
+              mountPath: /root/.ssh
+      volumes:
+        - name: packer-data
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/packer
+        - name: ssh-key
+          secret:
+            secretName: dev-ssh-key
+            defaultMode: 0600
 ---
 # Just have a service sitting there, pointing at port 80.
 # It'll mostly be unused, but better to have the definition ready to go.
@@ -37,10 +55,10 @@ metadata:
   namespace: dev
 spec:
   ports:
-    - port: 80
+    - port: 8067
       protocol: TCP
-      targetPort: 8080
+      targetPort: 8067
   type: LoadBalancer
-  loadBalancerIP: 192.168.200.224
+  loadBalancerIP: ${LOAD_BALANCER_IP}
   selector:
     app: devbox
