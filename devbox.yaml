@@ -2,11 +2,6 @@
 #   for experimentation.
 # Lives in its own namespace to keep itself a little further away from all
 #   other services.
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: dev
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
