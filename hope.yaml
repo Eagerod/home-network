@@ -442,11 +442,11 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/busybox:1.33.1
     tags: [docker-cache, mysql, redis, pihole]
-  - name: mysql-5726-image-cache
+  - name: mysql-57-image-cache
     build:
-      source: mysql:5.7.26
+      source: mysql:5.7.37
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/mysql:5.7.26
+      tag: registry.internal.aleemhaji.com/mysql:5.7.37
     tags: [docker-cache, mysql]
   - name: pihole-image-cache
     build:
@@ -506,15 +506,15 @@ resources:
     tags: [docker-cache, redis]
   - name: guacamole-image-cache
     build:
-      source: guacamole/guacamole:1.3.0
+      source: guacamole/guacamole:1.4.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/guacamole:1.3.0
+      tag: registry.internal.aleemhaji.com/guacamole:1.4.0
     tags: [docker-cache, guacamole]
   - name: guacd-image-cache
     build:
-      source: guacamole/guacd:1.3.0
+      source: guacamole/guacd:1.4.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/guacd:1.3.0
+      tag: registry.internal.aleemhaji.com/guacd:1.4.0
     tags: [docker-cache, guacamole]
   - name: gitea-image-cache
     build:

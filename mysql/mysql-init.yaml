@@ -25,7 +25,7 @@ spec:
             - echo
             - This job will eventually have to be suped up a bit.
       #   - name: mysql-skip-grant-tables
-      #     image: registry.internal.aleemhaji.com/mysql:5.7.26
+      #     image: registry.internal.aleemhaji.com/mysql:5.7.37
       #     args:
       #       - --skip-grant-tables
       #       - --skip-networking
@@ -39,7 +39,7 @@ spec:
       #             name: mysql-secrets
       #             key: root_password
       #   - name: mysql-init-script
-      #     image: registry.internal.aleemhaji.com/mysql:5.7.26
+      #     image: registry.internal.aleemhaji.com/mysql:5.7.37
       #     command:
       #       - sh
       #       - -ec
