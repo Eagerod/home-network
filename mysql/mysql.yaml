@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: mysql
-          image: registry.internal.aleemhaji.com/mysql:5.7.26
+          image: registry.internal.aleemhaji.com/mysql:5.7.37
           ports:
             - containerPort: 3306
           volumeMounts:
@@ -80,7 +80,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: mysql-backup
-              image: registry.internal.aleemhaji.com/mysql:5.7.26
+              image: registry.internal.aleemhaji.com/mysql:5.7.37
               command:
                 - sh
                 - /scripts/mysql-backup.sh

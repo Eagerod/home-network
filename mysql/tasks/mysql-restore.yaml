@@ -10,7 +10,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: mysql-restore
-          image: registry.internal.aleemhaji.com/mysql:5.7.26
+          image: registry.internal.aleemhaji.com/mysql:5.7.37
           command:
             - sh
             - -c

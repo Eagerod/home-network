@@ -12,7 +12,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       initContainers:
         - name: firefly-mysql-init
-          image: registry.internal.aleemhaji.com/mysql:5.7.26
+          image: registry.internal.aleemhaji.com/mysql:5.7.37
           command:
             - sh
             - -cx
