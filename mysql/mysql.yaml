@@ -101,7 +101,7 @@ spec:
             - name: backups
               nfs:
                 server: 192.168.96.4
-                path: /mnt/main/backup/mysql
+                path: /mnt/main/backup/apps/mysql
             - name: backup-script
               projected:
                 sources:

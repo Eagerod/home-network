@@ -99,7 +99,7 @@ spec:
             - name: backups
               nfs:
                 server: 192.168.96.4
-                path: /mnt/main/backup/mongodb
+                path: /mnt/main/backup/apps/mongodb
             - name: backup-script
               projected:
                 sources:
