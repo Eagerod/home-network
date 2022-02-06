@@ -1225,7 +1225,7 @@ resources:
       kind: Namespace
       metadata:
         name: dev
-  - name: network-manager
+  - name: home-network-image
     build:
       path: .
       pull: *local_upstream_pull
@@ -1240,6 +1240,10 @@ resources:
     file: devbox.yaml
     parameters:
       - *devbox_service_ip
+  - name: node-rotator
+    file: node-rotator.yaml
+    parameters:
+      - SLACK_BOT_ALERTING_CHANNEL
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml

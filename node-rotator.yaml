@@ -1,0 +1,74 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: rotate-node
+  namespace: dev
+spec:
+  schedule: "0 1 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: rotate-node
+        spec:
+          backoffLimit: 0
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
+          containers:
+            - name: rotate-node
+              image: registry.internal.aleemhaji.com/home-network:latest
+              command: 
+                - bash
+                - -eufo
+                - pipefail
+                - -c
+                - |
+                  SLACK_URL="https://slackbot.internal.aleemhaji.com/message"
+
+                  slack() {
+                      curl -sS -X POST -H "X-SLACK-CHANNEL-ID: ${SLACK_BOT_ALERTING_CHANNEL}" -d "$@" "$SLACK_URL"
+                  }
+
+                  cd /src
+                  source .env.new
+                  node_id="$(hope --config hope.yaml node list -t node | shuf -n 1)"
+                  if [ "$node_id" = "$(hostname)" ]; then
+                    slack "Node rotator wants to kill itself. Failing now."
+                    exit 1
+                  fi
+
+                  slack "Node rotator killing and recreating $node_id"
+                  if echo hope --config hope.yaml kubectl get node $node_id 2> /dev/null; then
+                    echo hope --config hope.yaml node reset --force --delete-local-data $node_id
+                  fi
+
+                  echo hope --config hope.yaml vm stop $node_id
+                  echo hope --config hope.yaml vm delete $node_id
+                  echo hope --config hope.yaml vm create $node_id
+                  echo hope --config hope.yaml vm start $node_id
+                  echo hope --config hope.yaml vm ip $node_id
+                  echo sshpass -p "$VM_MANAGEMENT_PASSWORD" hope --config hope.yaml node ssh $node_id
+                  echo hope --config hope.yaml node hostname $node_id $node_id
+                  echo hope --config hope.yaml node init --force $node_id
+              ports:
+                - containerPort: 8067
+                  protocol: TCP
+              volumeMounts:
+                - name: packer-data
+                  mountPath: /var/lib/packer
+                - name: ssh-key
+                  mountPath: /root/.ssh
+          volumes:
+            - name: packer-data
+              nfs:
+                server: 192.168.96.4
+                path: /mnt/main/apps/packer
+            - name: ssh-key
+              secret:
+                secretName: dev-ssh-key
+                defaultMode: 0600
