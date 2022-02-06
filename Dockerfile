@@ -1,4 +1,4 @@
-FROM registry.internal.aleemhaji.com/hope:0.19.1
+FROM registry.internal.aleemhaji.com/hope:0.21.0
 
 # Not included in the repo, for licencing reasons.
 COPY VMware-ovftool-* .
