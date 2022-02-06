@@ -1240,10 +1240,14 @@ resources:
     file: devbox.yaml
     parameters:
       - *devbox_service_ip
-  - name: node-rotator
-    file: node-rotator.yaml
+  - name: rotate-node-tagger
+    file: node-rotator/rotate-node-tagger.yaml
+    tags: [rotate-node]
+  - name: rotate-node
+    file: node-rotator/rotate-node.yaml
     parameters:
       - SLACK_BOT_ALERTING_CHANNEL
+    tags: [rotate-node]
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml

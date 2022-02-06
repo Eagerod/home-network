@@ -1,3 +1,32 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rotate-node
+  namespace: dev
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rotate-node
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "delete"]
+apiVersion: rbac.authorization.k8s.io/v1
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rotate-node
+subjects:
+  - kind: ServiceAccount
+    name: rotate-node
+    namespace: dev
+roleRef:
+  kind: ClusterRole
+  name: rotate-node
+  apiGroup: rbac.authorization.k8s.io
+---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -10,13 +39,16 @@ spec:
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
+      backoffLimit: 0
       template:
         metadata:
           labels:
             app: rotate-node
         spec:
-          backoffLimit: 0
-          restartPolicy: OnFailure
+          nodeSelector:
+            aleemhaji.com/oldest: "false"
+          restartPolicy: Never
+          serviceAccountName: rotate-node
           imagePullSecrets:
             - name: registry.internal.aleemhaji.com
           containers:
@@ -36,14 +68,22 @@ spec:
 
                   cd /src
                   source .env.new
-                  node_id="$(hope --config hope.yaml node list -t node | shuf -n 1)"
-                  if [ "$node_id" = "$(hostname)" ]; then
-                    slack "Node rotator wants to kill itself. Failing now."
+                  node_id="$(kubectl get nodes -l "aleemhaji.com/oldest=true" -o template="{{range .items}}{{.metadata.name}}{{end}}")"
+
+                  if [ -z "$node_id" ]; then
+                    slack "Failed to find oldest node in cluster."
                     exit 1
                   fi
 
-                  slack "Node rotator killing and recreating $node_id"
+                  # There's a label selector to prevent this, but just in case
+                  #   that ever changes.
+                  if [ "$node_id" = "$(hostname)" ]; then
+                    slack "Node rotator wants to kill itself. Failing early."
+                    exit 1
+                  fi
+
                   if echo hope --config hope.yaml kubectl get node $node_id 2> /dev/null; then
+                    slack "Node rotator removing node from cluster ($node_id)"
                     echo hope --config hope.yaml node reset --force --delete-local-data $node_id
                   fi
 
