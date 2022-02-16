@@ -55,6 +55,8 @@ spec:
                   key: app_key
             - name: USE_ENCRYPTION
               value: "false"
+            - name: MAIL_MAILER
+              value: log
           volumeMounts:
             - name: file-uploads
               mountPath: /var/www/firefly-iii/storage/upload
