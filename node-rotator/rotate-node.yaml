@@ -77,13 +77,13 @@ spec:
 
                   # There's a label selector to prevent this, but just in case
                   #   that ever changes.
-                  if [ "$node_id" = "$(hostname)" ]; then
+                  if [ "$node_id" = "$NODE_NAME" ]; then
                     slack "Node rotator wants to kill itself. Failing early."
                     exit 1
                   fi
 
-                  if echo hope --config hope.yaml kubectl get node $node_id 2> /dev/null; then
-                    slack "Node rotator removing node from cluster ($node_id)"
+                  if hope --config hope.yaml kubectl get node $node_id 2> /dev/null; then
+                    slack "Node rotator running on $NODE_NAME removing node from cluster ($node_id)"
                     echo hope --config hope.yaml node reset --force --delete-local-data $node_id
                   fi
 
@@ -98,6 +98,11 @@ spec:
               ports:
                 - containerPort: 8067
                   protocol: TCP
+              env:
+                - name: NODE_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: spec.nodeName
               volumeMounts:
                 - name: packer-data
                   mountPath: /var/lib/packer
