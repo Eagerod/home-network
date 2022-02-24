@@ -54,6 +54,10 @@ data:
     WILDCARD_COMBINED_SECRET_NAME=external-certificate-file
     WILDCARD_ARCHIVE=/etc/letsencrypt/archive/aleemhaji.com-0001
 
+    BARE_DOMAIN_SECRET_NAME=tls.aleemhaji.com
+    BARE_DOMAIN_COMBINED_SECRET_NAME=tls-pem.aleemhaji.com
+    BARE_DOMAIN_ARCHIVE=/etc/letsencrypt/archive/aleemhaji.com
+
     replace_certificates() {
       if [ -z $1 ] || [ -z $2 ]; then
         echo >&2 "Can't replace certs because cert name or path isn't present"
@@ -114,6 +118,11 @@ data:
     if ${INCLUDE_EXTERNAL_CERTS}; then
       replace_certificates "$WILDCARD_SECRET_NAME" "$WILDCARD_ARCHIVE"
       replace_combined_certificate "$WILDCARD_COMBINED_SECRET_NAME" "$WILDCARD_ARCHIVE"
+    fi
+
+    if ${INCLUDE_BARE_DOMAIN}; then
+      replace_certificates "$BARE_DOMAIN_SECRET_NAME" "$BARE_DOMAIN_ARCHIVE"
+      replace_combined_certificate "$BARE_DOMAIN_COMBINED_SECRET_NAME" "$BARE_DOMAIN_ARCHIVE"
     fi
 ---
 apiVersion: batch/v1beta1
