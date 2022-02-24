@@ -42,9 +42,7 @@ data:
     #!/usr/bin/env sh
     #
     # Update secrets
-    set -e
-
-    TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+    set -euf
 
     INTERNAL_WILDCARD_SECRET_NAME=internal-certificate-files
     INTERNAL_WILDCARD_COMBINED_SECRET_NAME=internal-certificate-file
