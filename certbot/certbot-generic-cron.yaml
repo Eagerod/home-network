@@ -72,7 +72,7 @@ data:
       latest_crt="$(find "$cert_path" -iname "fullchain*.pem" | sort -V | tail -1)"
       latest_key="$(find "$cert_path" -iname "privkey*.pem" | sort -V | tail -1)"
 
-      openssl rsa -in $(find "$cert_path" -iname "privkey*.pem" | sort -V | tail -1) -out "$rsa_keyfile"
+      openssl rsa -in "$latest_key" -out "$rsa_keyfile"
 
       echo "Updating ${KUBERNETES_NAMESPACE}/$cert_name..."
       kubectl create secret generic -n "${KUBERNETES_NAMESPACE}" "$cert_name" -o yaml \
