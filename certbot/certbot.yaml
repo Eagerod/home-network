@@ -110,6 +110,7 @@ spec:
   tls:
     - hosts:
         - aleemhaji.com
+      secretName: tls.aleemhaji.com
   rules:
     - host: aleemhaji.com
       http:

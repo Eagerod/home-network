@@ -1118,18 +1118,21 @@ resources:
     parameters:
       - KUBERNETES_NAMESPACE=kubernetes-dashboard
       - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
     tags: [crons, certbot]
   - name: certbot-update-monitoring
     file: certbot/certbot-generic-cron.yaml
     parameters:
       - KUBERNETES_NAMESPACE=monitoring
       - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
     tags: [crons, certbot]
   - name: certbot-update-default
     file: certbot/certbot-generic-cron.yaml
     parameters:
       - KUBERNETES_NAMESPACE=default
       - INCLUDE_EXTERNAL_CERTS=true
+      - INCLUDE_BARE_DOMAIN=true
     tags: [crons, certbot]
   - name: certbot-cron
     file: certbot/certbot.yaml

@@ -42,9 +42,7 @@ data:
     #!/usr/bin/env sh
     #
     # Update secrets
-    set -e
-
-    TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+    set -euf
 
     INTERNAL_WILDCARD_SECRET_NAME=internal-certificate-files
     INTERNAL_WILDCARD_COMBINED_SECRET_NAME=internal-certificate-file
@@ -54,172 +52,76 @@ data:
     WILDCARD_COMBINED_SECRET_NAME=external-certificate-file
     WILDCARD_ARCHIVE=/etc/letsencrypt/archive/aleemhaji.com-0001
 
+    BARE_DOMAIN_SECRET_NAME=tls.aleemhaji.com
+    BARE_DOMAIN_COMBINED_SECRET_NAME=tls-pem.aleemhaji.com
+    BARE_DOMAIN_ARCHIVE=/etc/letsencrypt/archive/aleemhaji.com
+
     replace_certificates() {
-        if [ -z $1 ] || [ -z $2 ]; then
-            echo >&2 "Can't replace certs because cert name or path isn't present"
-            exit 1
-        fi
+      if [ -z $1 ] || [ -z $2 ]; then
+        echo >&2 "Can't replace certs because cert name or path isn't present"
+        exit 1
+      fi
 
-        cert_name="$1"
-        cert_path="$2"
+      cert_name="$1"
+      cert_path="$2"
 
-        rsa_keyfile="$(mktemp).rsa.key"
+      rsa_keyfile="$(mktemp).rsa.key"
 
-        echo "Updating ${KUBERNETES_NAMESPACE}/$cert_name..."
-        openssl rsa -in $(find "$cert_path" -iname "privkey*.pem" | sort -V | tail -1) -out "$rsa_keyfile"
+      latest_crt="$(find "$cert_path" -iname "fullchain*.pem" | sort -V | tail -1)"
+      latest_key="$(find "$cert_path" -iname "privkey*.pem" | sort -V | tail -1)"
 
-        # Try to create the secret in case this is the first time the script
-        #   is being run.
-        # If the create fails, run the patch attempt.
-        /scripts/post.py \
-          "Bearer $TOKEN" \
-          '
-          {
-            "apiVersion":"v1",
-            "kind":"Secret",
-            "metadata":{"annotations":{},"name":"'$cert_name'"},
-            "data":{
-              "tls.crt": "'$(base64 $(find "$cert_path" -iname "fullchain*.pem" | sort -V | tail -1) | tr -d '\n')'",
-              "tls.key": "'$(base64 $(find "$cert_path" -iname "privkey*.pem" | sort -V | tail -1) | tr -d '\n')'",
-              "tls.rsa.key": "'$(base64 "$rsa_keyfile" | tr -d '\n')'"
-            }
-          }
-          ' \
-          "https://$KUBERNETES_SERVICE_HOST/api/v1/namespaces/${KUBERNETES_NAMESPACE}/secrets" || \
-        /scripts/patch.py \
-            "Bearer $TOKEN" \
-            '
-            {
-                "data":{
-                    "tls.crt": "'$(base64 $(find "$cert_path" -iname "fullchain*.pem" | sort -V | tail -1) | tr -d '\n')'",
-                    "tls.key": "'$(base64 $(find "$cert_path" -iname "privkey*.pem" | sort -V | tail -1) | tr -d '\n')'",
-                    "tls.rsa.key": "'$(base64 "$rsa_keyfile" | tr -d '\n')'"
-                }
-            }' \
-            "https://$KUBERNETES_SERVICE_HOST/api/v1/namespaces/${KUBERNETES_NAMESPACE}/secrets/$cert_name"
+      openssl rsa -in "$latest_key" -out "$rsa_keyfile"
 
-        rm $rsa_keyfile
+      echo "Updating ${KUBERNETES_NAMESPACE}/$cert_name..."
+      kubectl create secret generic -n "${KUBERNETES_NAMESPACE}" "$cert_name" -o yaml \
+        --dry-run=client \
+        --save-config \
+        --from-file="tls.key=$latest_key" \
+        --from-file="tls.crt=$latest_crt" \
+        --from-file="tls.rsa.key=$rsa_keyfile" |\
+      kubectl apply -f -
+
+      rm "$rsa_keyfile"
     }
 
     replace_combined_certificate() {
-        if [ -z $1 ] || [ -z $2 ]; then
-            echo >&2 "Can't replace certs because cert name or path isn't present"
-            exit 1
-        fi
+      if [ -z $1 ] || [ -z $2 ]; then
+        echo >&2 "Can't replace certs because cert name or path isn't present"
+        exit 1
+      fi
 
-        cert_name="$1"
-        cert_path="$2"
+      cert_name="$1"
+      cert_path="$2"
 
-        combined_file="$(mktemp).pem"
+      combined_file="$(mktemp).pem"
 
-        echo "Updating ${KUBERNETES_NAMESPACE}/$cert_name..."
-        cat \
-            $(find "$cert_path" -iname "fullchain*.pem" | sort -V | tail -1) \
-            $(find "$cert_path" -iname "privkey*.pem" | sort -V | tail -1) > $combined_file
+      latest_crt="$(find "$cert_path" -iname "fullchain*.pem" | sort -V | tail -1)"
+      latest_key="$(find "$cert_path" -iname "privkey*.pem" | sort -V | tail -1)"
 
-        # Try to create the secret in case this is the first time the script
-        #   is being run.
-        # If the create fails, run the patch attempt.
-        /scripts/post.py \
-          "Bearer $TOKEN" \
-          '
-          {
-            "apiVersion":"v1",
-            "kind":"Secret",
-            "metadata":{"annotations":{},"name":"'$cert_name'"},
-            "data":{
-              "keycert.pem": "'$(base64 "$combined_file" | tr -d '\n')'"
-            }
-          }
-          ' \
-          "https://$KUBERNETES_SERVICE_HOST/api/v1/namespaces/${KUBERNETES_NAMESPACE}/secrets" || \
-        /scripts/patch.py \
-            "Bearer $TOKEN" \
-            '
-            {
-                "data":{
-                    "keycert.pem": "'$(base64 "$combined_file" | tr -d '\n')'"
-                }
-            }' \
-            "https://$KUBERNETES_SERVICE_HOST/api/v1/namespaces/${KUBERNETES_NAMESPACE}/secrets/$cert_name"
+      cat "$latest_crt" "$latest_key" > "$combined_file"
 
-        rm $combined_file
+      echo "Updating ${KUBERNETES_NAMESPACE}/$cert_name..."
+      kubectl create secret generic -n "${KUBERNETES_NAMESPACE}" "$cert_name" -o yaml \
+        --dry-run=client \
+        --save-config \
+        --from-file="keycert.pem=$combined_file" |\
+      kubectl apply -f -
+
+      rm "$combined_file"
     }
 
     replace_certificates "$INTERNAL_WILDCARD_SECRET_NAME" "$INTERNAL_WILDCARD_ARCHIVE"
     replace_combined_certificate "$INTERNAL_WILDCARD_COMBINED_SECRET_NAME" "$INTERNAL_WILDCARD_ARCHIVE"
+
     if ${INCLUDE_EXTERNAL_CERTS}; then
       replace_certificates "$WILDCARD_SECRET_NAME" "$WILDCARD_ARCHIVE"
       replace_combined_certificate "$WILDCARD_COMBINED_SECRET_NAME" "$WILDCARD_ARCHIVE"
     fi
-  patch.py: |
-    #!/usr/bin/env python
-    #
-    # This is a stupid python script I have to write because the certbot image
-    #   doesn't come with curl installed, and the wget binary bundled with the
-    #   busybox distro it's built off of doesn't seem to support different HTTP
-    #   methods.
-    # There may be a way to get around it, but the time to figure that out probably
-    #   isn't worth it.
-    import sys
 
-    import requests
-
-    if __name__ == '__main__':
-      if len(sys.argv) != 4:
-        print('Usage:', sys.argv[0], 'auth_header', 'patch_body', 'host')
-
-      auth_header, patch_body, host = sys.argv[1:]
-
-      response = requests.patch(
-        url=host,
-        verify=False,
-        headers={
-          'Authorization': auth_header,
-          'Content-Type': 'application/merge-patch+json'
-        },
-        data=patch_body
-      )
-
-      print("HTTP status code: {}".format(response.status_code))
-
-      if not response.ok:
-        print(response.content)
-        sys.exit(-1)
-  post.py: |
-    #!/usr/bin/env python
-    #
-    # This is a stupid python script I have to write because the certbot image
-    #   doesn't come with curl installed, and the wget binary bundled with the
-    #   busybox distro it's built off of doesn't seem to support different HTTP
-    #   methods.
-    # There may be a way to get around it, but the time to figure that out probably
-    #   isn't worth it.
-    import sys
-
-    import requests
-
-    if __name__ == '__main__':
-      if len(sys.argv) != 4:
-        print('Usage:', sys.argv[0], 'auth_header', 'post_body', 'host')
-
-      auth_header, post_body, host = sys.argv[1:]
-
-      response = requests.post(
-        url=host,
-        verify=False,
-        headers={
-          'Authorization': auth_header,
-          'Content-Type': 'application/json'
-        },
-        data=post_body
-      )
-
-      print("HTTP status code: {}".format(response.status_code))
-
-      if not response.ok:
-        print(response.content)
-        sys.exit(-1)
+    if ${INCLUDE_BARE_DOMAIN}; then
+      replace_certificates "$BARE_DOMAIN_SECRET_NAME" "$BARE_DOMAIN_ARCHIVE"
+      replace_combined_certificate "$BARE_DOMAIN_COMBINED_SECRET_NAME" "$BARE_DOMAIN_ARCHIVE"
+    fi
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -244,7 +146,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: certbot-copy-to-${KUBERNETES_NAMESPACE}
-              image: registry.internal.aleemhaji.com/certbot:v1.15.0
+              image: registry.internal.aleemhaji.com/kubectl:1.21.0
               command:
                 - sh
                 - /scripts/update-secrets.sh
