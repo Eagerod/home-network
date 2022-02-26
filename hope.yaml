@@ -1064,10 +1064,12 @@ resources:
     tags: [apps, drone]
   # endregion
   - name: pod-killer
-    file: pod-killer.yaml
+    file: pod-killer/pod-killer.yaml
     parameters:
       - POD_KILLER_NAMESPACE=default
       - SLACK_BOT_ALERTING_CHANNEL
+    fileParameters:
+      - POD_KILLER_SCRIPT=pod-killer/pod-killer.sh
   - name: certbot-update-kubernetes-dashboard
     file: certbot/certbot-generic-cron.yaml
     parameters:
