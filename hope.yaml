@@ -1099,6 +1099,8 @@ resources:
     tags: [crons, certbot]
   - name: certbot-cron
     file: certbot/certbot.yaml
+    fileParameters:
+      - DNS_RENEW_SCRIPT=certbot/certbot-dns-renew.sh
     tags: [crons, certbot]
   # region: Scheduled rsync Jobs
   # This block contains all the scheduled jobs that run rsync against the
