@@ -790,36 +790,13 @@ resources:
   - name: mysql-backup
     inline: |
       apiVersion: v1
-      data:
-        mysql-backup.sh: |
-          #!/bin/sh
-          set -e
-
-          if [ -z "${MYSQL_HOST}" ]; then
-              echo >&2 "Must provide MYSQL_HOST to backup"
-              exit 1
-          fi
-
-          if [ -z "${MYSQL_PWD}" ]; then
-              echo >&2 "Must provide MYSQL_PWD for root@${MYSQL_HOST}"
-              exit 2
-          fi
-
-          mysql -h ${MYSQL_HOST} -u root -s -N -e "show databases;" | while read database; do
-              if [ "$database" = "information_schema" ] || [ "$database" = "mysql" ] || [ "$database" = "sys" ] || [ "$database" = "performance_schema" ]; then
-                  echo >&2 "Skipping database $database"
-                  continue
-              fi
-
-              echo >&2 "Backing up database: $database"
-              mkdir -p "/var/lib/backups/$database"
-              mysql -h ${MYSQL_HOST} -u root -s -N -c "$database" -e "show tables;" | while read table; do
-                  mysqldump -h ${MYSQL_HOST} -u root --skip-dump-date "$database" "$table" > "/var/lib/backups/$database/$table.sql"
-              done || exit 1
-          done || exit 1
       kind: ConfigMap
       metadata:
         name: mysql-backup
+      binaryData:
+        mysql-backup.sh: ${MYSQL_BACKUP_SCRIPT}
+    fileParameters:
+      - MYSQL_BACKUP_SCRIPT=mysql/mysql-backup.sh
     tags: [apps, mysql, backups]
   - name: mysql
     file: mysql/mysql.yaml
@@ -827,36 +804,14 @@ resources:
   - name: mongodb-backup
     inline: |
       apiVersion: v1
-      data:
-        mongodb-backup.sh: |
-          #!/bin/sh
-          set -e
-
-          if [ -z "${MONGODB_HOST}" ]; then
-              echo >&2 "Must provide MONGODB_HOST to backup"
-              exit 1
-          fi
-
-          mongo --host ${MONGODB_HOST} --quiet --eval 'db.getMongo().getDBNames().join("\n");' | while read database; do
-              set -e
-
-              if [ "$database" = "admin" ] || [ "$database" = "local" ] || [ "$database" = "config" ] || [ "$database" = "unifi_stat" ] || [ "$database" = "dev" ]; then
-                  echo >&2 "Skipping database $database"
-                  continue
-              fi
-
-              echo >&2 "Backing up database: $database"
-              if [ "$database" = "remind-me-bot" ] || [ "$database" = "blobstore" ]; then
-                  echo >&2 "Skipping logs collection"
-                  mongodump --host ${MONGODB_HOST} --db "$database" --excludeCollection=logs -o "/var/lib/backups/$database"
-              else
-                  mongodump --host ${MONGODB_HOST} --db "$database" -o "/var/lib/backups/$database"
-              fi
-          done
       kind: ConfigMap
       metadata:
         name: mongodb-backup
+      binaryData:
+        mongodb-backup.sh: ${MONGODB_BACKUP_SCRIPT}
     tags: [apps, mongodb, backups]
+    fileParameters:
+      - MONGODB_BACKUP_SCRIPT=mongodb/mongodb-backup.sh
   - name: mongodb
     file: mongodb/mongodb.yaml
     tags: [apps, mongodb]
@@ -1109,16 +1064,20 @@ resources:
     tags: [apps, drone]
   # endregion
   - name: pod-killer
-    file: pod-killer.yaml
+    file: pod-killer/pod-killer.yaml
     parameters:
       - POD_KILLER_NAMESPACE=default
       - SLACK_BOT_ALERTING_CHANNEL
+    fileParameters:
+      - POD_KILLER_SCRIPT=pod-killer/pod-killer.sh
   - name: certbot-update-kubernetes-dashboard
     file: certbot/certbot-generic-cron.yaml
     parameters:
       - KUBERNETES_NAMESPACE=kubernetes-dashboard
       - INCLUDE_EXTERNAL_CERTS=false
       - INCLUDE_BARE_DOMAIN=false
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
     tags: [crons, certbot]
   - name: certbot-update-monitoring
     file: certbot/certbot-generic-cron.yaml
@@ -1126,6 +1085,8 @@ resources:
       - KUBERNETES_NAMESPACE=monitoring
       - INCLUDE_EXTERNAL_CERTS=false
       - INCLUDE_BARE_DOMAIN=false
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
     tags: [crons, certbot]
   - name: certbot-update-default
     file: certbot/certbot-generic-cron.yaml
@@ -1133,9 +1094,13 @@ resources:
       - KUBERNETES_NAMESPACE=default
       - INCLUDE_EXTERNAL_CERTS=true
       - INCLUDE_BARE_DOMAIN=true
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
     tags: [crons, certbot]
   - name: certbot-cron
     file: certbot/certbot.yaml
+    fileParameters:
+      - DNS_RENEW_SCRIPT=certbot/certbot-dns-renew.sh
     tags: [crons, certbot]
   # region: Scheduled rsync Jobs
   # This block contains all the scheduled jobs that run rsync against the
@@ -1215,9 +1180,13 @@ resources:
     parameters:
       - SHELL_MONITOR_NAMESPACE=default
       - SLACK_BOT_ALERTING_CHANNEL
+    fileParameters:
+      - SHELL_MONITOR_SCRIPT=shell-monitor/shell-monitor-script.sh
     tags: [shell-monitor]
   - name: events-shell-monitor
     file: shell-monitor/events-shell-monitor.yaml
+    fileParameters:
+      - EVENTS_SHELL_MONITOR_SCRIPT=shell-monitor/events-shell-monitor.sh
     tags: [shell-monitor]
 jobs:
   - name: mysql-restore
