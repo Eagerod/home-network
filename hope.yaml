@@ -1185,6 +1185,8 @@ resources:
     tags: [shell-monitor]
   - name: events-shell-monitor
     file: shell-monitor/events-shell-monitor.yaml
+    fileParameters:
+      - EVENTS_SHELL_MONITOR_SCRIPT=shell-monitor/events-shell-monitor.sh
     tags: [shell-monitor]
 jobs:
   - name: mysql-restore
