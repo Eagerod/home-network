@@ -27,6 +27,16 @@ roleRef:
   name: rotate-node
   apiGroup: rbac.authorization.k8s.io
 ---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: rotate-node-script
+  namespace: dev
+  labels:
+    app: rotate-node
+binaryData:
+  script.sh: ${ROTATE_NODE_SCRIPT}
+---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -54,47 +64,8 @@ spec:
           containers:
             - name: rotate-node
               image: registry.internal.aleemhaji.com/home-network:latest
-              command: 
-                - bash
-                - -eufo
-                - pipefail
-                - -c
-                - |
-                  SLACK_URL="https://slackbot.internal.aleemhaji.com/message"
-
-                  slack() {
-                      curl -sS -X POST -H "X-SLACK-CHANNEL-ID: ${SLACK_BOT_ALERTING_CHANNEL}" -d "$@" "$SLACK_URL"
-                  }
-
-                  cd /src
-                  source .env.new
-                  node_id="$(kubectl get nodes -l "aleemhaji.com/oldest=true" -o template="{{range .items}}{{.metadata.name}}{{end}}")"
-
-                  if [ -z "$node_id" ]; then
-                    slack "Failed to find oldest node in cluster."
-                    exit 1
-                  fi
-
-                  # There's a label selector to prevent this, but just in case
-                  #   that ever changes.
-                  if [ "$node_id" = "$NODE_NAME" ]; then
-                    slack "Node rotator wants to kill itself. Failing early."
-                    exit 1
-                  fi
-
-                  if hope --config hope.yaml kubectl get node $node_id 2> /dev/null; then
-                    slack "Node rotator running on $NODE_NAME removing node from cluster ($node_id)"
-                    echo hope --config hope.yaml node reset --force --delete-local-data $node_id
-                  fi
-
-                  echo hope --config hope.yaml vm stop $node_id
-                  echo hope --config hope.yaml vm delete $node_id
-                  echo hope --config hope.yaml vm create $node_id
-                  echo hope --config hope.yaml vm start $node_id
-                  echo hope --config hope.yaml vm ip $node_id
-                  echo sshpass -p "$VM_MANAGEMENT_PASSWORD" hope --config hope.yaml node ssh $node_id
-                  echo hope --config hope.yaml node hostname $node_id $node_id
-                  echo hope --config hope.yaml node init --force $node_id
+              command:
+                - /scripts/script.sh
               ports:
                 - containerPort: 8067
                   protocol: TCP
@@ -108,6 +79,8 @@ spec:
                   mountPath: /var/lib/packer
                 - name: ssh-key
                   mountPath: /root/.ssh
+                - name: rotate-node-scripts
+                  mountPath: /scripts
           volumes:
             - name: packer-data
               nfs:
@@ -117,3 +90,7 @@ spec:
               secret:
                 secretName: dev-ssh-key
                 defaultMode: 0600
+            - name: rotate-node-scripts
+              configMap:
+                name: rotate-node-script
+                defaultMode: 0755

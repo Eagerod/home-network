@@ -1228,6 +1228,8 @@ resources:
     file: node-rotator/rotate-node.yaml
     parameters:
       - SLACK_BOT_ALERTING_CHANNEL
+    fileParameters:
+      - ROTATE_NODE_SCRIPT=node-rotator/rotate-node.sh
     tags: [rotate-node]
 jobs:
   - name: mysql-restore
