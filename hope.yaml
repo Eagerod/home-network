@@ -1221,6 +1221,8 @@ resources:
       - *devbox_service_ip
   - name: rotate-node-tagger
     file: node-rotator/rotate-node-tagger.yaml
+    fileParameters:
+      - ROTATE_NODE_TAGGER_SCRIPT=node-rotator/rotate-node-tagger.sh
     tags: [rotate-node]
   - name: rotate-node
     file: node-rotator/rotate-node.yaml

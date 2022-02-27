@@ -27,6 +27,16 @@ roleRef:
   name: rotate-node-tagger
   apiGroup: rbac.authorization.k8s.io
 ---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: rotate-node-tagger-script
+  namespace: dev
+  labels:
+    app: rotate-node-tagger
+binaryData:
+  script.sh: ${ROTATE_NODE_TAGGER_SCRIPT}
+---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -52,19 +62,12 @@ spec:
             - name: rotate-node
               image: registry.internal.aleemhaji.com/kubectl:1.21.0
               command: 
-                - bash
-                - -eufo
-                - pipefail
-                - -c
-                - |
-                  node_template='{{range .items}}{{.metadata.name}} {{.metadata.creationTimestamp}} {{index .metadata.labels "node-role.kubernetes.io/master"}}       
-                  {{end}}'
-                  nodes=($(kubectl get nodes -o template="$node_template" | awk '{if (NF != 2) print}' | sort -k2 | awk '{print $1}'))
-
-                  node="${nodes[0]}"
-                  kubectl label node $node --overwrite "aleemhaji.com/oldest=true"
-
-                  nodes=("${nodes[@]:1}")
-                  for node in ${nodes[@]}; do
-                    kubectl label node $node --overwrite "aleemhaji.com/oldest=false"
-                  done
+                - /scripts/script.sh
+              volumeMounts:
+                - name: rotate-node-tagger-scripts
+                  mountPath: /scripts
+          volumes:
+            - name: rotate-node-tagger-scripts
+              configMap:
+                name: rotate-node-tagger-script
+                defaultMode: 0755
