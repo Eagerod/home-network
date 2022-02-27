@@ -23,9 +23,9 @@ slack 'Pod killer starting up on '"$(hostname)"'.
 Killing pods with '"$1"' or more container restarts.'
 
 while true; do
-	kubectl get pods -n ${POD_KILLER_NAMESPACE} -o template="$pod_template" | awk '{for (i = 0; i < $2; i++) print $1}' | uniq -c | awk '$1 >= '"$1"' { print $2 }' | while read pod; do
+	kubectl get pods -n "${POD_KILLER_NAMESPACE}" -o template="$pod_template" | awk '{for (i = 0; i < $2; i++) print $1}' | uniq -c | awk '$1 >= '"$1"' { print $2 }' | while read pod; do
 		slack "Pod killer is killing \"${POD_KILLER_NAMESPACE}/$pod\""
-		kubectl delete pod -n ${POD_KILLER_NAMESPACE} "$pod"
+		kubectl delete pod -n "${POD_KILLER_NAMESPACE}" "$pod"
 	done
 
 	sleep 60
