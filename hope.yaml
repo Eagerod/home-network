@@ -4,11 +4,11 @@
 _:
   - &log_level trace
   - &metallb_address_range ADDRESS_RANGE=192.168.200.32-192.168.200.224
-  - &ingress_controller_service_ip LOAD_BALANCER_IP=192.168.200.128
+  - &ingress_controller_service_ip LOAD_BALANCER_IP=192.168.200.64
   - &ingress_controller_external_service_ip LOAD_BALANCER_IP=192.168.200.129
   - &openvpn_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.85
   - &plex_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.69
-  - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.128
+  - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.64
   - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
   - &docker_hub_upstream_pull if-not-present
   - &local_upstream_pull always
