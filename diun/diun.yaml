@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: diun
-          image: registry.internal.aleemhaji.com/diun:4.16.1
+          image: registry.internal.aleemhaji.com/diun:4.21.0
           command:
             - sh
             - -eufc

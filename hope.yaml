@@ -427,9 +427,9 @@ resources:
     tags: [docker-cache, crons, factorio, transmission]
   - name: certbot-image-cache
     build:
-      source: certbot/certbot:v1.15.0
+      source: certbot/certbot:v1.25.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/certbot:v1.15.0
+      tag: registry.internal.aleemhaji.com/certbot:v1.25.0
     tags: [docker-cache, certbot]
   - name: mongo-37-image-cache
     build:
@@ -445,9 +445,9 @@ resources:
     tags: [docker-cache, mongodb, unifi]
   - name: busybox-image-cache
     build:
-      source: busybox:1.33.1
+      source: busybox:1.35.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/busybox:1.33.1
+      tag: registry.internal.aleemhaji.com/busybox:1.35.0
     tags: [docker-cache, mysql, redis, pihole]
   - name: mysql-57-image-cache
     build:
@@ -457,9 +457,9 @@ resources:
     tags: [docker-cache, mysql]
   - name: pihole-image-cache
     build:
-      source: pihole/pihole:v5.3.4
+      source: pihole/pihole:v5.8
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pihole:v5.3.4
+      tag: registry.internal.aleemhaji.com/pihole:v5.8
     tags: [docker-cache, pihole]
   - name: browser-image-cache
     build:
@@ -469,9 +469,9 @@ resources:
     tags: [docker-cache, browser]
   - name: curl-cache
     build:
-      source: curlimages/curl:7.72.0
+      source: curlimages/curl:7.80.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/curl:7.72.0
+      tag: registry.internal.aleemhaji.com/curl:7.80.0
     tags: [docker-cache, remindmebot, webcomics]
   - name: postgres-image-cache
     build:
@@ -495,15 +495,15 @@ resources:
     tags: [docker-cache, heimdall]
   - name: openvpnas-image-cache
     build:
-      source: linuxserver/openvpn-as:2.8.8-cbf850a0-Ubuntu18-ls118
+      source: linuxserver/openvpn-as:2.9.0-5c5bd120-Ubuntu18-ls124
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/openvpn-as:2.8.8-cbf850a0-Ubuntu18-ls118
+      tag: registry.internal.aleemhaji.com/openvpn-as:2.9.0-5c5bd120-Ubuntu18-ls124
     tags: [docker-cache, openvpn]
   - name: plex-image-cache
     build:
-      source: plexinc/pms-docker:1.24.5.5173-8dcc73a59
+      source: plexinc/pms-docker:1.25.7.5604-980a13e02
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pms-docker:1.24.5.5173-8dcc73a59
+      tag: registry.internal.aleemhaji.com/pms-docker:1.25.7.5604-980a13e02
     tags: [docker-cache, plex]
   - name: redis-image-cache
     build:
@@ -537,21 +537,21 @@ resources:
     tags: [docker-cache, kubectl]
   - name: bitwarden-image-cache
     build:
-      source: vaultwarden/server:1.21.0
+      source: vaultwarden/server:1.24.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.21.0
+      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.24.0
     tags: [docker-cache, bitwarden]
   - name: syncthing-image-cache
     build:
-      source: syncthing/syncthing:1.18.4
+      source: syncthing/syncthing:1.19.1
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/syncthing:1.18.4
+      tag: registry.internal.aleemhaji.com/syncthing:1.19.1
     tags: [docker-cache, syncthing]
   - name: diun-image-cache
     build:
-      source: crazymax/diun:4.16.1
+      source: crazymax/diun:4.21.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/diun:4.16.1
+      tag: registry.internal.aleemhaji.com/diun:4.21.0
     tags: [docker-cache, diun]
   - name: bookstack-image-cache
     build:
