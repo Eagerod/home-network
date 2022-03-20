@@ -28,7 +28,7 @@ spec:
               grep source: | \
               sed -r 's/[[:space:]]*source:/- name:/' > /diun.yaml && 
               printf 'db:\n  path: diun.db\n' > /config.yaml && \
-              diun --config config.yaml
+              diun serve --config config.yaml
           env:
             - name: TZ
               value: "America/Toronto"
