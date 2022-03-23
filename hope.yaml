@@ -10,9 +10,10 @@ _:
   - &plex_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.69
   - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.64
   - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
+  - &unifi_controller_inform_url http://192.168.200.82:8080
   - &docker_hub_upstream_pull if-not-present
   - &local_upstream_pull always
-access_point_controller: http://192.168.200.82:8080
+access_point_controller: *unifi_controller_inform_url
 access_points:
   - ubnt@192.168.1.86
   - ubnt@192.168.1.109
