@@ -20,6 +20,13 @@ spec:
           image: registry:2
           ports:
             - containerPort: 80
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
           volumeMounts:
             - name: registry-persistent-storage
               mountPath: /var/lib/registry

@@ -46,6 +46,15 @@ spec:
             - containerPort: 10001
               protocol: UDP
               name: unifi-discovery
+          # At 100m CPU, it does take a while for the container to actually
+          #   start serving traffic, but once it's up, it's fine.
+          resources:
+            requests:
+              memory: "1024Mi"
+              cpu: "100m"
+            limits:
+              memory: "1024Mi"
+              cpu: "100m"
           env:
             - name: UNIFI_SERVICE_IP
               value: ${LOAD_BALANCER_IP}
@@ -54,6 +63,13 @@ spec:
           volumeMounts:
             - name: mongodb
               mountPath: /data/db
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "100m"
       volumes:
         - name: mongodb
           iscsi:
