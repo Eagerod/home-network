@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jobs-monitor
+  namespace: ${KUBE_NAMESPACE}
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: jobs-monitor
+  namespace: ${KUBE_NAMESPACE}
+rules:
+- apiGroups:
+  - "batch"
+  resources:
+  - jobs
+  verbs:
+  - list
+  - delete
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: jobs-monitor-shell-monitor
+  namespace: ${KUBE_NAMESPACE}
+subjects:
+- kind: ServiceAccount
+  name: jobs-monitor
+roleRef:
+  kind: Role
+  name: shell-monitor
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: jobs-monitor-jobs-monitor
+  namespace: ${KUBE_NAMESPACE}
+subjects:
+- kind: ServiceAccount
+  name: jobs-monitor
+roleRef:
+  kind: Role
+  name: jobs-monitor
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: job-monitor-script
+  namespace: ${KUBE_NAMESPACE}
+  labels:
+    app: jobs-shell-monitor
+binaryData:
+  script.sh: ${JOBS_SHELL_MONITOR_SCRIPT}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jobs-shell-monitor-deployment
+  namespace: ${KUBE_NAMESPACE}
+  labels:
+    app: jobs-shell-monitor
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jobs-shell-monitor
+  template:
+    metadata:
+      labels:
+        app: jobs-shell-monitor
+    spec:
+      serviceAccountName: jobs-monitor
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: shell-monitor
+          image: registry.internal.aleemhaji.com/kubectl:1.21.0
+          command:
+             - /scripts/base/script.sh
+          env:
+            - name: CONFIG_MAP_NAME
+              value: recent-jobs-monitor
+            - name: UPDATE_SCRIPT
+              value: /scripts/monitor/script.sh
+            - name: UPDATE_INTERVAL
+              value: "3600"
+          volumeMounts:
+            - name: shell-monitor-base-scripts
+              mountPath: /scripts/base
+            - name: job-monitor-script
+              mountPath: /scripts/monitor
+      volumes:
+        - name: shell-monitor-base-scripts
+          configMap:
+            name: shell-monitor-base-config
+            defaultMode: 0755
+        - name: job-monitor-script
+          configMap:
+            name: job-monitor-script
+            defaultMode: 0755

@@ -1189,6 +1189,13 @@ resources:
     fileParameters:
       - EVENTS_SHELL_MONITOR_SCRIPT=shell-monitor/events-shell-monitor.sh
     tags: [shell-monitor]
+  - name: delete-manual-jobs-shell-monitor
+    file: shell-monitor/delete-manual-jobs-monitor.yaml
+    parameters:
+      - KUBE_NAMESPACE=default
+    fileParameters:
+      - JOBS_SHELL_MONITOR_SCRIPT=shell-monitor/delete-manual-jobs-monitor.sh
+    tags: [shell-monitor]
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml
