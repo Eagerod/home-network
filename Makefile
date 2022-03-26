@@ -22,9 +22,7 @@ SAVE_ENV_VARS=\
 	ADVERTISE_IP\
 	DOCKER_REGISTRY_USERNAME\
 	NODE_RED_MYSQL_USER\
-	NODE_RED_MYSQL_DATABASE\
-	OPENVPN_PRIMARY_USERNAME\
-	OPENVPN_AS_HOSTNAME
+	NODE_RED_MYSQL_DATABASE
 
 
 .PHONY: default
@@ -156,7 +154,6 @@ pf.vbash:
 	sed \
 		-e 's/$${FACTORIO_IP}/'$(call SERVICE_LB_IP,factorio)'/' \
 		-e 's/$${PLEX_IP}/'$(call SERVICE_LB_IP,plex)'/' \
-		-e 's/$${OPENVPNAS_IP}/'$(call SERVICE_LB_IP,openvpnas)'/' \
 		-e 's/$${NGINX_IP}/'$(call SERVICE_LB_IP,nginx-external)'/' \
 		.scripts/router-port-forward.vbash > $@
 
