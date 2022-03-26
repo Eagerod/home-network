@@ -4,16 +4,17 @@
 _:
   - &log_level trace
   - &metallb_address_range ADDRESS_RANGE=192.168.200.32-192.168.200.224
-  - &ingress_controller_service_ip LOAD_BALANCER_IP=192.168.200.128
+  - &ingress_controller_service_ip LOAD_BALANCER_IP=192.168.200.64
   - &ingress_controller_external_service_ip LOAD_BALANCER_IP=192.168.200.129
   - &openvpn_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.85
   - &plex_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.69
-  - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.128
+  - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.64
   - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
+  - &unifi_controller_inform_url http://192.168.200.82:8080
   - &devbox_service_ip LOAD_BALANCER_IP=192.168.200.224
   - &docker_hub_upstream_pull if-not-present
   - &local_upstream_pull always
-access_point_controller: http://192.168.200.81:8080
+access_point_controller: *unifi_controller_inform_url
 access_points:
   - ubnt@192.168.1.86
   - ubnt@192.168.1.109
@@ -437,9 +438,9 @@ resources:
     tags: [docker-cache, crons, factorio, transmission]
   - name: certbot-image-cache
     build:
-      source: certbot/certbot:v1.15.0
+      source: certbot/certbot:v1.25.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/certbot:v1.15.0
+      tag: registry.internal.aleemhaji.com/certbot:v1.25.0
     tags: [docker-cache, certbot]
   - name: mongo-37-image-cache
     build:
@@ -455,9 +456,9 @@ resources:
     tags: [docker-cache, mongodb, unifi]
   - name: busybox-image-cache
     build:
-      source: busybox:1.33.1
+      source: busybox:1.35.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/busybox:1.33.1
+      tag: registry.internal.aleemhaji.com/busybox:1.35.0
     tags: [docker-cache, mysql, redis, pihole]
   - name: mysql-57-image-cache
     build:
@@ -467,9 +468,9 @@ resources:
     tags: [docker-cache, mysql]
   - name: pihole-image-cache
     build:
-      source: pihole/pihole:v5.3.4
+      source: pihole/pihole:v5.8
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pihole:v5.3.4
+      tag: registry.internal.aleemhaji.com/pihole:v5.8
     tags: [docker-cache, pihole]
   - name: browser-image-cache
     build:
@@ -479,9 +480,9 @@ resources:
     tags: [docker-cache, browser]
   - name: curl-cache
     build:
-      source: curlimages/curl:7.72.0
+      source: curlimages/curl:7.80.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/curl:7.72.0
+      tag: registry.internal.aleemhaji.com/curl:7.80.0
     tags: [docker-cache, remindmebot, webcomics]
   - name: postgres-image-cache
     build:
@@ -505,15 +506,15 @@ resources:
     tags: [docker-cache, heimdall]
   - name: openvpnas-image-cache
     build:
-      source: linuxserver/openvpn-as:2.8.8-cbf850a0-Ubuntu18-ls118
+      source: linuxserver/openvpn-as:2.9.0-5c5bd120-Ubuntu18-ls124
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/openvpn-as:2.8.8-cbf850a0-Ubuntu18-ls118
+      tag: registry.internal.aleemhaji.com/openvpn-as:2.9.0-5c5bd120-Ubuntu18-ls124
     tags: [docker-cache, openvpn]
   - name: plex-image-cache
     build:
-      source: plexinc/pms-docker:1.24.5.5173-8dcc73a59
+      source: plexinc/pms-docker:1.25.7.5604-980a13e02
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pms-docker:1.24.5.5173-8dcc73a59
+      tag: registry.internal.aleemhaji.com/pms-docker:1.25.7.5604-980a13e02
     tags: [docker-cache, plex]
   - name: redis-image-cache
     build:
@@ -547,21 +548,21 @@ resources:
     tags: [docker-cache, kubectl]
   - name: bitwarden-image-cache
     build:
-      source: vaultwarden/server:1.21.0
+      source: vaultwarden/server:1.24.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.21.0
+      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.24.0
     tags: [docker-cache, bitwarden]
   - name: syncthing-image-cache
     build:
-      source: syncthing/syncthing:1.18.4
+      source: syncthing/syncthing:1.19.1
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/syncthing:1.18.4
+      tag: registry.internal.aleemhaji.com/syncthing:1.19.1
     tags: [docker-cache, syncthing]
   - name: diun-image-cache
     build:
-      source: crazymax/diun:4.16.1
+      source: crazymax/diun:4.21.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/diun:4.16.1
+      tag: registry.internal.aleemhaji.com/diun:4.21.0
     tags: [docker-cache, diun]
   - name: bookstack-image-cache
     build:
@@ -836,7 +837,7 @@ resources:
     build:
       path: unifi
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/unifi:latest
+      tag: registry.internal.aleemhaji.com/unifi-controller:7.0.23-ls145
     tags: [apps, unifi]
   - name: unifi-controller
     file: unifi/unifi.yaml
@@ -1197,6 +1198,13 @@ resources:
     file: shell-monitor/events-shell-monitor.yaml
     fileParameters:
       - EVENTS_SHELL_MONITOR_SCRIPT=shell-monitor/events-shell-monitor.sh
+    tags: [shell-monitor]
+  - name: delete-manual-jobs-shell-monitor
+    file: shell-monitor/delete-manual-jobs-monitor.yaml
+    parameters:
+      - KUBE_NAMESPACE=default
+    fileParameters:
+      - JOBS_SHELL_MONITOR_SCRIPT=shell-monitor/delete-manual-jobs-monitor.sh
     tags: [shell-monitor]
   - name: dev-namespace
     inline: |

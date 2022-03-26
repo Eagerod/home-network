@@ -28,6 +28,13 @@ spec:
                   echo >&2 "/data/source is ${SOURCE_NFS_SERVER}:${SOURCE_NFS_SHARE}"
                   echo >&2 "/data/dest is ${DESTINATION_NFS_SERVER}:${DESTINATION_NFS_SHARE}"
                   rsync ${RSYNC_OPTIONS} "/data/source${SOURCE_PATH}" "/data/dest${DEST_PATH}"
+              resources:
+                requests:
+                  memory: "128Mi"
+                  cpu: "50m"
+                limits:
+                  memory: "128Mi"
+                  cpu: "50m"
               volumeMounts:
                 - name: source
                   mountPath: /data/source
