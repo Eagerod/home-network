@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: factorio-deployment
+  labels:
+    app: factorio
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: factorio
+  template:
+    metadata:
+      labels:
+        app: factorio
+    spec:
+      imagePullSecrets: 
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: factorio
+          image: registry.internal.aleemhaji.com/factorio:latest
+          ports:
+            - containerPort: 34197
+          volumeMounts:
+            - name: factorio-persistent-storage
+              mountPath: /var/lib/factorio/saves
+          env:
+            - name: SAVE_GAME
+              value: save-game
+      volumes:
+        - name: factorio-persistent-storage
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/factorio
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: factorio
+  labels:
+    app: factorio
+spec:
+  ports:
+    - port: 34197
+      protocol: UDP
+  type: NodePort
+  selector:
+    app: factorio
