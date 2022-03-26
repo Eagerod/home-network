@@ -46,7 +46,7 @@ metadata:
   name: event-monitor-script
   labels:
     app: events-shell-monitor
-data:
+binaryData:
   script.sh: ${EVENTS_SHELL_MONITOR_SCRIPT}
 ---
 apiVersion: apps/v1
