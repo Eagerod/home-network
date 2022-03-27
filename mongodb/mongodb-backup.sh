@@ -6,7 +6,7 @@ if [ -z "${MONGODB_HOST}" ]; then
 	exit 1
 fi
 
-mongo --host "${MONGODB_HOST}" --quiet --eval 'db.getMongo().getDBNames().join("\n");' | while read database; do
+mongo --host "${MONGODB_HOST}" --quiet --eval 'db.getMongo().getDBNames().join("\n");' | while read -r database; do
 	set -e
 
 	if [ "$database" = "admin" ] || [ "$database" = "local" ] || [ "$database" = "config" ] || [ "$database" = "unifi_stat" ] || [ "$database" = "dev" ]; then
