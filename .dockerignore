@@ -41,4 +41,8 @@ README.md
 
 
 # Files for this project
-.gitignore.extra
+.env
+.env.*
+.gitignore-extra
+Dockerfile.ci
+LICENSE

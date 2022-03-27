@@ -1,4 +1,10 @@
 FROM registry.internal.aleemhaji.com/hope:0.24.0
+LABEL org.label-schema.name="home-network"
+
+RUN \
+    apt-get update && \
+    apt-get install -y shellcheck && \
+    apt-get clean
 
 # Not included in the repo, for licencing reasons.
 COPY VMware-ovftool-* .
@@ -10,6 +16,6 @@ RUN \
     rm ./VMware-ovftool-* && \
     ln -s $(which python3) /bin/python
 
-LABEL org.label-schema.name="home-network"
-
 COPY . /src
+
+RUN find /src -iname "*.sh" -print0 | xargs -0 -n1 shellcheck
