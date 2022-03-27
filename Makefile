@@ -154,6 +154,7 @@ router-dns-config: dns.vbash
 .INTERMEDIATE: pf.vbash
 pf.vbash:
 	sed \
+		-e 's/$${FACTORIO_IP}/'$(call SERVICE_LB_IP,factorio)'/' \
 		-e 's/$${PLEX_IP}/'$(call SERVICE_LB_IP,plex)'/' \
 		-e 's/$${OPENVPNAS_IP}/'$(call SERVICE_LB_IP,openvpnas)'/' \
 		-e 's/$${NGINX_IP}/'$(call SERVICE_LB_IP,nginx-external)'/' \
