@@ -7,6 +7,7 @@ set -eufo pipefail
 
 LABEL_NAME="aleemhaji.com/oldest"
 SLACK_URL="https://slackbot.internal.aleemhaji.com/message"
+HOPE_SOURCE_DIR="/src"
 
 slack() {
 	curl -sS -X POST -H "X-SLACK-CHANNEL-ID: ${SLACK_BOT_ALERTING_CHANNEL}" -d "$@" "$SLACK_URL"
@@ -44,22 +45,21 @@ create_node() {
     echo hope --config hope.yaml node init --force "$node_id"
 }
 
-cd /src
+cd "$HOPE_SOURCE_DIR"
 source .env.new
+
+slack "Node rotator starting on $NODE_NAME..."
 
 # Before even getting into the node creation/deletion flow,
 #     make sure all nodes that should be up are up.
 # If there's anything unhealthy, pop that one node off the
 #     list, and try to bring it up.
 if ! node_statuses="$(hope --config hope.yaml node status -t node)"; then
-    single_bad_node="$(echo "$node_statuses" | sed '1d' | awk '{if ($2 != "Healthy") print $1}' | head -1)"
-    slack "Node rotator found: $single_bad_node as possibly unhealthy. Attempting to restore capacity."
-    delete_node "$single_bad_node"
-    create_node "$single_bad_node"
-    exit
+    node_id="$(echo "$node_statuses" | sed '1d' | awk '{if ($2 != "Healthy") print $1}' | head -1)"
+    slack "Node rotator found: $node_id as possibly unhealthy. Attempting to restore capacity."
+else
+    node_id="$(kubectl get nodes -l "$LABEL_NAME=true" -o template="{{range .items}}{{.metadata.name}}{{end}}")"
 fi
-
-node_id="$(kubectl get nodes -l "$LABEL_NAME=true" -o template="{{range .items}}{{.metadata.name}}{{end}}")"
 
 if [ -z "$node_id" ]; then
 	slack "Failed to find oldest node in cluster."
@@ -73,6 +73,5 @@ if [ "$node_id" = "$NODE_NAME" ]; then
 	exit 1
 fi
 
-slack "Node rotator starting on $NODE_NAME..."
 destroy_node "$node_id"
 create_node "$node_id"
