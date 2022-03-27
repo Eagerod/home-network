@@ -8,4 +8,4 @@
 
 set -e
 
-docker cp $(docker ps -q --filter name=unifi):/usr/lib/unifi/data/backup/autobackup/. /var/lib/backups/unifi/
+docker cp "$(docker ps -q --filter name=unifi):/usr/lib/unifi/data/backup/autobackup/." /var/lib/backups/unifi/

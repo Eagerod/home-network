@@ -16,7 +16,7 @@ kubectl -n "$KUBE_NAMESPACE" get jobs -o custom-columns="NAME:{.metadata.name},S
     grep -- "$MANUAL_JOB_REGEXP" |\
 	awk '{if ($2 == 1) print}' |\
 	awk -v "arg=$ONE_MONTH_AGO" '{if ($3 < arg) print $1}' |\
-	while read job; do
+	while read -r job; do
 	echo "Kubernetes job monitor deleting old manually run job: $job"
 	kubectl -n "${KUBE_NAMESPACE}" delete job "$job"
 done
