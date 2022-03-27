@@ -1124,7 +1124,7 @@ resources:
       - SOURCE_NFS_SHARE=/mnt/main/apps/factorio
       - SOURCE_PATH=/
       - DESTINATION_NFS_SERVER=192.168.96.4
-      - DESTINATION_NFS_SHARE=/mnt/main/backup
+      - DESTINATION_NFS_SHARE=/mnt/main/backup/apps
       - DEST_PATH=/game-saves/factorio/saves
     tags: [factorio, backups]
   - name: bookstack-backups
