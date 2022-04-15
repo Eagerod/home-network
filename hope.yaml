@@ -550,9 +550,9 @@ resources:
     tags: [docker-cache, bitwarden]
   - name: syncthing-image-cache
     build:
-      source: syncthing/syncthing:1.19.1
+      source: syncthing/syncthing:1.19.2
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/syncthing:1.19.1
+      tag: registry.internal.aleemhaji.com/syncthing:1.19.2
     tags: [docker-cache, syncthing]
   - name: diun-image-cache
     build:
