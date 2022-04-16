@@ -88,7 +88,7 @@ spec:
   selector:
     app: rmq-http-bridge-server
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: rmq-http-bridge-ingress
@@ -104,6 +104,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: rmq-http-bridge
-              servicePort: 8080
+              service:
+                name: rmq-http-bridge
+                port:
+                  number: 8080
