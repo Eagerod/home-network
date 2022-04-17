@@ -328,7 +328,7 @@ resources:
       - *ingress_controller_external_service_ip
   - name: kubernetes-dashboard-ingress
     inline: |
-      apiVersion: extensions/v1beta1
+      apiVersion: networking.k8s.io/v1
       kind: Ingress
       metadata:
         namespace: kubernetes-dashboard
@@ -341,7 +341,7 @@ resources:
           - host: dashboard
           - host: dashboard.home
       ---
-      apiVersion: extensions/v1beta1
+      apiVersion: networking.k8s.io/v1
       kind: Ingress
       metadata:
         namespace: kubernetes-dashboard
@@ -359,9 +359,12 @@ resources:
             http:
               paths:
                 - path: /
+                  pathType: Prefix
                   backend:
-                    serviceName: kubernetes-dashboard
-                    servicePort: 443
+                    service:
+                      name: kubernetes-dashboard
+                      port:
+                        number: 443
     tags: [apps, dashboard]
   - name: cluster-registry-secrets-default
     file: registry/registry-secrets.yaml
@@ -697,7 +700,7 @@ resources:
     build:
       path: transmission
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/transmission:latest
+      tag: registry.internal.aleemhaji.com/transmission:2004
     tags: [apps, transmission]
   - name: osstransmission
     file: transmission/transmission.yaml
