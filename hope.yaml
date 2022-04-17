@@ -1196,21 +1196,25 @@ resources:
       kind: Namespace
       metadata:
         name: dev
+    tags: [rotate-node]
   - name: home-network-image
     build:
       path: .
       pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/home-network:latest
+    tags: [rotate-node]
   - name: dev-ssh-key
     file: ssh-key.yaml
     parameters:
       - SSH_KEY_NAMESPACE=dev
       - DEV_SSH_KEY_BASE64
       - DEV_KNOWN_HOSTS_BASE64
+    tags: [rotate-node]
   - name: devbox
     file: devbox.yaml
     parameters:
       - *devbox_service_ip
+    tags: [rotate-node]
   - name: rotate-node-tagger
     file: node-rotator/rotate-node-tagger.yaml
     fileParameters:
