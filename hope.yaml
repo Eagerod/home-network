@@ -373,6 +373,13 @@ resources:
       - DOCKER_REGISTRY_HOSTNAME
       - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
     tags: [apps, registry]
+  - name: cluster-registry-secrets-dev
+    file: registry/registry-secrets.yaml
+    parameters:
+      - NAMESPACE=dev
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+    tags: [apps, registry]
   - name: cluster-registry-secrets-monitoring
     file: registry/registry-secrets.yaml
     parameters:
@@ -1180,6 +1187,18 @@ resources:
     fileParameters:
       - JOBS_SHELL_MONITOR_SCRIPT=shell-monitor/delete-manual-jobs-monitor.sh
     tags: [shell-monitor]
+  - name: dev-namespace
+    inline: |
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: dev
+    tags: [rotate-node]
+  - name: rotate-node-tagger
+    file: node-rotator/rotate-node-tagger.yaml
+    fileParameters:
+      - ROTATE_NODE_TAGGER_SCRIPT=node-rotator/rotate-node-tagger.sh
+    tags: [rotate-node]
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml
