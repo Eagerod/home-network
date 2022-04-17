@@ -167,7 +167,7 @@ spec:
   selector:
     app: openvpnas
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: openvpnas-ingress-redirect
@@ -179,7 +179,7 @@ spec:
     - host: openvpnas
     - host: openvpnas.home
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: openvpn-as-ingress
@@ -196,11 +196,14 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: openvpnas-tcp
-              servicePort: 943
+              service:
+                name: openvpnas-tcp
+                port:
+                  number: 943
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: openvpn-as-ingress-external
@@ -217,6 +220,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: openvpnas-tcp
-              servicePort: 944
+              service:
+                name: openvpnas-tcp
+                port:
+                  number: 944

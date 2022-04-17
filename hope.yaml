@@ -421,7 +421,13 @@ resources:
       source: ubuntu:16.04
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/ubuntu:16.04
-    tags: [docker-cache, crons, transmission]
+    tags: [docker-cache, crons]
+  - name: ubuntu-2004-image-cache
+    build:
+      source: ubuntu:20.04
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/ubuntu:20.04
+    tags: [docker-cache, transmission]
   - name: certbot-image-cache
     build:
       source: certbot/certbot:v1.25.0

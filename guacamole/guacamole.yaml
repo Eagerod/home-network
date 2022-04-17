@@ -62,7 +62,7 @@ spec:
   selector:
     app: guacamole
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: guacamole-ingress-redirect
@@ -74,7 +74,7 @@ spec:
     - host: guacamole
     - host: guacamole.home
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: guacamole-ingress
@@ -91,6 +91,9 @@ spec:
       http:
         paths:
           - path: /(.*)
+            pathType: Prefix
             backend:
-              serviceName: guacamole
-              servicePort: 8080
+              service:
+                name: guacamole
+                port:
+                  number: 8080
