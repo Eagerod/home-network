@@ -42,7 +42,7 @@ spec:
   selector:
     app: browser
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: browser-ingress-redirect
@@ -54,7 +54,7 @@ spec:
     - host: browser
     - host: browser.home
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: browser-ingress
@@ -70,6 +70,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: browser
-              servicePort: 8080
+              service:
+                name: browser
+                port:
+                  number: 8080

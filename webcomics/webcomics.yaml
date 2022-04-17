@@ -73,7 +73,7 @@ spec:
                 - name: WEBCOMICS_HOST
                   value: webcomics
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: webcomics-ingress
@@ -89,6 +89,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: webcomics
-              servicePort: 80
+              service:
+                name: webcomics
+                port:
+                  number: 80

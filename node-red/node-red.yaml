@@ -68,7 +68,7 @@ spec:
   selector:
     app: node-red
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: node-red-ingress-redirect
@@ -80,7 +80,7 @@ spec:
     - host: nodered
     - host: nodered.home
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: node-red-ingress
@@ -96,6 +96,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: node-red
-              servicePort: 1880
+              service:
+                name: node-red
+                port:
+                  number: 1880

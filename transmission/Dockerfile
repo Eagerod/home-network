@@ -1,4 +1,4 @@
-FROM registry.internal.aleemhaji.com/ubuntu:16.04
+FROM registry.internal.aleemhaji.com/ubuntu:20.04
 
 RUN \
     apt-get update -y && \

@@ -134,7 +134,7 @@ spec:
   selector:
     app: unifi
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: unifi-ingress-redirect
@@ -146,7 +146,7 @@ spec:
     - host: unifi
     - host: unifi.home
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: unifi-ingress
@@ -164,6 +164,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: unifi-tcp
-              servicePort: 8443
+              service:
+                name: unifi-tcp
+                port:
+                  number: 8443
