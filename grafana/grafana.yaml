@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   namespace: monitoring
@@ -11,7 +11,7 @@ spec:
     - host: grafana
     - host: grafana.home
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   namespace: monitoring
@@ -28,6 +28,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: grafana
-              servicePort: 3000
+              service:
+                name: grafana
+                port:
+                  number: 3000

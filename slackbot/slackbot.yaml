@@ -55,7 +55,7 @@ spec:
   selector:
     app: slackbot
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: slackbot-ingress-redirect
@@ -67,7 +67,7 @@ spec:
     - host: slackbot
     - host: slackbot.home
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: slackbot-ingress
@@ -83,6 +83,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: slackbot
-              servicePort: 80
+              service:
+                name: slackbot
+                port:
+                  number: 80

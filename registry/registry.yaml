@@ -68,7 +68,7 @@ spec:
   selector:
     app: registry
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: registry-ingress-redirect
@@ -80,7 +80,7 @@ spec:
     - host: registry
     - host: registry.home
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: registry-ingress
@@ -97,6 +97,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: registry
-              servicePort: 80
+              service:
+                name: registry
+                port:
+                  number: 80

@@ -192,7 +192,6 @@ resources:
         name: udp-services
       data:
         53: "default/pihole-udp:53"
-        34197: "default/factorio:34197"
       ---
       apiVersion: v1
       kind: ConfigMap
@@ -275,9 +274,6 @@ resources:
         - port: 53
           name: dns
           protocol: UDP
-        - port: 34197
-          name: factorio
-          protocol: UDP
         type: LoadBalancer
         loadBalancerIP: ${LOAD_BALANCER_IP}
         selector:
@@ -331,7 +327,7 @@ resources:
       - *ingress_controller_external_service_ip
   - name: kubernetes-dashboard-ingress
     inline: |
-      apiVersion: extensions/v1beta1
+      apiVersion: networking.k8s.io/v1
       kind: Ingress
       metadata:
         namespace: kubernetes-dashboard
@@ -344,7 +340,7 @@ resources:
           - host: dashboard
           - host: dashboard.home
       ---
-      apiVersion: extensions/v1beta1
+      apiVersion: networking.k8s.io/v1
       kind: Ingress
       metadata:
         namespace: kubernetes-dashboard
@@ -362,14 +358,24 @@ resources:
             http:
               paths:
                 - path: /
+                  pathType: Prefix
                   backend:
-                    serviceName: kubernetes-dashboard
-                    servicePort: 443
+                    service:
+                      name: kubernetes-dashboard
+                      port:
+                        number: 443
     tags: [apps, dashboard]
   - name: cluster-registry-secrets-default
     file: registry/registry-secrets.yaml
     parameters:
       - NAMESPACE=default
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+    tags: [apps, registry]
+  - name: cluster-registry-secrets-dev
+    file: registry/registry-secrets.yaml
+    parameters:
+      - NAMESPACE=dev
       - DOCKER_REGISTRY_HOSTNAME
       - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
     tags: [apps, registry]
@@ -424,7 +430,13 @@ resources:
       source: ubuntu:16.04
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/ubuntu:16.04
-    tags: [docker-cache, crons, factorio, transmission]
+    tags: [docker-cache, crons]
+  - name: ubuntu-2004-image-cache
+    build:
+      source: ubuntu:20.04
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/ubuntu:20.04
+    tags: [docker-cache, transmission]
   - name: certbot-image-cache
     build:
       source: certbot/certbot:v1.25.0
@@ -537,9 +549,9 @@ resources:
     tags: [docker-cache, bitwarden]
   - name: syncthing-image-cache
     build:
-      source: syncthing/syncthing:1.19.1
+      source: syncthing/syncthing:1.19.2
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/syncthing:1.19.1
+      tag: registry.internal.aleemhaji.com/syncthing:1.19.2
     tags: [docker-cache, syncthing]
   - name: diun-image-cache
     build:
@@ -688,20 +700,11 @@ resources:
     build:
       path: transmission
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/transmission:latest
+      tag: registry.internal.aleemhaji.com/transmission:2004
     tags: [apps, transmission]
   - name: osstransmission
     file: transmission/transmission.yaml
     tags: [apps, transmission]
-  - name: factorio-image
-    build:
-      path: factorio
-      pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/factorio:latest
-    tags: [apps, factorio]
-  - name: factorio
-    file: factorio/factorio.yaml
-    tags: [apps, factorio]
   - name: plex
     file: plex/plex.yaml
     parameters:
@@ -1069,18 +1072,6 @@ resources:
       pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/rsync:latest
     tags: [backups]
-  - name: factorio-backups
-    file: crons/rsync-cron.yaml
-    parameters:
-      - CRONJOB_NAME=factorio
-      - RSYNC_OPTIONS=-avhuDH --exclude=.sync
-      - SOURCE_NFS_SERVER=192.168.96.4
-      - SOURCE_NFS_SHARE=/mnt/main/apps/factorio
-      - SOURCE_PATH=/
-      - DESTINATION_NFS_SERVER=192.168.96.4
-      - DESTINATION_NFS_SHARE=/mnt/main/backup
-      - DEST_PATH=/game-saves/factorio/saves
-    tags: [factorio, backups]
   - name: bookstack-backups
     file: crons/rsync-cron.yaml
     parameters:
@@ -1150,6 +1141,18 @@ resources:
     fileParameters:
       - JOBS_SHELL_MONITOR_SCRIPT=shell-monitor/delete-manual-jobs-monitor.sh
     tags: [shell-monitor]
+  - name: dev-namespace
+    inline: |
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: dev
+    tags: [rotate-node]
+  - name: rotate-node-tagger
+    file: node-rotator/rotate-node-tagger.yaml
+    fileParameters:
+      - ROTATE_NODE_TAGGER_SCRIPT=node-rotator/rotate-node-tagger.sh
+    tags: [rotate-node]
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml

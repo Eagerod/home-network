@@ -1,7 +1,7 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: syncthing-deployment
+  name: syncthing
   labels:
     app: syncthing
 spec:
@@ -10,6 +10,7 @@ spec:
   selector:
     matchLabels:
       app: syncthing
+  serviceName: syncthing
   template:
     metadata:
       labels:
@@ -19,7 +20,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: syncthing
-          image: registry.internal.aleemhaji.com/syncthing:1.19.1
+          image: registry.internal.aleemhaji.com/syncthing:1.19.2
           ports:
             - containerPort: 8384
           env:
@@ -54,7 +55,7 @@ spec:
   selector:
     app: syncthing
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: syncthing-ingress-redirect
@@ -66,7 +67,7 @@ spec:
     - host: syncthing
     - host: syncthing.home
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: syncthing-ingress
@@ -83,6 +84,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: syncthing
-              servicePort: 8384
+              service:
+                name: syncthing
+                port:
+                  number: 8384

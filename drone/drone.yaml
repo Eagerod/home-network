@@ -152,7 +152,7 @@ spec:
     app: drone
     module: web
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: drone-ingress-redirect
@@ -164,7 +164,7 @@ spec:
     - host: drone
     - host: drone.home
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: drone-ingress
@@ -180,6 +180,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: drone
-              servicePort: 80
+              service:
+                name: drone
+                port:
+                  number: 80
