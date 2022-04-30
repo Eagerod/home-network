@@ -577,6 +577,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.1
     tags: [docker-cache, drone]
+  - name: wireguard-image-cache
+    build:
+      source: masipcat/wireguard-go:0.0.20220316
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/wireguard-go:0.0.20220316
+    tags: [docker-cache, wireguard]
   # endregion
   # https://github.com/prometheus-operator/kube-prometheus#quickstart
   - name: prometheus
@@ -710,6 +716,16 @@ resources:
     parameters:
       - *plex_load_balancer_service_ip
     tags: [apps, plex]
+  - name: wireguard
+    file: wireguard/wireguard.yaml
+    parameters:
+      - LOAD_BALANCER_IP=192.168.200.123
+      - WIREGUARD_SERVER_IP=172.27.224.1
+      - WIREGUARD_CLIENT_IP_CIDR=172.27.224.0/24
+      - WIREGUARD_SERVER_PRIVATE_KEY
+      - WIREGUARD_PEER_1_PUBLIC_KEY
+      - WIREGUARD_PEER_1_IP=172.27.224.32/32
+    tags: [apps, wireguard]
   # endregion
   # region: Databases
   # This section contains definitions for databases.
