@@ -19,6 +19,15 @@ stringData:
     [Peer]
     PublicKey = ${WIREGUARD_PEER_1_PUBLIC_KEY}
     AllowedIPs = ${WIREGUARD_PEER_1_IP}
+    [Peer]
+    PublicKey = ${WIREGUARD_PEER_2_PUBLIC_KEY}
+    AllowedIPs = ${WIREGUARD_PEER_2_IP}
+    [Peer]
+    PublicKey = ${WIREGUARD_PEER_3_PUBLIC_KEY}
+    AllowedIPs = ${WIREGUARD_PEER_3_IP}
+    [Peer]
+    PublicKey = ${WIREGUARD_PEER_4_PUBLIC_KEY}
+    AllowedIPs = ${WIREGUARD_PEER_4_IP}
 ---
 apiVersion: apps/v1
 kind: Deployment
