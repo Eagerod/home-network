@@ -6,8 +6,8 @@ _:
   - &metallb_address_range ADDRESS_RANGE=192.168.200.32-192.168.200.224
   - &ingress_controller_service_ip LOAD_BALANCER_IP=192.168.200.64
   - &ingress_controller_external_service_ip LOAD_BALANCER_IP=192.168.200.129
-  - &openvpn_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.85
   - &plex_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.69
+  - &wireguard_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.123
   - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.64
   - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
   - &unifi_controller_inform_url http://192.168.200.82:8080
@@ -509,12 +509,6 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/heimdall:version-2.2.2
     tags: [docker-cache, heimdall]
-  - name: openvpnas-image-cache
-    build:
-      source: linuxserver/openvpn-as:2.9.0-5c5bd120-Ubuntu18-ls124
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/openvpn-as:2.9.0-5c5bd120-Ubuntu18-ls124
-    tags: [docker-cache, openvpn]
   - name: plex-image-cache
     build:
       source: plexinc/pms-docker:1.25.7.5604-980a13e02
@@ -587,6 +581,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.1
     tags: [docker-cache, drone]
+  - name: wireguard-image-cache
+    build:
+      source: masipcat/wireguard-go:0.0.20220316
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/wireguard-go:0.0.20220316
+    tags: [docker-cache, wireguard]
   # endregion
   # https://github.com/prometheus-operator/kube-prometheus#quickstart
   - name: prometheus
@@ -715,50 +715,21 @@ resources:
   - name: osstransmission
     file: transmission/transmission.yaml
     tags: [apps, transmission]
-  - name: openvpnas-config
-    inline: |
-      apiVersion: v1
-      data:
-        username: ${OPENVPN_PRIMARY_USERNAME}
-        hostname: ${OPENVPN_AS_HOSTNAME}
-      kind: ConfigMap
-      metadata:
-        name: openvpn-config
-      ---
-      apiVersion: v1
-      data:
-        password: ${OPENVPN_PRIMARY_PASSWORD_BASE64}
-      kind: Secret
-      metadata:
-        name: openvpn-secrets
-    parameters:
-      - OPENVPN_PRIMARY_USERNAME
-      - OPENVPN_AS_HOSTNAME
-      - OPENVPN_PRIMARY_PASSWORD_BASE64
-    tags: [apps, openvpn]
-  - name: openvpnas
-    file: openvpnas/openvpnas.yaml
-    tags: [apps, openvpn]
-    parameters:
-      - *openvpn_load_balancer_service_ip
-  - name: openvpnas-init
-    exec:
-      selector: deployment/openvpnas-deployment
-      # Container is a Linuxserver.io one, so it's going to be slow af.
-      timeout: 5m
-      command:
-        - bash
-        - -xec
-        - |
-          find /scripts -type f | sort | while read line; do
-            sh $line;
-          done
-    tags: [apps, openvpn]
   - name: plex
     file: plex/plex.yaml
     parameters:
       - *plex_load_balancer_service_ip
     tags: [apps, plex]
+  - name: wireguard
+    file: wireguard/wireguard.yaml
+    parameters:
+      - *wireguard_load_balancer_service_ip
+      - WIREGUARD_SERVER_IP=172.27.224.1
+      - WIREGUARD_CLIENT_IP_CIDR=172.27.224.0/24
+      - WIREGUARD_SERVER_PRIVATE_KEY
+      - WIREGUARD_PEER_1_PUBLIC_KEY
+      - WIREGUARD_PEER_1_IP=172.27.224.32/32
+    tags: [apps, wireguard]
   # endregion
   # region: Databases
   # This section contains definitions for databases.

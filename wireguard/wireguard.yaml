@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wireguard-secrets
+stringData:
+  wg0.conf: |
+    [Interface]
+    Address = ${WIREGUARD_SERVER_IP}
+    ListenPort = 51820
+    PrivateKey = ${WIREGUARD_SERVER_PRIVATE_KEY}
+
+    PostUp = iptables -A FORWARD -i %i -j ACCEPT
+    PostUp = iptables -A FORWARD -o %i -j ACCEPT
+    PostUp = iptables -t nat -A POSTROUTING -s ${WIREGUARD_CLIENT_IP_CIDR} -o eth0 -j MASQUERADE
+    PostDown = iptables -D FORWARD -i %i -j ACCEPT
+    PostDown = iptables -D FORWARD -o %i -j ACCEPT
+    PostDown = iptables -t nat -D POSTROUTING -s ${WIREGUARD_CLIENT_IP_CIDR} -o eth0 -j MASQUERADE
+
+    [Peer]
+    PublicKey = ${WIREGUARD_PEER_1_PUBLIC_KEY}
+    AllowedIPs = ${WIREGUARD_PEER_1_IP}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wireguard-deployment
+  labels:
+    app: wireguard
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wireguard
+  template:
+    metadata:
+      labels:
+        app: wireguard
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      initContainers:
+        - name: init
+          image: registry.internal.aleemhaji.com/busybox:1.35.0
+          command:
+            - sh
+            - -c
+            - sysctl -w net.ipv4.ip_forward=1 && sysctl -w net.ipv4.conf.all.forwarding=1
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - NET_ADMIN
+      containers:
+        - name: wireguard
+          image: registry.internal.aleemhaji.com/wireguard-go:0.0.20220316
+          imagePullPolicy: Always
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - NET_ADMIN
+          ports:
+            - containerPort: 51820
+              protocol: UDP
+          env:
+            - name: LOG_LEVEL
+              value: debug
+          volumeMounts:
+            - name: wireguard-secrets
+              mountPath: /etc/wireguard/wg0.conf
+              subPath: wg0.conf
+              readOnly: true
+      volumes:
+        - name: wireguard-secrets
+          secret:
+            secretName: wireguard-secrets
+            defaultMode: 0600
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wireguard
+  labels:
+    app: wireguard
+spec:
+  ports:
+    - port: 51820
+      protocol: UDP
+  type: LoadBalancer
+  loadBalancerIP: ${LOAD_BALANCER_IP}
+  selector:
+    app: wireguard
