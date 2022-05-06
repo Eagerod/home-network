@@ -13,6 +13,25 @@ slack_client = SlackClient(os.environ['SLACK_API_KEY'])
 default_channel = os.environ['DEFAULT_CHANNEL']
 
 
+def finalize_error(api_return):
+    if not api_return['ok']:
+        # See if this is the server, or the sender's fault.
+        if api_return['error'] == 'invalid_auth':
+            logging.error('Slack API key is incorrectly configured.')
+            return '', 500
+        if api_return['error'] == 'not_authed':
+            logging.error('Missing Slack API key.')
+            return '', 500
+
+        error = 'Unknown error from Slack: {}. Blaming the client.'.format(
+            api_return['error']
+        )
+        logging.warning(error)
+        return api_return['error'], 400
+
+    return '', 200
+
+
 @app.route('/message', methods=['POST'])
 def receive_internal_message():
     message_body = request.get_data()
@@ -29,19 +48,29 @@ def receive_internal_message():
         unfurl_links=True
     )
 
-    if not rv['ok']:
-        # See if this is the server, or the sender's fault.
-        if rv['error'] == 'invalid_auth':
-            logging.error('Slack API key is incorrectly configured.')
-            return '', 500
-        if rv['error'] == 'not_authed':
-            logging.error('Missing Slack API key.')
-            return '', 500
+    return finalize_error(rv)
 
-        error = 'Unknown error from Slack: {}. Blaming the client.'.format(
-            rv['error']
-        )
-        logging.warning(error)
-        return rv['error'], 400
 
-    return '', 200
+@app.route('/markdown', methods=['POST'])
+def receive_internal_markdown():
+    message_body = request.get_data()
+
+    if not message_body:
+        return 'No message content', 400
+
+    channel = request.headers.get('X-SLACK-CHANNEL-ID') or default_channel
+
+    rv = slack_client.api_call(
+        'chat.postMessage',
+        channel=channel,
+        blocks=[{
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": message_body.decode("utf-8")
+            }
+        }],
+        unfurl_links=True
+    )
+
+    return finalize_error(rv)
