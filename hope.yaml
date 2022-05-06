@@ -1011,6 +1011,24 @@ resources:
   - name: bookstack
     file: bookstack/bookstack.yaml
     tags: [apps, bookstack]
+  - name: bookstack-notifier-secrets
+    inline: |
+      apiVersion: v1
+      data:
+        token_id: ${BOOKSTACK_TOKEN_ID_BASE64}
+        token_secret: ${BOOKSTACK_TOKEN_SECRET_BASE64}
+      kind: Secret
+      metadata:
+        name: bookstack-notifier-secrets
+    parameters:
+      - BOOKSTACK_TOKEN_ID_BASE64
+      - BOOKSTACK_TOKEN_SECRET_BASE64
+    tags: [apps, bookstack]
+  - name: bookstack-notifier
+    file: bookstack/bookstack-notifier.yaml
+    fileParameters:
+      - BOOKSTACK_NOTIFIER_SCRIPT=bookstack/bookstack-notifier.sh
+    tags: [apps, bookstack]
   - name: drone-init
     file: drone/drone-init.yaml
     tags: [apps, drone]
