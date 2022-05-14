@@ -29,13 +29,8 @@ spec:
               value: https://firefly.internal.aleemhaji.com
             - name: VANITY_URL
               value: https://firefly.internal.aleemhaji.com
-            # - name: FIREFLY_III_CLIENT_ID
-            #   value: "164"
-            - name: FIREFLY_III_ACCESS_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: firefly-secrets
-                  key: importer_pat
+            - name: FIREFLY_III_CLIENT_ID
+              value: "171"
 ---
 apiVersion: v1
 kind: Service
