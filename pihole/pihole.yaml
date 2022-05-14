@@ -70,7 +70,7 @@ metadata:
     app: pihole
 spec:
   revisionHistoryLimit: 0
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: pihole
@@ -89,7 +89,7 @@ spec:
       #   however I want without needing to restart the pod.
       initContainers:
         - name: pihole-config
-          image: registry.internal.aleemhaji.com/busybox:1.33.1
+          image: registry.internal.aleemhaji.com/busybox:1.35.0
           volumeMounts:
             - name: pihole-static-config
               mountPath: pihole-static-config
@@ -104,7 +104,7 @@ spec:
               cp pihole-static-config/lan.list config-root/
       containers:
         - name: pihole
-          image: registry.internal.aleemhaji.com/pihole:v5.3.4
+          image: registry.internal.aleemhaji.com/pihole:v5.8
           ports:
             - containerPort: 80
               protocol: TCP
@@ -149,7 +149,7 @@ spec:
           # Maybe I should have a temporary pihole pod without this hooked up
           #   to it, and once the registry is definitely up and resolvable,
           #   replace it with this pod?
-          image: registry.internal.aleemhaji.com/hostsfile-daemon:latest
+          image: registry.internal.aleemhaji.com/hostsfile-daemon:0.3.3
           args:
             - --ingress-ip
             - ${INGRESS_IP}
@@ -198,7 +198,7 @@ spec:
   selector:
     app: pihole
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: pihole-ingress-redirect
@@ -210,7 +210,7 @@ spec:
     - host: pihole
     - host: pihole.home
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: pihole-special-redirect
@@ -222,11 +222,14 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: pihole-tcp
-              servicePort: 80
+              service:
+                name: pihole-tcp
+                port:
+                  number: 80
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: pihole-ingress
@@ -242,6 +245,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: pihole-tcp
-              servicePort: 80
+              service:
+                name: pihole-tcp
+                port:
+                  number: 80

@@ -20,6 +20,13 @@ spec:
           image: registry:2
           ports:
             - containerPort: 80
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
           volumeMounts:
             - name: registry-persistent-storage
               mountPath: /var/lib/registry
@@ -61,7 +68,7 @@ spec:
   selector:
     app: registry
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: registry-ingress-redirect
@@ -73,7 +80,7 @@ spec:
     - host: registry
     - host: registry.home
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: registry-ingress
@@ -90,6 +97,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: registry
-              servicePort: 80
+              service:
+                name: registry
+                port:
+                  number: 80

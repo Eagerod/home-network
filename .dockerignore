@@ -1,0 +1,48 @@
+# This file is maintained at:
+#   https://github.com/Eagerod/dotfiles/blob/master/docker/.dockerignore
+# Generic, and hopefully extremely reusable .dockerignore file.
+# Each section outlines a collection of somewhat related files that should be
+#   excluded from nearly every Docker image that ends up being built.
+# Commenting out certain lines may be reasonable under some circumstances.
+# Sections are kind of sorted according to how project-specific they are, so
+#   items higher up in the list should nearly never need to be commented away.
+#
+# Operating system files
+**/.DS_Store
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.yaml
+
+# Git files
+**/.git
+**/*.orig
+**/.gitignore
+
+# Workspace/Editor files
+*.sublime-project
+*.sublime-workspace
+**/.idea
+**/.vscode
+
+# CI-runner files
+.drone.yml
+.drone.yaml
+.github
+.gitlab-ci.yml
+.gitlab-ci.yaml
+.travis.yml
+.travis.yaml
+
+# General project files
+README.md
+
+
+# Files for this project
+.env
+.env.*
+.gitignore-extra
+Dockerfile.ci
+LICENSE

@@ -1,72 +1,78 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: events-monitor
+  name: jobs-monitor
+  namespace: ${KUBE_NAMESPACE}
 ---
-kind: ClusterRole
+kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: events-monitor
+  name: jobs-monitor
+  namespace: ${KUBE_NAMESPACE}
 rules:
 - apiGroups:
-  - ""
+  - "batch"
   resources:
-  - events
+  - jobs
   verbs:
   - list
+  - delete
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: events-monitor-shell-monitor
+  name: jobs-monitor-shell-monitor
+  namespace: ${KUBE_NAMESPACE}
 subjects:
 - kind: ServiceAccount
-  name: events-monitor
+  name: jobs-monitor
 roleRef:
   kind: Role
   name: shell-monitor
   apiGroup: rbac.authorization.k8s.io
 ---
-kind: ClusterRoleBinding
+kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: events-monitor-events-monitor
+  name: jobs-monitor-jobs-monitor
+  namespace: ${KUBE_NAMESPACE}
 subjects:
 - kind: ServiceAccount
-  name: events-monitor
-  namespace: default
+  name: jobs-monitor
 roleRef:
-  kind: ClusterRole
-  name: events-monitor
+  kind: Role
+  name: jobs-monitor
   apiGroup: rbac.authorization.k8s.io
 ---
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: event-monitor-script
+  name: job-monitor-script
+  namespace: ${KUBE_NAMESPACE}
   labels:
-    app: events-shell-monitor
+    app: jobs-shell-monitor
 binaryData:
-  script.sh: ${EVENTS_SHELL_MONITOR_SCRIPT}
+  script.sh: ${JOBS_SHELL_MONITOR_SCRIPT}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: events-shell-monitor-deployment
+  name: jobs-shell-monitor-deployment
+  namespace: ${KUBE_NAMESPACE}
   labels:
-    app: events-shell-monitor
+    app: jobs-shell-monitor
 spec:
   revisionHistoryLimit: 0
   replicas: 1
   selector:
     matchLabels:
-      app: events-shell-monitor
+      app: jobs-shell-monitor
   template:
     metadata:
       labels:
-        app: events-shell-monitor
+        app: jobs-shell-monitor
     spec:
-      serviceAccountName: events-monitor
+      serviceAccountName: jobs-monitor
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
       containers:
@@ -76,7 +82,7 @@ spec:
              - /scripts/base/script.sh
           env:
             - name: CONFIG_MAP_NAME
-              value: recent-events-monitor
+              value: recent-jobs-monitor
             - name: UPDATE_SCRIPT
               value: /scripts/monitor/script.sh
             - name: UPDATE_INTERVAL
@@ -84,14 +90,14 @@ spec:
           volumeMounts:
             - name: shell-monitor-base-scripts
               mountPath: /scripts/base
-            - name: event-monitor-script
+            - name: job-monitor-script
               mountPath: /scripts/monitor
       volumes:
         - name: shell-monitor-base-scripts
           configMap:
             name: shell-monitor-base-config
             defaultMode: 0755
-        - name: event-monitor-script
+        - name: job-monitor-script
           configMap:
-            name: event-monitor-script
+            name: job-monitor-script
             defaultMode: 0755

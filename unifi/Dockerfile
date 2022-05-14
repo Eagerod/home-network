@@ -1,4 +1,4 @@
-FROM linuxserver/unifi-controller:version-6.0.43
+FROM lscr.io/linuxserver/unifi-controller:7.0.23-ls145
 
 COPY system.properties /usr/lib/unifi/data/system.properties
 

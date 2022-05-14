@@ -4,15 +4,16 @@
 _:
   - &log_level trace
   - &metallb_address_range ADDRESS_RANGE=192.168.200.32-192.168.200.224
-  - &ingress_controller_service_ip LOAD_BALANCER_IP=192.168.200.128
+  - &ingress_controller_service_ip LOAD_BALANCER_IP=192.168.200.64
   - &ingress_controller_external_service_ip LOAD_BALANCER_IP=192.168.200.129
-  - &openvpn_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.85
   - &plex_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.69
-  - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.128
+  - &wireguard_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.123
+  - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.64
   - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
+  - &unifi_controller_inform_url http://192.168.200.82:8080
   - &docker_hub_upstream_pull if-not-present
   - &local_upstream_pull always
-access_point_controller: http://192.168.200.81:8080
+access_point_controller: *unifi_controller_inform_url
 access_points:
   - ubnt@192.168.1.86
   - ubnt@192.168.1.109
@@ -192,7 +193,6 @@ resources:
         name: udp-services
       data:
         53: "default/pihole-udp:53"
-        34197: "default/factorio:34197"
       ---
       apiVersion: v1
       kind: ConfigMap
@@ -275,9 +275,6 @@ resources:
         - port: 53
           name: dns
           protocol: UDP
-        - port: 34197
-          name: factorio
-          protocol: UDP
         type: LoadBalancer
         loadBalancerIP: ${LOAD_BALANCER_IP}
         selector:
@@ -331,7 +328,7 @@ resources:
       - *ingress_controller_external_service_ip
   - name: kubernetes-dashboard-ingress
     inline: |
-      apiVersion: extensions/v1beta1
+      apiVersion: networking.k8s.io/v1
       kind: Ingress
       metadata:
         namespace: kubernetes-dashboard
@@ -344,7 +341,7 @@ resources:
           - host: dashboard
           - host: dashboard.home
       ---
-      apiVersion: extensions/v1beta1
+      apiVersion: networking.k8s.io/v1
       kind: Ingress
       metadata:
         namespace: kubernetes-dashboard
@@ -362,14 +359,24 @@ resources:
             http:
               paths:
                 - path: /
+                  pathType: Prefix
                   backend:
-                    serviceName: kubernetes-dashboard
-                    servicePort: 443
+                    service:
+                      name: kubernetes-dashboard
+                      port:
+                        number: 443
     tags: [apps, dashboard]
   - name: cluster-registry-secrets-default
     file: registry/registry-secrets.yaml
     parameters:
       - NAMESPACE=default
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+    tags: [apps, registry]
+  - name: cluster-registry-secrets-dev
+    file: registry/registry-secrets.yaml
+    parameters:
+      - NAMESPACE=dev
       - DOCKER_REGISTRY_HOSTNAME
       - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
     tags: [apps, registry]
@@ -424,12 +431,18 @@ resources:
       source: ubuntu:16.04
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/ubuntu:16.04
-    tags: [docker-cache, crons, factorio, transmission]
+    tags: [docker-cache, crons]
+  - name: ubuntu-2004-image-cache
+    build:
+      source: ubuntu:20.04
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/ubuntu:20.04
+    tags: [docker-cache, transmission]
   - name: certbot-image-cache
     build:
-      source: certbot/certbot:v1.15.0
+      source: certbot/certbot:v1.25.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/certbot:v1.15.0
+      tag: registry.internal.aleemhaji.com/certbot:v1.25.0
     tags: [docker-cache, certbot]
   - name: mongo-37-image-cache
     build:
@@ -445,9 +458,9 @@ resources:
     tags: [docker-cache, mongodb, unifi]
   - name: busybox-image-cache
     build:
-      source: busybox:1.33.1
+      source: busybox:1.35.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/busybox:1.33.1
+      tag: registry.internal.aleemhaji.com/busybox:1.35.0
     tags: [docker-cache, mysql, redis, pihole]
   - name: mysql-57-image-cache
     build:
@@ -457,9 +470,9 @@ resources:
     tags: [docker-cache, mysql]
   - name: pihole-image-cache
     build:
-      source: pihole/pihole:v5.3.4
+      source: pihole/pihole:v5.8
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pihole:v5.3.4
+      tag: registry.internal.aleemhaji.com/pihole:v5.8
     tags: [docker-cache, pihole]
   - name: browser-image-cache
     build:
@@ -469,9 +482,9 @@ resources:
     tags: [docker-cache, browser]
   - name: curl-cache
     build:
-      source: curlimages/curl:7.72.0
+      source: curlimages/curl:7.80.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/curl:7.72.0
+      tag: registry.internal.aleemhaji.com/curl:7.80.0
     tags: [docker-cache, remindmebot, webcomics]
   - name: postgres-image-cache
     build:
@@ -499,17 +512,11 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/heimdall:version-2.2.2
     tags: [docker-cache, heimdall]
-  - name: openvpnas-image-cache
-    build:
-      source: linuxserver/openvpn-as:2.8.8-cbf850a0-Ubuntu18-ls118
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/openvpn-as:2.8.8-cbf850a0-Ubuntu18-ls118
-    tags: [docker-cache, openvpn]
   - name: plex-image-cache
     build:
-      source: plexinc/pms-docker:1.24.5.5173-8dcc73a59
+      source: plexinc/pms-docker:1.25.7.5604-980a13e02
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pms-docker:1.24.5.5173-8dcc73a59
+      tag: registry.internal.aleemhaji.com/pms-docker:1.25.7.5604-980a13e02
     tags: [docker-cache, plex]
   - name: redis-image-cache
     build:
@@ -543,21 +550,21 @@ resources:
     tags: [docker-cache, kubectl]
   - name: bitwarden-image-cache
     build:
-      source: vaultwarden/server:1.21.0
+      source: vaultwarden/server:1.24.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.21.0
+      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.24.0
     tags: [docker-cache, bitwarden]
   - name: syncthing-image-cache
     build:
-      source: syncthing/syncthing:1.18.4
+      source: syncthing/syncthing:1.19.2
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/syncthing:1.18.4
+      tag: registry.internal.aleemhaji.com/syncthing:1.19.2
     tags: [docker-cache, syncthing]
   - name: diun-image-cache
     build:
-      source: crazymax/diun:4.16.1
+      source: crazymax/diun:4.21.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/diun:4.16.1
+      tag: registry.internal.aleemhaji.com/diun:4.21.0
     tags: [docker-cache, diun]
   - name: bookstack-image-cache
     build:
@@ -577,6 +584,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.1
     tags: [docker-cache, drone]
+  - name: wireguard-image-cache
+    build:
+      source: masipcat/wireguard-go:0.0.20220316
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/wireguard-go:0.0.20220316
+    tags: [docker-cache, wireguard]
   # endregion
   # https://github.com/prometheus-operator/kube-prometheus#quickstart
   - name: prometheus
@@ -700,64 +713,26 @@ resources:
     build:
       path: transmission
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/transmission:latest
+      tag: registry.internal.aleemhaji.com/transmission:2004
     tags: [apps, transmission]
   - name: osstransmission
     file: transmission/transmission.yaml
     tags: [apps, transmission]
-  - name: openvpnas-config
-    inline: |
-      apiVersion: v1
-      data:
-        username: ${OPENVPN_PRIMARY_USERNAME}
-        hostname: ${OPENVPN_AS_HOSTNAME}
-      kind: ConfigMap
-      metadata:
-        name: openvpn-config
-      ---
-      apiVersion: v1
-      data:
-        password: ${OPENVPN_PRIMARY_PASSWORD_BASE64}
-      kind: Secret
-      metadata:
-        name: openvpn-secrets
-    parameters:
-      - OPENVPN_PRIMARY_USERNAME
-      - OPENVPN_AS_HOSTNAME
-      - OPENVPN_PRIMARY_PASSWORD_BASE64
-    tags: [apps, openvpn]
-  - name: openvpnas
-    file: openvpnas/openvpnas.yaml
-    tags: [apps, openvpn]
-    parameters:
-      - *openvpn_load_balancer_service_ip
-  - name: openvpnas-init
-    exec:
-      selector: deployment/openvpnas-deployment
-      # Container is a Linuxserver.io one, so it's going to be slow af.
-      timeout: 5m
-      command:
-        - bash
-        - -xec
-        - |
-          find /scripts -type f | sort | while read line; do
-            sh $line;
-          done
-    tags: [apps, openvpn]
-  - name: factorio-image
-    build:
-      path: factorio
-      pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/factorio:latest
-    tags: [apps, factorio]
-  - name: factorio
-    file: factorio/factorio.yaml
-    tags: [apps, factorio]
   - name: plex
     file: plex/plex.yaml
     parameters:
       - *plex_load_balancer_service_ip
     tags: [apps, plex]
+  - name: wireguard
+    file: wireguard/wireguard.yaml
+    parameters:
+      - *wireguard_load_balancer_service_ip
+      - WIREGUARD_SERVER_IP=172.27.224.1
+      - WIREGUARD_CLIENT_IP_CIDR=172.27.224.0/24
+      - WIREGUARD_SERVER_PRIVATE_KEY
+      - WIREGUARD_PEER_1_PUBLIC_KEY
+      - WIREGUARD_PEER_1_IP=172.27.224.32/32
+    tags: [apps, wireguard]
   # endregion
   # region: Databases
   # This section contains definitions for databases.
@@ -796,36 +771,13 @@ resources:
   - name: mysql-backup
     inline: |
       apiVersion: v1
-      data:
-        mysql-backup.sh: |
-          #!/bin/sh
-          set -e
-
-          if [ -z "${MYSQL_HOST}" ]; then
-              echo >&2 "Must provide MYSQL_HOST to backup"
-              exit 1
-          fi
-
-          if [ -z "${MYSQL_PWD}" ]; then
-              echo >&2 "Must provide MYSQL_PWD for root@${MYSQL_HOST}"
-              exit 2
-          fi
-
-          mysql -h ${MYSQL_HOST} -u root -s -N -e "show databases;" | while read database; do
-              if [ "$database" = "information_schema" ] || [ "$database" = "mysql" ] || [ "$database" = "sys" ] || [ "$database" = "performance_schema" ]; then
-                  echo >&2 "Skipping database $database"
-                  continue
-              fi
-
-              echo >&2 "Backing up database: $database"
-              mkdir -p "/var/lib/backups/$database"
-              mysql -h ${MYSQL_HOST} -u root -s -N -c "$database" -e "show tables;" | while read table; do
-                  mysqldump -h ${MYSQL_HOST} -u root --skip-dump-date "$database" "$table" > "/var/lib/backups/$database/$table.sql"
-              done || exit 1
-          done || exit 1
       kind: ConfigMap
       metadata:
         name: mysql-backup
+      binaryData:
+        mysql-backup.sh: ${MYSQL_BACKUP_SCRIPT}
+    fileParameters:
+      - MYSQL_BACKUP_SCRIPT=mysql/mysql-backup.sh
     tags: [apps, mysql, backups]
   - name: mysql
     file: mysql/mysql.yaml
@@ -833,36 +785,14 @@ resources:
   - name: mongodb-backup
     inline: |
       apiVersion: v1
-      data:
-        mongodb-backup.sh: |
-          #!/bin/sh
-          set -e
-
-          if [ -z "${MONGODB_HOST}" ]; then
-              echo >&2 "Must provide MONGODB_HOST to backup"
-              exit 1
-          fi
-
-          mongo --host ${MONGODB_HOST} --quiet --eval 'db.getMongo().getDBNames().join("\n");' | while read database; do
-              set -e
-
-              if [ "$database" = "admin" ] || [ "$database" = "local" ] || [ "$database" = "config" ] || [ "$database" = "unifi_stat" ] || [ "$database" = "dev" ]; then
-                  echo >&2 "Skipping database $database"
-                  continue
-              fi
-
-              echo >&2 "Backing up database: $database"
-              if [ "$database" = "remind-me-bot" ] || [ "$database" = "blobstore" ]; then
-                  echo >&2 "Skipping logs collection"
-                  mongodump --host ${MONGODB_HOST} --db "$database" --excludeCollection=logs -o "/var/lib/backups/$database"
-              else
-                  mongodump --host ${MONGODB_HOST} --db "$database" -o "/var/lib/backups/$database"
-              fi
-          done
       kind: ConfigMap
       metadata:
         name: mongodb-backup
+      binaryData:
+        mongodb-backup.sh: ${MONGODB_BACKUP_SCRIPT}
     tags: [apps, mongodb, backups]
+    fileParameters:
+      - MONGODB_BACKUP_SCRIPT=mongodb/mongodb-backup.sh
   - name: mongodb
     file: mongodb/mongodb.yaml
     tags: [apps, mongodb]
@@ -877,7 +807,7 @@ resources:
     build:
       path: unifi
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/unifi:latest
+      tag: registry.internal.aleemhaji.com/unifi-controller:7.0.23-ls145
     tags: [apps, unifi]
   - name: unifi-controller
     file: unifi/unifi.yaml
@@ -1092,6 +1022,24 @@ resources:
   - name: bookstack
     file: bookstack/bookstack.yaml
     tags: [apps, bookstack]
+  - name: bookstack-notifier-secrets
+    inline: |
+      apiVersion: v1
+      data:
+        token_id: ${BOOKSTACK_TOKEN_ID_BASE64}
+        token_secret: ${BOOKSTACK_TOKEN_SECRET_BASE64}
+      kind: Secret
+      metadata:
+        name: bookstack-notifier-secrets
+    parameters:
+      - BOOKSTACK_TOKEN_ID_BASE64
+      - BOOKSTACK_TOKEN_SECRET_BASE64
+    tags: [apps, bookstack]
+  - name: bookstack-notifier
+    file: bookstack/bookstack-notifier.yaml
+    fileParameters:
+      - BOOKSTACK_NOTIFIER_SCRIPT=bookstack/bookstack-notifier.sh
+    tags: [apps, bookstack]
   - name: drone-init
     file: drone/drone-init.yaml
     tags: [apps, drone]
@@ -1120,30 +1068,43 @@ resources:
     tags: [apps, drone]
   # endregion
   - name: pod-killer
-    file: pod-killer.yaml
+    file: pod-killer/pod-killer.yaml
     parameters:
       - POD_KILLER_NAMESPACE=default
       - SLACK_BOT_ALERTING_CHANNEL
+    fileParameters:
+      - POD_KILLER_SCRIPT=pod-killer/pod-killer.sh
   - name: certbot-update-kubernetes-dashboard
     file: certbot/certbot-generic-cron.yaml
     parameters:
       - KUBERNETES_NAMESPACE=kubernetes-dashboard
       - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
     tags: [crons, certbot]
   - name: certbot-update-monitoring
     file: certbot/certbot-generic-cron.yaml
     parameters:
       - KUBERNETES_NAMESPACE=monitoring
       - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
     tags: [crons, certbot]
   - name: certbot-update-default
     file: certbot/certbot-generic-cron.yaml
     parameters:
       - KUBERNETES_NAMESPACE=default
       - INCLUDE_EXTERNAL_CERTS=true
+      - INCLUDE_BARE_DOMAIN=true
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
     tags: [crons, certbot]
   - name: certbot-cron
     file: certbot/certbot.yaml
+    fileParameters:
+      - DNS_RENEW_SCRIPT=certbot/certbot-dns-renew.sh
     tags: [crons, certbot]
   # region: Scheduled rsync Jobs
   # This block contains all the scheduled jobs that run rsync against the
@@ -1157,18 +1118,6 @@ resources:
       pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/rsync:latest
     tags: [backups]
-  - name: factorio-backups
-    file: crons/rsync-cron.yaml
-    parameters:
-      - CRONJOB_NAME=factorio
-      - RSYNC_OPTIONS=-avhuDH --exclude=.sync
-      - SOURCE_NFS_SERVER=192.168.96.4
-      - SOURCE_NFS_SHARE=/mnt/main/apps/factorio
-      - SOURCE_PATH=/
-      - DESTINATION_NFS_SERVER=192.168.96.4
-      - DESTINATION_NFS_SHARE=/mnt/main/backup
-      - DEST_PATH=/game-saves/factorio/saves
-    tags: [factorio, backups]
   - name: bookstack-backups
     file: crons/rsync-cron.yaml
     parameters:
@@ -1223,10 +1172,33 @@ resources:
     parameters:
       - SHELL_MONITOR_NAMESPACE=default
       - SLACK_BOT_ALERTING_CHANNEL
+    fileParameters:
+      - SHELL_MONITOR_SCRIPT=shell-monitor/shell-monitor-script.sh
     tags: [shell-monitor]
   - name: events-shell-monitor
     file: shell-monitor/events-shell-monitor.yaml
+    fileParameters:
+      - EVENTS_SHELL_MONITOR_SCRIPT=shell-monitor/events-shell-monitor.sh
     tags: [shell-monitor]
+  - name: delete-manual-jobs-shell-monitor
+    file: shell-monitor/delete-manual-jobs-monitor.yaml
+    parameters:
+      - KUBE_NAMESPACE=default
+    fileParameters:
+      - JOBS_SHELL_MONITOR_SCRIPT=shell-monitor/delete-manual-jobs-monitor.sh
+    tags: [shell-monitor]
+  - name: dev-namespace
+    inline: |
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: dev
+    tags: [rotate-node]
+  - name: rotate-node-tagger
+    file: node-rotator/rotate-node-tagger.yaml
+    fileParameters:
+      - ROTATE_NODE_TAGGER_SCRIPT=node-rotator/rotate-node-tagger.sh
+    tags: [rotate-node]
 jobs:
   - name: mysql-restore
     file: mysql/tasks/mysql-restore.yaml

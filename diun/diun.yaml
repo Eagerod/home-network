@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: diun
-          image: registry.internal.aleemhaji.com/diun:4.16.1
+          image: registry.internal.aleemhaji.com/diun:4.21.0
           command:
             - sh
             - -eufc
@@ -28,7 +28,7 @@ spec:
               grep source: | \
               sed -r 's/[[:space:]]*source:/- name:/' > /diun.yaml && 
               printf 'db:\n  path: diun.db\n' > /config.yaml && \
-              diun --config config.yaml
+              diun serve --config config.yaml
           env:
             - name: TZ
               value: "America/Toronto"

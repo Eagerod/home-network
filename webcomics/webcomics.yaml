@@ -64,7 +64,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: webcomic-scraper-schedule
-              image: registry.internal.aleemhaji.com/curl:7.72.0
+              image: registry.internal.aleemhaji.com/curl:7.80.0
               command:
                 - sh
                 - -c
@@ -73,7 +73,7 @@ spec:
                 - name: WEBCOMICS_HOST
                   value: webcomics
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: webcomics-ingress
@@ -89,6 +89,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: webcomics
-              servicePort: 80
+              service:
+                name: webcomics
+                port:
+                  number: 80

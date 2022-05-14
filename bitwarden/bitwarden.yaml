@@ -20,7 +20,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: bitwarden
-          image: registry.internal.aleemhaji.com/vaultwarden/server:1.21.0
+          image: registry.internal.aleemhaji.com/vaultwarden/server:1.24.0
           ports:
             - containerPort: 80
           volumeMounts:
@@ -59,7 +59,7 @@ spec:
   selector:
     app: bitwarden
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: bitwarden-ingress-redirect
@@ -71,7 +71,7 @@ spec:
     - host: bitwarden
     - host: bitwarden.home
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: bitwarden-ingress
@@ -90,6 +90,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: bitwarden
-              servicePort: 80
+              service:
+                name: bitwarden
+                port:
+                  number: 80

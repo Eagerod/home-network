@@ -21,7 +21,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       initContainers:
         - name: redis-init
-          image: registry.internal.aleemhaji.com/busybox:1.33.1
+          image: registry.internal.aleemhaji.com/busybox:1.35.0
           command:
             - sh
             - -c

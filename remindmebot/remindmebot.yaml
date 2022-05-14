@@ -83,7 +83,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: remindmebot-scheduler
-          image: registry.internal.aleemhaji.com/curl:7.72.0
+          image: registry.internal.aleemhaji.com/curl:7.80.0
           command:
             - sh
             - -c
@@ -94,7 +94,7 @@ spec:
                 sleep 60; \
               done
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: remindmebot-ingress
@@ -110,6 +110,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: remindmebot
-              servicePort: 80
+              service:
+                name: remindmebot
+                port:
+                  number: 80

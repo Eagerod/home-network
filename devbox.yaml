@@ -2,11 +2,6 @@
 #   for experimentation.
 # Lives in its own namespace to keep itself a little further away from all
 #   other services.
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: dev
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -27,7 +22,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: devbox
-          image: registry.internal.aleemhaji.com/busybox:1.33.1
+          image: registry.internal.aleemhaji.com/busybox:1.35.0
           command: 
             - /bin/sh
           stdin: true 

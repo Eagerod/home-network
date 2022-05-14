@@ -20,9 +20,14 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: blobstore
-          image: registry.internal.aleemhaji.com/blobstore:latest
+          image: registry.internal.aleemhaji.com/blobstore:0.1.3
           ports:
             - containerPort: 80
+          resources:
+            requests:
+              memory: "256Mi"
+            limits:
+              memory: "256Mi"
           env:
             - name: PORT
               value: "80"
@@ -46,7 +51,7 @@ spec:
   selector:
     app: blobstore
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: blobstore-ingress-redirect
@@ -58,7 +63,7 @@ spec:
     - host: blob
     - host: blob.home
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: blobstore-ingress
@@ -75,11 +80,14 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: blobstore
-              servicePort: 80
+              service:
+                name: blobstore
+                port: 
+                  number: 80
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: blobstore-ingress-external
@@ -96,6 +104,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: blobstore
-              servicePort: 80
+              service:
+                name: blobstore
+                port: 
+                  number: 80
