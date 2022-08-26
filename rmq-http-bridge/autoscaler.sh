@@ -10,11 +10,11 @@ MAX_MESSAGES=100
 last_result=
 
 # Forces the -u failure to not be in a pipeline.
-if [ -z $TASK_SERVER_URL ]; then
+if [ -z "$TASK_SERVER_URL" ]; then
     echo >&2 "Failed to find TASK_SERVER_URL"
     exit 1
 fi
-if [ -z $DEPLOYMENT ]; then
+if [ -z "$DEPLOYMENT" ]; then
     echo >&2 "Failed to find DEPLOYMENT"
     exit 1
 fi
@@ -36,9 +36,9 @@ i=0
 # In every case, require 2 readings of the same result to trigger an event.
 while true; do
     r=$(curl -fsSL "$TASK_SERVER_URL/stats" | jq '.Messages + (.InRate - .OutRate) * 60' | awk -F. '{print $1}')
-    if [ $r -ge $MAX_MESSAGES ] && [ $current_replicas -lt $MAX_REPLICAS ]; then
+    if [ "$r" -ge "$MAX_MESSAGES" ] && [ "$current_replicas" -lt "$MAX_REPLICAS" ]; then
         last_result="${last_result}1"
-    elif [ $r -le 0 ] && [ $current_replicas -gt $MIN_REPLICAS ]; then
+    elif [ "$r" -le 0 ] && [ "$current_replicas" -gt "$MIN_REPLICAS" ]; then
         last_result="${last_result}0"
     else
         last_result=""
@@ -64,9 +64,9 @@ while true; do
 
     sleep 5
     i=$((i + 1))
-    if [ $i -ge 36 ]; then
+    if [ "$i" -ge 36 ]; then
         new_replicas=$(kubectl get deployment $DEPLOYMENT -o template='{{.status.replicas}}')
-        if [ $new_replicas -ne $current_replicas ]; then
+        if [ "$new_replicas" -ne "$current_replicas" ]; then
             current_replicas=$new_replicas
             echo >&2 "Restored number of replicas to $current_replicas"
         fi
