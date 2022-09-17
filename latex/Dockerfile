@@ -23,9 +23,7 @@ RUN \
     apt-get update && \
     apt-get install -y \
         texlive-fonts-extra && \
-    apt-get clean && \
-    mktexlsr && \
-    luaotfload-tool -u
+    apt-get clean
 
 RUN \
     apt-get update && \
@@ -34,18 +32,10 @@ RUN \
         texlive-pstricks && \
     apt-get clean
 
+# tlmgr needs curl to do its downloads.
 RUN apt-get update && \
-    apt-get install -y \
-        curl \
-        make \
-        vim \
-        wget && \
+    apt-get install -y curl && \
     apt-get clean
-
-RUN \
-    curl -fsSL https://www.fontdload.com/fp02 -o calibri.zip && \
-    unzip calibri.zip -d Calibri && \
-    find Calibri -type f -iname "*.zip" -exec unzip "{}" -d /usr/local/share/fonts/ \;
 
 # RUN tlmgr option repository ftp://tug.org/historic/systems/texlive/2018/tlnet-final
 RUN \
@@ -56,6 +46,12 @@ RUN \
 RUN \
     groupadd latex && \
     useradd -rm -u 1000 -g latex latex
+
+RUN \
+    curl -fsSL https://www.downloadfonts.io/wp-content/uploads/2018/12/calibri-font-sv.zip -o calibri.zip && \
+    unzip calibri.zip -d Calibri && \
+    find Calibri -type f -iname "*.zip" -exec unzip "{}" -d /usr/local/share/fonts/ \; && \
+    rm -rf Calibri calibri.zip
 
 USER latex
 
