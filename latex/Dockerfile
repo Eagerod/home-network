@@ -43,6 +43,11 @@ RUN \
     tlmgr option repository ftp://ftp.math.utah.edu/pub/tex/historic/systems/texlive/2018/tlnet-final && \
     tlmgr update -v --all
 
+RUN apt-get update && \
+    apt-get install -y \
+        python3-pip && \
+    apt-get clean
+
 RUN \
     groupadd latex && \
     useradd -rm -u 1000 -g latex latex
@@ -58,3 +63,16 @@ USER latex
 RUN \
     mktexlsr && \
     luaotfload-tool -u
+
+# Ok, now add the server thing
+WORKDIR /app
+
+COPY requirements.txt .
+
+RUN pip3 install -r requirements.txt
+
+COPY server.py .
+
+RUN python3 -m flake8 .
+
+ENTRYPOINT ["python3", "server.py"]
