@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: latex-deployment
+  labels:
+    app: latex
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: latex
+  template:
+    metadata:
+      labels:
+        app: latex
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: latex
+          image: registry.internal.aleemhaji.com/latex-server:latest
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: latex
+  labels:
+    app: latex
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: latex
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: latex-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://latex.internal.aleemhaji.com
+spec:
+  rules:
+    - host: latex
+    - host: latex.home
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: latex-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - latex.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: latex.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: latex
+                port:
+                  number: 8080

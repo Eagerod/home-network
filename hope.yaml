@@ -650,6 +650,15 @@ resources:
   - name: dns-update-cron
     file: crons/dns-cron.yaml
     tags: [crons, dns, stateless]
+  - name: latex-image
+    build:
+      path: latex
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/latex-server:latest
+    tags: [apps, latex, stateless]
+  - name: latex-server
+    file: latex/latex.yaml
+    tags: [apps, latex, stateless]
   # endregion
   # region: NFS-Share Only Services
   # These services are grouped because they have a pretty small number of
