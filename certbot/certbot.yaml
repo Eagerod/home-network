@@ -88,7 +88,7 @@ spec:
     - host: aleemhaji.com
       http:
         paths:
-          - path: /
+          - path: /.well-known/acme-challenge
             pathType: Prefix
             backend:
               service:
@@ -110,7 +110,7 @@ spec:
     - host: internal.aleemhaji.com
       http:
         paths:
-          - path: /
+          - path: /.well-known/acme-challenge
             pathType: Prefix
             backend:
               service:
