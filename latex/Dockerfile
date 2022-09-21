@@ -75,4 +75,4 @@ COPY server.py .
 
 RUN python3 -m flake8 .
 
-ENTRYPOINT ["python3", "server.py"]
+ENTRYPOINT ["python3", "-u", "server.py"]

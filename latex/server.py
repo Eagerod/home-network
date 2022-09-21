@@ -32,14 +32,19 @@ class LatexRunner(object):
         self.main_filename = main_filename
         self.zip_contents = zip_contents
         self.cache = cache
+
         self.should_delete = self.cache is None
         self.timeout = 60
-
         self.latex_process = None
         self.pdf_bytes = None
 
     def run(self):
         f = BytesIO(self.zip_contents)
+
+        if self.cache:
+            unzip_path = os.path.join(runtime_cache.name, self.cache)
+        else:
+            unzip_path = os.path.join(runtime_cache.name, str(uuid4()))
 
         try:
             z = zipfile.ZipFile(f)
@@ -52,11 +57,6 @@ class LatexRunner(object):
                 raise UserException('{} not found in zip payload'.format(
                     self.main_filename
                 ))
-
-            if self.cache:
-                unzip_path = os.path.join(runtime_cache.name, self.cache)
-            else:
-                unzip_path = os.path.join(runtime_cache.name, str(uuid4()))
 
             z.extractall(unzip_path)
         except zipfile.BadZipFile as e:
@@ -91,16 +91,29 @@ class LatexRunner(object):
     def run_tex_at_path(self, p):
         self.latex_process = subprocess.Popen(
             [self.tex_driver, self.main_filename],
-            cwd=p, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            cwd=p, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
 
-        stdout, _ = self.latex_process.communicate()
+        stdout, stderr = self.latex_process.communicate()
 
         if self.latex_process.returncode != 0:
-            raise UserException(stdout)
+            print(stdout)
+            print('-----')
+            print(stderr)
+            raise UserException(
+                '{} process failed. Check logs for more details.'.format(
+                    self.tex_driver
+                )
+            )
 
         pdf_filename = self.main_filename.replace('.tex', '.pdf')
         pdf_path = os.path.join(p, pdf_filename)
+
+        if not os.path.isfile(pdf_path):
+            print(stdout)
+            print('-----')
+            print(stderr)
+            raise ServerException('Failed to find file {}'.format(pdf_path))
 
         pdf_file = open(pdf_path, 'rb')
         pdf_bytes = pdf_file.read()
