@@ -508,9 +508,9 @@ resources:
     tags: [docker-cache, heimdall]
   - name: plex-image-cache
     build:
-      source: plexinc/pms-docker:1.25.7.5604-980a13e02
+      source: plexinc/pms-docker:1.28.0.5999-97678ded3
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pms-docker:1.25.7.5604-980a13e02
+      tag: registry.internal.aleemhaji.com/pms-docker:1.28.0.5999-97678ded3
     tags: [docker-cache, plex]
   - name: redis-image-cache
     build:
