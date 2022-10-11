@@ -64,7 +64,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: drone
-          image: registry.internal.aleemhaji.com/drone/drone:2.0.4
+          image: registry.internal.aleemhaji.com/drone/drone:2.12.1
           env:
             - name: DRONE_USER_CREATE
               value: username:aleem,admin:true
@@ -124,7 +124,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: drone
-          image: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.1
+          image: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.3
           env:
             - name: DRONE_RPC_HOST
               value: drone.internal.aleemhaji.com
