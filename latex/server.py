@@ -85,21 +85,20 @@ class LatexRunner(object):
         if failed:
             raise ServerException('Failed to build in time')
 
+        if self.latex_process.returncode != 0:
+            raise UserException('Build failed')
+
         print('Writing out {} bytes'.format(len(self.pdf_bytes)))
         return self.pdf_bytes, 200
 
     def run_tex_at_path(self, p):
         self.latex_process = subprocess.Popen(
-            [self.tex_driver, self.main_filename],
-            cwd=p, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            [self.tex_driver, self.main_filename], cwd=p
         )
 
-        stdout, stderr = self.latex_process.communicate()
+        self.latex_process.communicate()
 
         if self.latex_process.returncode != 0:
-            print(stdout)
-            print('-----')
-            print(stderr)
             raise UserException(
                 '{} process failed. Check logs for more details.'.format(
                     self.tex_driver
@@ -110,9 +109,6 @@ class LatexRunner(object):
         pdf_path = os.path.join(p, pdf_filename)
 
         if not os.path.isfile(pdf_path):
-            print(stdout)
-            print('-----')
-            print(stderr)
             raise ServerException('Failed to find file {}'.format(pdf_path))
 
         pdf_file = open(pdf_path, 'rb')
