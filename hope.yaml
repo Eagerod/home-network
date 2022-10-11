@@ -512,6 +512,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/pms-docker:1.28.0.5999-97678ded3
     tags: [docker-cache, plex]
+  - name: jellyfin-image-cache
+    build:
+      source: jellyfin/jellyfin:10.8.5
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/jellyfin:10.8.5
+    tags: [docker-cache, jellyfin]
   - name: redis-image-cache
     build:
       source: redis:5
@@ -726,6 +732,9 @@ resources:
     parameters:
       - *plex_load_balancer_service_ip
     tags: [apps, plex]
+  - name: jellyfin
+    file: jellyfin/jellyfin.yaml
+    tags: [apps, jellyfin]
   - name: wireguard
     file: wireguard/wireguard.yaml
     parameters:
