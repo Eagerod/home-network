@@ -1,10 +1,18 @@
-FROM debian:11
+FROM python:3
 
 RUN \
     apt-get update && \
     apt-get install -y shellcheck && \
     apt-get clean
 
+RUN pip install yamllint
+
 COPY . /src
 
 RUN find /src -iname "*.sh" -print0 | xargs -0 -n1 shellcheck
+RUN \
+    find /src -type f -path ".git" -prune -o \
+        -iname "*.yaml" -o -iname "*.yml" | \
+    grep -v "/src/metallb-ifnotpresent.yaml" | \
+    grep -v "/src/metrics-server.yaml" | \
+    xargs yamllint -d "{extends: default, rules: {document-start: disable, line-length: disable}}"

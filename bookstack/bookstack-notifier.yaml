@@ -8,8 +8,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: bookstack-notifier-shell-monitor
 subjects:
-- kind: ServiceAccount
-  name: bookstack-notifier
+  - kind: ServiceAccount
+    name: bookstack-notifier
 roleRef:
   kind: Role
   name: shell-monitor
@@ -46,7 +46,7 @@ spec:
         - name: bookstack-notifier
           image: registry.internal.aleemhaji.com/kubectl:1.21.0
           command:
-             - /scripts/base/script.sh
+            - /scripts/base/script.sh
           env:
             - name: CONFIG_MAP_NAME
               value: bookstack-notifier-monitor

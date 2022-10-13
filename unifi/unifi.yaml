@@ -16,7 +16,7 @@ spec:
       labels:
         app: unifi
     spec:
-      imagePullSecrets: 
+      imagePullSecrets:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: unifi

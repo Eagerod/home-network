@@ -84,7 +84,7 @@ spec:
             backend:
               service:
                 name: blobstore
-                port: 
+                port:
                   number: 80
 ---
 apiVersion: networking.k8s.io/v1
@@ -108,5 +108,5 @@ spec:
             backend:
               service:
                 name: blobstore
-                port: 
+                port:
                   number: 80
