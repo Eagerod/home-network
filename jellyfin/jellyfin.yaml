@@ -34,8 +34,8 @@ spec:
           livenessProbe:
             exec:
               command:
-              - touch
-              - /config/.liveness-probe
+                - touch
+                - /config/.liveness-probe
             initialDelaySeconds: 120
             periodSeconds: 60
       volumes:

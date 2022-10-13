@@ -135,11 +135,11 @@ spec:
           startupProbe:
             exec:
               command:
-              - dig
-              - +norecurse
-              - +retry=0
-              - "@127.0.0.1"
-              - pi.hole
+                - dig
+                - +norecurse
+                - +retry=0
+                - "@127.0.0.1"
+                - pi.hole
             failureThreshold: 30
             periodSeconds: 10
         - name: hostsfile-daemon

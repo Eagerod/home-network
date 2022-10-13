@@ -12,7 +12,7 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
-          imagePullSecrets: 
+          imagePullSecrets:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: dns-updater
@@ -38,7 +38,7 @@ spec:
                       fi
                     done
               env:
-                - name: NAMESILO_API_KEY 
+                - name: NAMESILO_API_KEY
                   valueFrom:
                     secretKeyRef:
                       name: namesilo-api-key

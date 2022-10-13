@@ -23,7 +23,7 @@ spec:
           image: registry.internal.aleemhaji.com/guacd:1.4.0
         - name: guacamole
           image: registry.internal.aleemhaji.com/guacamole:1.4.0
-          ports: 
+          ports:
             - containerPort: 8080
           env:
             - name: GUACD_HOSTNAME
@@ -37,7 +37,7 @@ spec:
                 configMapKeyRef:
                   name: guacamole-config
                   key: mysql_database
-            - name: MYSQL_PASSWORD 
+            - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: guacamole-secrets

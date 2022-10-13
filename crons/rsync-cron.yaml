@@ -16,7 +16,7 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
-          imagePullSecrets: 
+          imagePullSecrets:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: rsync

@@ -37,8 +37,8 @@ spec:
           livenessProbe:
             exec:
               command:
-              - touch
-              - /config/Library/Application Support/Plex Media Server/.liveness-probe
+                - touch
+                - /config/Library/Application Support/Plex Media Server/.liveness-probe
             initialDelaySeconds: 120
             periodSeconds: 60
       volumes:
