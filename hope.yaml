@@ -606,6 +606,20 @@ resources:
   #   parallel clusters first without having any concern for services fighting
   #   over shares/volumes.
   # They should each have the stateless tag applied to them.
+  - name: image-monitor-config
+    inline: |
+      apiVersion: v1
+      binaryData:
+        image-monitor.sh: ${IMAGE_MONITOR_SCRIPT}
+      kind: ConfigMap
+      metadata:
+        name: image-monitor-config
+    fileParameters:
+      - IMAGE_MONITOR_SCRIPT=./crons/image-monitor.sh
+    tags: [crons, image-monitor, stateless]
+  - name: image-monitor
+    file: crons/image-monitor-cron.yaml
+    tags: [crons, image-monitor, stateless]
   - name: browser
     file: browser/browser.yaml
     tags: [apps, browser, stateless]
