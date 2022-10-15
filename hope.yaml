@@ -550,10 +550,10 @@ resources:
     tags: [docker-cache, kubectl]
   - name: bitwarden-image-cache
     build:
-      source: vaultwarden/server:1.24.0
+      source: vaultwarden/server:1.26.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.24.0
-    tags: [docker-cache, bitwarden]
+      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.26.0
+    tags: [docker-cache, bitwarden, vaultwarden]
   - name: syncthing-image-cache
     build:
       source: syncthing/syncthing:1.19.2
@@ -719,10 +719,10 @@ resources:
         name: bitwarden-secrets
     parameters:
       - BITWARDEN_ADMIN_TOKEN_BASE64
-    tags: [apps, bitwarden]
+    tags: [apps, bitwarden, vaultwarden]
   - name: bitwarden
     file: bitwarden/bitwarden.yaml
-    tags: [apps, bitwarden]
+    tags: [apps, bitwarden, vaultwarden]
   # endregion
   # region: NFS-Share + Port Forwarded Services
   # This block of services include resources that need access to shared
