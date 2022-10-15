@@ -440,9 +440,9 @@ resources:
     tags: [docker-cache, transmission]
   - name: certbot-image-cache
     build:
-      source: certbot/certbot:v1.25.0
+      source: certbot/certbot:v1.31.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/certbot:v1.25.0
+      tag: registry.internal.aleemhaji.com/certbot:v1.31.0
     tags: [docker-cache, certbot]
   - name: mongo-37-image-cache
     build:
