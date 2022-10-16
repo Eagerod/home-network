@@ -568,9 +568,9 @@ resources:
     tags: [docker-cache, diun]
   - name: bookstack-image-cache
     build:
-      source: ghcr.io/linuxserver/bookstack:21.12.5
+      source: linuxserver/bookstack:22.09.1
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/bookstack:21.12.5
+      tag: registry.internal.aleemhaji.com/bookstack:22.09.1
     tags: [docker-cache, bookstack]
   - name: drone-image-cache
     build:
