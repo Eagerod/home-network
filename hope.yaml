@@ -574,9 +574,9 @@ resources:
     tags: [docker-cache, bookstack]
   - name: drone-image-cache
     build:
-      source: drone/drone:2.12.1
+      source: drone/drone:2.14.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/drone/drone:2.12.1
+      tag: registry.internal.aleemhaji.com/drone/drone:2.14.0
     tags: [docker-cache, drone]
   - name: drone-agent-image-cache
     build:
