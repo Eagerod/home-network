@@ -590,6 +590,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/wireguard-go:0.0.20220316
     tags: [docker-cache, wireguard]
+  - name: unifi-controller-image-cache
+    build:
+      source: linuxserver/unifi-controller:7.2.94
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/unifi-controller:7.2.94
+    tags: [docker-cache, unifi]
   # endregion
   # https://github.com/prometheus-operator/kube-prometheus#quickstart
   - name: prometheus
@@ -833,7 +839,7 @@ resources:
     build:
       path: unifi
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/unifi-controller:7.0.23-ls145
+      tag: registry.internal.aleemhaji.com/unifi-controller:7.2.94-custom
     tags: [apps, unifi]
   - name: unifi-controller
     file: unifi/unifi.yaml
