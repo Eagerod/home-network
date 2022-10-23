@@ -8,8 +8,8 @@ set -eufo pipefail
 
 ignore_tags="latest edge nightly beta preview unstable dev"
 global_ignore_tags_selector=""
-for tag in $ignore_tags; do
-    global_ignore_tags_selector="$global_ignore_tags_selector | select(test(\"$tag\") | not)"
+for rtag in $ignore_tags; do
+    global_ignore_tags_selector="$global_ignore_tags_selector | select(test(\"$rtag\") | not)"
 done
 
 function check_repository() {
@@ -38,7 +38,7 @@ function check_repository() {
     curl -fsSL "https://hub.docker.com/v2/repositories/$repository/tags?page_size=1024" > $t
 
     # Check to make sure this tag exists, and get the date it was published.
-    push_date=$(jq -r ".results[] | select(.name == \"$tag\").tag_last_pushed" $t)
+    push_date=$(jq -r ".results[] | select(.name == \"$tag\").tag_last_pushed" "$t")
     if [ -z $push_date ]; then
         echo >&2 "Failed to find tag $tag in repository for $repository."
         return 3
