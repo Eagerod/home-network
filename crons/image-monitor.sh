@@ -11,6 +11,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ERROR_CODE_INVALID_USAGE=1
 ERROR_CODE_INVALID_INPUT=2
 
+SLACK_URL="https://slackbot.internal.aleemhaji.com/message"
+SLACK_CHANNEL="CKE1AKEAV"
+
 ignore_tags="latest edge nightly beta preview unstable dev"
 global_ignore_tags_selector=""
 for rtag in $ignore_tags; do
@@ -18,6 +21,10 @@ for rtag in $ignore_tags; do
 done
 
 all_ignore_tags="$(jq -r '. | tostring' "$SCRIPT_DIR/image-monitor-ignore.json")"
+
+slack() {
+	curl -sS -X POST -H "X-SLACK-CHANNEL-ID: ${SLACK_CHANNEL}" -d "$@" "$SLACK_URL"
+}
 
 function check_repository() {
     if [ $# -ne 1 ]; then
@@ -81,15 +88,6 @@ function check_repository() {
     rm "$t"
 }
 
-function slack() {
-    curl -H 'Content-Type: application/json' -d '{
-        "Endpoint": "https://slackbot.internal.aleemhaji.com/message",
-        "Content": "'"$1"'",
-        "Headers": {
-            "X-SLACK-CHANNEL-ID": "CKE1AKEAV"
-        }
-    }' "https://tasks.internal.aleemhaji.com"
-}
 
 # Get the list of all images used, and try to find if there are any that are
 #   newer than the ones that are currently being used.
