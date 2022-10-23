@@ -6,6 +6,10 @@
 #
 set -eufo pipefail
 
+ERROR_CODE_INVALID_USAGE=1
+ERROR_CODE_INVALID_INPUT=2
+ERROR_CODE_NOT_FOUND=3
+
 ignore_tags="latest edge nightly beta preview unstable dev"
 global_ignore_tags_selector=""
 for rtag in $ignore_tags; do
@@ -16,7 +20,7 @@ function check_repository() {
     if [ $# -ne 1 ]; then
         echo >&2 "Usage:"
         echo >&2 "  $0 <tag>"
-        return 1
+        return $ERROR_CODE_INVALID_USAGE
     fi
 
     repository="$(echo "$1" | awk -F: '{print $1}')"
@@ -25,7 +29,7 @@ function check_repository() {
     if [ -z $repository ] || [ -z $tag ]; then
         echo >&2 "'$1' is not a valid input." 
         echo >&2 "Must include a repository and a tag."
-        return 2
+        return $ERROR_CODE_INVALID_INPUT
     fi
 
     if ! echo "$repository" | grep '/' > /dev/null; then
@@ -41,7 +45,7 @@ function check_repository() {
     push_date=$(jq -r ".results[] | select(.name == \"$tag\").tag_last_pushed" "$t")
     if [ -z $push_date ]; then
         echo >&2 "Failed to find tag $tag in repository for $repository."
-        return 3
+        return $ERROR_CODE_NOT_FOUND
     fi
 
     jq -r ".results[] | select(.tag_last_pushed > \"$push_date\") | select(.images[0].architecture == \"amd64\") | .name $global_ignore_tags_selector" "$t"
@@ -69,7 +73,7 @@ while read line; do
     out="$(check_repository $line)"
     rv=$?
     set -e
-    if [ $rv -eq 3 ]; then
+    if [ $rv -eq $ERROR_CODE_NOT_FOUND ]; then
         slack "Current tag for $line has been removed."
         continue
     elif [ ! -z "$out" ]; then
