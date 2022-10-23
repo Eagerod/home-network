@@ -46,7 +46,7 @@ function check_repository() {
         repository="$registry_repository"
     fi
 
-    if [ -z $registry ] || [ -z $repository ] || [ -z $tag ]; then
+    if [ -z "$registry" ] || [ -z "$repository" ] || [ -z "$tag" ]; then
         echo >&2 "'$1' is not a valid input." 
         echo >&2 "Must include a repository and a tag."
         return $ERROR_CODE_INVALID_INPUT
@@ -60,11 +60,11 @@ function check_repository() {
     t="$(mktemp)"
     # Only the docker hub API offers the tagging date API.
     if [ "$registry" = "hub.docker.com" ]; then
-        curl -fsSL "https://$registry/v2/repositories/$repository/tags?page_size=100" > $t
+        curl -fsSL "https://$registry/v2/repositories/$repository/tags?page_size=100" > "$t"
     else
         # Could eventually be expanded to just look at any tags that sort
         #   according to the input.
-        # curl -fsSL https://$registry/v2/$repository/tags/list > $t
+        # curl -fsSL https://$registry/v2/$repository/tags/list > "$t"
         echo >&2 "Registry $registry not supported for querying tags"
         return $ERROR_CODE_INVALID_INPUT
     fi
@@ -76,10 +76,10 @@ function check_repository() {
 
     # Check to make sure this tag exists, and get the date it was published.
     push_date=$(jq -r ".results[] | select(.name == \"$tag\").tag_last_pushed" "$t")
-    if [ -z $push_date ]; then
+    if [ -z "$push_date" ]; then
         echo >&2 "Failed to find tag $tag in repository for $repository."
         echo >&2 "Returning all tags"
-        jq -r ".results[] | select(.images[0].architecture == \"amd64\") | .name $global_ignore_tags_selector $repository_ignore_tags_selector" $t
+        jq -r ".results[] | select(.images[0].architecture == \"amd64\") | .name $global_ignore_tags_selector $repository_ignore_tags_selector" "$t"
         rm "$t"
         return
     fi
@@ -97,10 +97,10 @@ function check_repository() {
 curl -fsS "https://raw.githubusercontent.com/Eagerod/home-network/master/hope.yaml" 2> /dev/null | \
     grep 'source:' | \
     sed -r 's/[[:space:]]*source: (.*)/\1/' | \
-while read line; do
-    out="$(check_repository $line || true)"
+while read -r line; do
+    out="$(check_repository "$line" || true)"
     if [ ! -z "$out" ]; then
-        out="$(echo "$out" | tr '[[:space:]]' ' ' | sed 's/ /\\n    /g')"
+        out="$(echo "$out" | tr '[:space:]' ' ' | sed 's/ /\\n    /g')"
     else
         # No new tags, nothing to report; up to date!
         continue
@@ -114,6 +114,8 @@ while read line; do
     else
         repository="r/$repository"
     fi
+
+    # shellcheck disable=SC1117
     msg="$msg\n Visit https://hub.docker.com/$repository to sift through latest versions."
 
     slack "$msg"
