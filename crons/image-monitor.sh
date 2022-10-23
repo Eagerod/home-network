@@ -6,6 +6,8 @@
 #
 set -eufo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 ERROR_CODE_INVALID_USAGE=1
 ERROR_CODE_INVALID_INPUT=2
 ERROR_CODE_NOT_FOUND=3
@@ -15,6 +17,8 @@ global_ignore_tags_selector=""
 for rtag in $ignore_tags; do
     global_ignore_tags_selector="$global_ignore_tags_selector | select(test(\"$rtag\") | not)"
 done
+
+all_ignore_tags="$(jq -r '. | tostring' "$SCRIPT_DIR/image-monitor-ignore.json")"
 
 function check_repository() {
     if [ $# -ne 1 ]; then
@@ -59,14 +63,22 @@ function check_repository() {
         return $ERROR_CODE_INVALID_INPUT
     fi
 
+    repository_ignore_tags_selector=""
+    for rtag in $(jq -r ".\"$original_repository\"[]" <<< "$all_ignore_tags"); do
+        repository_ignore_tags_selector="$repository_ignore_tags_selector | select(test(\"$rtag\") | not)"
+    done
+
     # Check to make sure this tag exists, and get the date it was published.
     push_date=$(jq -r ".results[] | select(.name == \"$tag\").tag_last_pushed" "$t")
     if [ -z $push_date ]; then
         echo >&2 "Failed to find tag $tag in repository for $repository."
-        return $ERROR_CODE_NOT_FOUND
+        echo >&2 "Returning all tags"
+        jq -r ".results[] | select(.images[0].architecture == \"amd64\") | .name $global_ignore_tags_selector $repository_ignore_tags_selector" $t
+        rm "$t"
+        return
     fi
 
-    jq -r ".results[] | select(.tag_last_pushed > \"$push_date\") | select(.images[0].architecture == \"amd64\") | .name $global_ignore_tags_selector" "$t"
+    jq -r ".results[] | select(.tag_last_pushed > \"$push_date\") | select(.images[0].architecture == \"amd64\") | .name $global_ignore_tags_selector $repository_ignore_tags_selector" "$t"
     rm "$t"
 }
 
@@ -82,6 +94,9 @@ function slack() {
 
 # Get the list of all images used, and try to find if there are any that are
 #   newer than the ones that are currently being used.
+# Can also get updatable images with something like:
+# $ kubectl get pods -A -o template='{{range .items}}{{range .spec.containers}}{{.image}}
+#     {{end}}{{end}}' | grep registry.internal.aleemhaji.com | sort | uniq
 curl -fsS "https://raw.githubusercontent.com/Eagerod/home-network/master/hope.yaml" 2> /dev/null | \
     grep 'source:' | \
     sed -r 's/[[:space:]]*source: (.*)/\1/' | \

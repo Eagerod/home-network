@@ -1,0 +1,45 @@
+{
+	"bitnami/kubectl": [
+		"-debian-"
+	],
+	"busybox": [
+		"\\\\b-uclibc$",
+		"^stable$"
+	],
+	"certbot/certbot": [
+		"^amd64-.*$"
+	],
+	"drone/drone": [
+		"\\\\blinux-amd64.*$"
+	],
+	"linuxserver/heimdall": [
+		"^version-.*$",
+		"^amd64-.*$",
+		"^js-.*$",
+	],
+	"mysql": [
+		"\\\\boracle.*$",
+		"\\\\bdebian.*$"
+	],
+	"postgres": [
+		"\\\\bbullseye.*$",
+		"\\\\balpine.*$"
+	],
+	"redis": [
+		"\\\\bbullseye.*$",
+		"\\\\balpine.*$"
+	],
+	"syncthing/syncthing": [
+		"^rc$",
+		"^pcap$"
+	],
+	"ubuntu": [
+		"^[a-z]+$",
+		"^[a-z]+-\\\\d+$"
+	],
+	"vaultwarden/server": [
+		"^stable$",
+		"^testing$",
+		"\\\\b-alpine$"
+	]
+}
