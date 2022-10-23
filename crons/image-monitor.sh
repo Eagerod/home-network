@@ -6,6 +6,12 @@
 #
 set -eufo pipefail
 
+ignore_tags="latest edge nightly beta preview unstable dev"
+global_ignore_tags_selector=""
+for tag in $ignore_tags; do
+    global_ignore_tags_selector="$global_ignore_tags_selector | select(test(\"$tag\") | not)"
+done
+
 function check_repository() {
     if [ $# -ne 1 ]; then
         echo >&2 "Usage:"
@@ -38,14 +44,8 @@ function check_repository() {
         return 3
     fi
 
-    ignore_tags="latest edge nightly beta preview unstable dev"
-    ignore_tags_selector=""
-    for tag in $ignore_tags; do
-        ignore_tags_selector="$ignore_tags_selector | select(test(\"$tag\") | not)"
-    done
-
-    jq -r ".results[] | select(.tag_last_pushed > \"$push_date\") | select(.images[0].architecture == \"amd64\") | .name $ignore_tags_selector" $t
-    rm $t
+    jq -r ".results[] | select(.tag_last_pushed > \"$push_date\") | select(.images[0].architecture == \"amd64\") | .name $global_ignore_tags_selector" "$t"
+    rm "$t"
 }
 
 function slack() {
