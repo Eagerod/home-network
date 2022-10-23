@@ -23,23 +23,41 @@ function check_repository() {
         return $ERROR_CODE_INVALID_USAGE
     fi
 
-    repository="$(echo "$1" | awk -F: '{print $1}')"
-    tag="$(echo "$1" | awk -F: '{print $2}')"
+    registry_repository_tag="$1"
+    registry_repository="$(awk -F: '{print $1}' <<< "$registry_repository_tag")"
+    tag="$(awk -F: '{print $2}' <<< "$registry_repository_tag")"
 
-    if [ -z $repository ] || [ -z $tag ]; then
+    possible_registry="$(awk -F/ '{print $1}' <<< "$registry_repository")"
+    if nslookup "$possible_registry" > /dev/null; then
+        repository="$(sed 's_^[^/]*/__' <<< "$registry_repository")"
+        registry="$(sed 's_^\([^/]*\).*_\1_' <<< "$registry_repository")"
+    else
+        registry="hub.docker.com"
+        repository="$registry_repository"
+    fi
+
+    if [ -z $registry ] || [ -z $repository ] || [ -z $tag ]; then
         echo >&2 "'$1' is not a valid input." 
         echo >&2 "Must include a repository and a tag."
         return $ERROR_CODE_INVALID_INPUT
     fi
 
-    if ! echo "$repository" | grep '/' > /dev/null; then
-        repository="library/$repository"
+    original_repository="$repository"
+    if [ "$registry" = "hub.docker.com" ] && ! grep '/' <<< "$repository" > /dev/null; then
+        repository="library/$original_repository"
     fi
 
     t="$(mktemp)"
-    # curl -v -fsSL https://registry.internal.aleemhaji.com/v2/home-network/tags/list
-    # curl -v -fsSL https://lscr.io/v2/linuxserver/wireguard/tags/list
-    curl -fsSL "https://hub.docker.com/v2/repositories/$repository/tags?page_size=1024" > $t
+    # Only the docker hub API offers the tagging date API.
+    if [ "$registry" = "hub.docker.com" ]; then
+        curl -fsSL "https://$registry/v2/repositories/$repository/tags?page_size=100" > $t
+    else
+        # Could eventually be expanded to just look at any tags that sort
+        #   according to the input.
+        # curl -fsSL https://$registry/v2/$repository/tags/list > $t
+        echo >&2 "Registry $registry not supported for querying tags"
+        return $ERROR_CODE_INVALID_INPUT
+    fi
 
     # Check to make sure this tag exists, and get the date it was published.
     push_date=$(jq -r ".results[] | select(.name == \"$tag\").tag_last_pushed" "$t")
