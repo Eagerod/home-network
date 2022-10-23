@@ -10,7 +10,6 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 ERROR_CODE_INVALID_USAGE=1
 ERROR_CODE_INVALID_INPUT=2
-ERROR_CODE_NOT_FOUND=3
 
 ignore_tags="latest edge nightly beta preview unstable dev"
 global_ignore_tags_selector=""
@@ -101,15 +100,8 @@ curl -fsS "https://raw.githubusercontent.com/Eagerod/home-network/master/hope.ya
     grep 'source:' | \
     sed -r 's/[[:space:]]*source: (.*)/\1/' | \
 while read line; do
-    set +e
-    msg=""
-    out="$(check_repository $line)"
-    rv=$?
-    set -e
-    if [ $rv -eq $ERROR_CODE_NOT_FOUND ]; then
-        slack "Current tag for $line has been removed."
-        continue
-    elif [ ! -z "$out" ]; then
+    out="$(check_repository $line || true)"
+    if [ ! -z "$out" ]; then
         out="$(echo "$out" | tr '[[:space:]]' ' ' | sed 's/ /\\n    /g')"
     else
         # No new tags, nothing to report; up to date!

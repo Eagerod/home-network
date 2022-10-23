@@ -16,6 +16,12 @@
 		"^version-.*$",
 		"^amd64-.*$",
 		"^js-.*$",
+		"js"
+	],
+	"mongo": [
+		"\\\\bwindowsservercore\\\\b",
+		"\\\\bnanoserver\\\\b",
+		"\\\\bfocal\\\\b"
 	],
 	"mysql": [
 		"\\\\boracle.*$",
