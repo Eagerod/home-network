@@ -24,11 +24,8 @@ spec:
             - sh
             - -eufc
             - |
-              wget -O- https://raw.githubusercontent.com/Eagerod/home-network/master/hope.yaml 2> /dev/null |\
-              grep source: | \
-              sed -r 's/[[:space:]]*source:/- name:/' > /diun.yaml &&
-              printf 'db:\n  path: diun.db\n' > /config.yaml && \
-              diun serve --config config.yaml
+              while [ ! -f /config/diun.yaml ]; do echo >&2 "Waiting for diun.yaml..."; sleep 60; done && \
+              diun serve
           env:
             - name: TZ
               value: "America/Toronto"
@@ -39,13 +36,41 @@ spec:
             - name: DIUN_WATCH_WORKERS
               value: "20"
             - name: DIUN_WATCH_SCHEDULE
-              value: "0 */6 * * *"
+              value: "0 22 * * *"
             - name: DIUN_NOTIF_SLACK_WEBHOOKURL
               valueFrom:
                 secretKeyRef:
                   name: diun-secrets
                   key: webhook_url
             - name: DIUN_PROVIDERS_FILE_FILENAME
-              value: /diun.yaml
+              value: /config/diun.yaml
+            - name: DIUN_DB_PATH
+              value: /config/diun.db
             - name: DIUN_WATCH_FIRSTCHECKNOTIF
               value: "true"
+          volumeMounts:
+            - name: config-dir
+              mountPath: /config
+        - name: diun-config-generator
+          image: registry.internal.aleemhaji.com/kubectl:1.21.0
+          command:
+            - sh
+            - -eufc
+            - |
+              while true; do
+                curl -fsS  https://raw.githubusercontent.com/Eagerod/home-network/master/hope.yaml |\
+                  /scripts/diun-yaml-generator.sh > /config/diun.yaml;
+                sleep 3600;
+              done;
+          volumeMounts:
+            - name: config-dir
+              mountPath: /config
+            - name: scripts-dir
+              mountPath: /scripts
+      volumes:
+        - name: config-dir
+          emptyDir: {}
+        - name: scripts-dir
+          configMap:
+            name: diun-scripts
+            defaultMode: 0755

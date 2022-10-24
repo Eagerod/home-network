@@ -988,13 +988,24 @@ resources:
   - name: diun-config
     inline: |
       apiVersion: v1
-      data:
-        webhook_url: ${DIUN_WEBHOOK_URL_BASE64}
       kind: Secret
       metadata:
         name: diun-secrets
+      data:
+        webhook_url: ${DIUN_WEBHOOK_URL_BASE64}
+      ---
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: diun-scripts
+      binaryData:
+        diun-yaml-generator.sh: ${DIUN_YAML_GENERATOR_SCRIPT}
+        image-monitor-ignore.json: ${DIUN_IGNORE_JSON}
     parameters:
       - DIUN_WEBHOOK_URL_BASE64
+    fileParameters:
+      - DIUN_YAML_GENERATOR_SCRIPT=diun/diun-yaml-generator.sh
+      - DIUN_IGNORE_JSON=diun/image-monitor-ignore.json
     tags: [apps, diun]
   - name: diun
     file: diun/diun.yaml
