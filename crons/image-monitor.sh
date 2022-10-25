@@ -23,8 +23,11 @@ done
 all_ignore_tags="$(jq -r '. | tostring' "$SCRIPT_DIR/image-monitor-ignore.json")"
 
 slack() {
-	curl -sS -X POST -H "X-SLACK-CHANNEL-ID: ${SLACK_CHANNEL}" -d "$@" "$SLACK_URL"
+    curl -sS -X POST -H "X-SLACK-CHANNEL-ID: ${SLACK_CHANNEL}" -d "$@" "$SLACK_URL"
 }
+
+staging_file="$(mktemp)"
+trap 'rm -f $staging_file' EXIT
 
 function check_repository() {
     if [ $# -ne 1 ]; then
@@ -57,14 +60,13 @@ function check_repository() {
         repository="library/$original_repository"
     fi
 
-    t="$(mktemp)"
     # Only the docker hub API offers the tagging date API.
     if [ "$registry" = "hub.docker.com" ]; then
-        curl -fsSL "https://$registry/v2/repositories/$repository/tags?page_size=100" > "$t"
+        curl -fsSL "https://$registry/v2/repositories/$repository/tags?page_size=100" > "$staging_file"
     else
         # Could eventually be expanded to just look at any tags that sort
         #   according to the input.
-        # curl -fsSL https://$registry/v2/$repository/tags/list > "$t"
+        # curl -fsSL https://$registry/v2/$repository/tags/list > "$staging_file"
         echo >&2 "Registry $registry not supported for querying tags"
         return $ERROR_CODE_INVALID_INPUT
     fi
@@ -75,17 +77,15 @@ function check_repository() {
     done
 
     # Check to make sure this tag exists, and get the date it was published.
-    push_date=$(jq -r ".results[] | select(.name == \"$tag\").tag_last_pushed" "$t")
+    push_date=$(jq -r ".results[] | select(.name == \"$tag\").tag_last_pushed" "$staging_file")
     if [ -z "$push_date" ]; then
         echo >&2 "Failed to find tag $tag in repository for $repository."
         echo >&2 "Returning all tags"
-        jq -r ".results[] | select(.images[0].architecture == \"amd64\") | .name $global_ignore_tags_selector $repository_ignore_tags_selector" "$t"
-        rm "$t"
+        jq -r ".results[] | select(.images[0].architecture == \"amd64\") | .name $global_ignore_tags_selector $repository_ignore_tags_selector" "$staging_file"
         return
     fi
 
-    jq -r ".results[] | select(.tag_last_pushed > \"$push_date\") | select(.images[0].architecture == \"amd64\") | .name $global_ignore_tags_selector $repository_ignore_tags_selector" "$t"
-    rm "$t"
+    jq -r ".results[] | select(.tag_last_pushed > \"$push_date\") | select(.images[0].architecture == \"amd64\") | .name $global_ignore_tags_selector $repository_ignore_tags_selector" "$staging_file"
 }
 
 # Get the list of all images used, and try to find if there are any that are
