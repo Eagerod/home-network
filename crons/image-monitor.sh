@@ -77,15 +77,16 @@ function check_repository() {
     done
 
     # Check to make sure this tag exists, and get the date it was published.
+    result_filter="select(.images[0].architecture == \"amd64\") | .name $global_ignore_tags_selector $repository_ignore_tags_selector"
     push_date=$(jq -r ".results[] | select(.name == \"$tag\").tag_last_pushed" "$staging_file")
     if [ -z "$push_date" ]; then
         echo >&2 "Failed to find tag $tag in repository for $repository."
         echo >&2 "Returning all tags"
-        jq -r ".results[] | select(.images[0].architecture == \"amd64\") | .name $global_ignore_tags_selector $repository_ignore_tags_selector" "$staging_file"
-        return
+    else
+        result_filter="select(.tag_last_pushed > \"$push_date\") | $result_filter"
     fi
 
-    jq -r ".results[] | select(.tag_last_pushed > \"$push_date\") | select(.images[0].architecture == \"amd64\") | .name $global_ignore_tags_selector $repository_ignore_tags_selector" "$staging_file"
+    jq -r ".results[] | $result_filter" "$staging_file"
 }
 
 # Get the list of all images used, and try to find if there are any that are
