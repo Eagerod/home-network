@@ -100,16 +100,16 @@ curl -fsS "https://raw.githubusercontent.com/Eagerod/home-network/master/hope.ya
 while read -r line; do
     out="$(check_repository "$line" || true)"
     if [ -n "$out" ]; then
-        out="$(echo "$out" | tr '[:space:]' ' ' | sed 's/ /\\n    /g')"
+        out="$(tr '[:space:]' ' ' <<< "$out" | sed 's/ /\\n    /g')"
     else
         # No new tags, nothing to report; up to date!
         continue
     fi
 
-    repository="$(echo "$line" | awk -F: '{print $1}')"
+    repository="$(awk -F: '{print $1}' <<< "$line")"
     msg="$(printf "New tags for repository %s:%s%s" "$repository" '\n    ' "$out")"
 
-    if ! echo "$repository" | grep '/' > /dev/null; then
+    if ! grep '/' <<< "$repository" > /dev/null; then
         repository="_/$repository"
     else
         repository="r/$repository"
