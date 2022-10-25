@@ -39,8 +39,8 @@ function check_repository() {
 
     possible_registry="$(awk -F/ '{print $1}' <<< "$registry_repository")"
     if nslookup "$possible_registry" > /dev/null; then
-        repository="$(sed 's_^[^/]*/__' <<< "$registry_repository")"
-        registry="$(sed 's_^\([^/]*\).*_\1_' <<< "$registry_repository")"
+        repository="${registry_repository#*/}"
+        registry="$possible_registry"
     else
         registry="hub.docker.com"
         repository="$registry_repository"
@@ -88,7 +88,6 @@ function check_repository() {
     rm "$t"
 }
 
-
 # Get the list of all images used, and try to find if there are any that are
 #   newer than the ones that are currently being used.
 # Can also get updatable images with something like:
@@ -96,10 +95,10 @@ function check_repository() {
 #     {{end}}{{end}}' | grep registry.internal.aleemhaji.com | sort | uniq
 curl -fsS "https://raw.githubusercontent.com/Eagerod/home-network/master/hope.yaml" 2> /dev/null | \
     grep 'source:' | \
-    sed -r 's/[[:space:]]*source: (.*)/\1/' | \
+    sed -r 's/[[:space:]]*source:[[:space:]]*(.*)/\1/' | \
 while read -r line; do
     out="$(check_repository "$line" || true)"
-    if [ ! -z "$out" ]; then
+    if [ -n "$out" ]; then
         out="$(echo "$out" | tr '[:space:]' ' ' | sed 's/ /\\n    /g')"
     else
         # No new tags, nothing to report; up to date!
