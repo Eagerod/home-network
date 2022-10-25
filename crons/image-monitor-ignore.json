@@ -3,8 +3,7 @@
 		"-debian-"
 	],
 	"busybox": [
-		"\\\\b-uclibc$",
-		"^stable$"
+		"\\\\b-uclibc$"
 	],
 	"certbot/certbot": [
 		"^amd64-.*$"
@@ -42,10 +41,5 @@
 	"ubuntu": [
 		"^[a-z]+$",
 		"^[a-z]+-\\\\d+$"
-	],
-	"vaultwarden/server": [
-		"^stable$",
-		"^testing$",
-		"\\\\b-alpine$"
 	]
 }

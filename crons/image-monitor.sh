@@ -14,10 +14,10 @@ ERROR_CODE_INVALID_INPUT=2
 SLACK_URL="https://slackbot.internal.aleemhaji.com/message"
 SLACK_CHANNEL="CKE1AKEAV"
 
-ignore_tags="latest edge nightly beta preview unstable dev"
+ignore_tags="latest edge nightly beta preview unstable dev stable testing"
 global_ignore_tags_selector=""
 for rtag in $ignore_tags; do
-    global_ignore_tags_selector="$global_ignore_tags_selector | select(test(\"$rtag\") | not)"
+    global_ignore_tags_selector="$global_ignore_tags_selector | select(test(\"^$rtag$\") | not)"
 done
 
 all_ignore_tags="$(jq -r '. | tostring' "$SCRIPT_DIR/image-monitor-ignore.json")"
