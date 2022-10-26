@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: image-monitor
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: image-monitor
+subjects:
+  - kind: ServiceAccount
+    name: image-monitor
+roleRef:
+  kind: Role
+  name: shell-monitor
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-monitor-deployment
+  labels:
+    app: image-monitor
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-monitor
+  template:
+    metadata:
+      labels:
+        app: image-monitor
+    spec:
+      serviceAccountName: image-monitor
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: image-monitor
+          image: registry.internal.aleemhaji.com/kubectl:1.21.0 
+          command:
+            - /scripts/base/script.sh
+          env:
+            - name: CONFIG_MAP_NAME
+              value: image-monitor
+            - name: UPDATE_SCRIPT
+              value: /scripts/monitor/image-monitor.sh
+            - name: UPDATE_INTERVAL
+              value: "28800"
+          volumeMounts:
+            - name: image-monitor-script
+              mountPath: /scripts/monitor
+            - name: shell-monitor-base-scripts
+              mountPath: /scripts/base
+      volumes:
+        - name: image-monitor-script
+          configMap:
+            name: image-monitor-config
+            defaultMode: 0755
+        - name: shell-monitor-base-scripts
+          configMap:
+            name: shell-monitor-base-config
+            defaultMode: 0755

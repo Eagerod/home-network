@@ -11,9 +11,6 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ERROR_CODE_INVALID_USAGE=1
 ERROR_CODE_INVALID_INPUT=2
 
-SLACK_URL="https://slackbot.internal.aleemhaji.com/message"
-SLACK_CHANNEL="CKE1AKEAV"
-
 ignore_tags="latest edge nightly beta preview unstable dev stable testing"
 global_ignore_tags_selector=""
 for rtag in $ignore_tags; do
@@ -22,12 +19,10 @@ done
 
 all_ignore_tags="$(jq -r '. | tostring' "$SCRIPT_DIR/image-monitor-ignore.json")"
 
-slack() {
-    curl -sS -X POST -H "X-SLACK-CHANNEL-ID: ${SLACK_CHANNEL}" -d "$@" "$SLACK_URL"
-}
-
 staging_file="$(mktemp)"
 trap 'rm -f $staging_file' EXIT
+
+echo ""
 
 function check_repository() {
     if [ $# -ne 1 ]; then
@@ -99,24 +94,20 @@ curl -fsS "https://raw.githubusercontent.com/Eagerod/home-network/master/hope.ya
     sed -r 's/[[:space:]]*source:[[:space:]]*(.*)/\1/' | \
 while read -r line; do
     out="$(check_repository "$line" || true)"
-    if [ -n "$out" ]; then
-        out="$(tr '[:space:]' ' ' <<< "$out" | sed 's/ /\\n    /g')"
-    else
+    if [ -z "$out" ]; then
         # No new tags, nothing to report; up to date!
         continue
     fi
 
     repository="$(awk -F: '{print $1}' <<< "$line")"
-    msg="$(printf "New tags for repository %s:%s%s" "$repository" '\n    ' "$out")"
-
     if ! grep '/' <<< "$repository" > /dev/null; then
-        repository="_/$repository"
+        repository_path="_/$repository"
     else
-        repository="r/$repository"
+        repository_path="r/$repository"
     fi
 
-    # shellcheck disable=SC1117
-    msg="$msg\n Visit https://hub.docker.com/$repository to sift through latest versions."
-
-    slack "$msg"
+    printf "New tags for repository [%s](%s):\n" "$repository"  "https://hub.docker.com/$repository_path"
+    for a in $out; do
+        printf '    %s\n' "$a"
+    done
 done

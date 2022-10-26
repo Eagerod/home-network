@@ -6,16 +6,17 @@
 		"\\\\b-uclibc$"
 	],
 	"certbot/certbot": [
-		"^amd64-.*$"
+		"^amd64-"
 	],
 	"drone/drone": [
-		"\\\\blinux-amd64.*$"
+		"\\\\blinux-amd64"
 	],
 	"linuxserver/heimdall": [
-		"^version-.*$",
-		"^amd64-.*$",
-		"^js-.*$",
-		"js"
+		"^version-",
+		"^amd64-",
+		"^js-",
+		"^js$",
+		"^development-"
 	],
 	"mongo": [
 		"\\\\bwindowsservercore\\\\b",
@@ -23,16 +24,16 @@
 		"\\\\bfocal\\\\b"
 	],
 	"mysql": [
-		"\\\\boracle.*$",
-		"\\\\bdebian.*$"
+		"\\\\boracle",
+		"\\\\bdebian"
 	],
 	"postgres": [
-		"\\\\bbullseye.*$",
-		"\\\\balpine.*$"
+		"\\\\bbullseye",
+		"\\\\balpine"
 	],
 	"redis": [
-		"\\\\bbullseye.*$",
-		"\\\\balpine.*$"
+		"\\\\bbullseye",
+		"\\\\balpine"
 	],
 	"syncthing/syncthing": [
 		"^rc$",
