@@ -11,6 +11,9 @@
 	"drone/drone": [
 		"\\\\blinux-amd64"
 	],
+	"jellyfin/jellyfin": [
+		"\\\\bunstable"
+	],
 	"linuxserver/heimdall": [
 		"^version-",
 		"^amd64-",

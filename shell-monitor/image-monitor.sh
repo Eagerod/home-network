@@ -11,7 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ERROR_CODE_INVALID_USAGE=1
 ERROR_CODE_INVALID_INPUT=2
 
-ignore_tags="latest edge nightly beta preview unstable dev stable testing"
+ignore_tags="latest edge nightly beta preview unstable dev stable testing development"
 global_ignore_tags_selector=""
 for rtag in $ignore_tags; do
     global_ignore_tags_selector="$global_ignore_tags_selector | select(test(\"^$rtag$\") | not)"
@@ -35,8 +35,11 @@ function check_repository() {
     registry_repository="$(awk -F: '{print $1}' <<< "$registry_repository_tag")"
     tag="$(awk -F: '{print $2}' <<< "$registry_repository_tag")"
 
+    # Can't just use base nameservers, because local DNS will _probably_ match
+    #   most of the names here becuase of how pihole/local services are
+    #   configured.
     possible_registry="$(awk -F/ '{print $1}' <<< "$registry_repository")"
-    if nslookup "$possible_registry" > /dev/null; then
+    if [ -n "$(dig @8.8.8.8 +short "$possible_registry")" ]; then
         repository="${registry_repository#*/}"
         registry="$possible_registry"
     else
@@ -67,7 +70,7 @@ function check_repository() {
     fi
 
     repository_ignore_tags_selector=""
-    for rtag in $(jq -r ".\"$original_repository\"[]" <<< "$all_ignore_tags"); do
+    for rtag in $(jq -r ".\"$original_repository\"[]" <<< "$all_ignore_tags" 2> /dev/null); do
         repository_ignore_tags_selector="$repository_ignore_tags_selector | select(test(\"$rtag\") | not)"
     done
 
