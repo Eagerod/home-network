@@ -5,7 +5,7 @@ RUN \
     apt-get update -y && \
     apt-get install -y \
         curl \
-		jq && \
+        jq && \
     apt-get clean
 
 # For the image monitor.
