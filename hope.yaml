@@ -626,7 +626,7 @@ resources:
       - IMAGE_MONITOR_IGNORE_JSON=./image-monitor/image-monitor-ignore.json
     tags: [crons, image-monitor, stateless]
   - name: image-monitor
-    file: image-monitor/image-monitor-cron.yaml
+    file: image-monitor/image-monitor.yaml
     tags: [crons, image-monitor, stateless]
   - name: browser
     file: browser/browser.yaml
