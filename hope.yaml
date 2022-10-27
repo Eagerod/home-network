@@ -616,11 +616,11 @@ resources:
       metadata:
         name: image-monitor-config
     fileParameters:
-      - IMAGE_MONITOR_SCRIPT=./shell-monitor/image-monitor.sh
-      - IMAGE_MONITOR_IGNORE_JSON=./shell-monitor/image-monitor-ignore.json
+      - IMAGE_MONITOR_SCRIPT=./image-monitor/image-monitor.sh
+      - IMAGE_MONITOR_IGNORE_JSON=./image-monitor/image-monitor-ignore.json
     tags: [crons, image-monitor, stateless]
   - name: image-monitor
-    file: shell-monitor/image-monitor-cron.yaml
+    file: image-monitor/image-monitor-cron.yaml
     tags: [crons, image-monitor, stateless]
   - name: browser
     file: browser/browser.yaml
