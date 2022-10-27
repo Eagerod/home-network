@@ -109,7 +109,7 @@ while read -r line; do
         repository_path="r/$repository"
     fi
 
-    printf "New tags for repository [%s](%s):\n" "$repository"  "https://hub.docker.com/$repository_path"
+    printf "New tags for repository <%s|%s>:\n" "https://hub.docker.com/$repository_path" "$repository"
     for a in $out; do
         printf '    %s\n' "$a"
     done
