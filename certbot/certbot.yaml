@@ -42,7 +42,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: certbot-renew
-              image: registry.internal.aleemhaji.com/certbot:v1.25.0
+              image: registry.internal.aleemhaji.com/certbot:v1.31.0
               command:
                 - sh
                 - -c

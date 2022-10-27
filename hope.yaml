@@ -440,9 +440,9 @@ resources:
     tags: [docker-cache, transmission]
   - name: certbot-image-cache
     build:
-      source: certbot/certbot:v1.25.0
+      source: certbot/certbot:v1.31.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/certbot:v1.25.0
+      tag: registry.internal.aleemhaji.com/certbot:v1.31.0
     tags: [docker-cache, certbot]
   - name: mongo-37-image-cache
     build:
@@ -476,9 +476,9 @@ resources:
     tags: [docker-cache, pihole]
   - name: browser-image-cache
     build:
-      source: klausmeyer/docker-registry-browser:1.3.5
+      source: klausmeyer/docker-registry-browser:1.5.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/docker-registry-browser:1.3.5
+      tag: registry.internal.aleemhaji.com/docker-registry-browser:1.5.0
     tags: [docker-cache, browser]
   - name: curl-cache
     build:
@@ -502,15 +502,15 @@ resources:
     tags: [docker-cache, firefly]
   - name: heimdall-image-cache
     build:
-      source: linuxserver/heimdall:version-2.2.2
+      source: linuxserver/heimdall:version-v2.4.13
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/heimdall:version-2.2.2
+      tag: registry.internal.aleemhaji.com/heimdall:version-v2.4.13
     tags: [docker-cache, heimdall]
   - name: plex-image-cache
     build:
-      source: plexinc/pms-docker:1.28.0.5999-97678ded3
+      source: plexinc/pms-docker:1.29.0.6244-819d3678c
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pms-docker:1.28.0.5999-97678ded3
+      tag: registry.internal.aleemhaji.com/pms-docker:1.29.0.6244-819d3678c
     tags: [docker-cache, plex]
   - name: jellyfin-image-cache
     build:
@@ -538,9 +538,9 @@ resources:
     tags: [docker-cache, guacamole]
   - name: gitea-image-cache
     build:
-      source: gitea/gitea:1.14.2
+      source: gitea/gitea:1.17.2
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/gitea:1.14.2
+      tag: registry.internal.aleemhaji.com/gitea:1.17.2
     tags: [docker-cache, gitea]
   - name: kubectl-image-cache
     build:
@@ -550,33 +550,27 @@ resources:
     tags: [docker-cache, kubectl]
   - name: bitwarden-image-cache
     build:
-      source: vaultwarden/server:1.24.0
+      source: vaultwarden/server:1.26.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.24.0
-    tags: [docker-cache, bitwarden]
+      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.26.0
+    tags: [docker-cache, bitwarden, vaultwarden]
   - name: syncthing-image-cache
     build:
-      source: syncthing/syncthing:1.19.2
+      source: syncthing/syncthing:1.22
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/syncthing:1.19.2
+      tag: registry.internal.aleemhaji.com/syncthing:1.22
     tags: [docker-cache, syncthing]
-  - name: diun-image-cache
-    build:
-      source: crazymax/diun:4.21.0
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/diun:4.21.0
-    tags: [docker-cache, diun]
   - name: bookstack-image-cache
     build:
-      source: ghcr.io/linuxserver/bookstack:21.12.5
+      source: linuxserver/bookstack:22.09.1
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/bookstack:21.12.5
+      tag: registry.internal.aleemhaji.com/bookstack:22.09.1
     tags: [docker-cache, bookstack]
   - name: drone-image-cache
     build:
-      source: drone/drone:2.12.1
+      source: drone/drone:2.14.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/drone/drone:2.12.1
+      tag: registry.internal.aleemhaji.com/drone/drone:2.14.0
     tags: [docker-cache, drone]
   - name: drone-agent-image-cache
     build:
@@ -590,6 +584,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/wireguard-go:0.0.20220316
     tags: [docker-cache, wireguard]
+  - name: unifi-controller-image-cache
+    build:
+      source: linuxserver/unifi-controller:7.2.94
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/unifi-controller:7.2.94
+    tags: [docker-cache, unifi]
   # endregion
   # https://github.com/prometheus-operator/kube-prometheus#quickstart
   - name: prometheus
@@ -606,6 +606,28 @@ resources:
   #   parallel clusters first without having any concern for services fighting
   #   over shares/volumes.
   # They should each have the stateless tag applied to them.
+  - name: image-monitor-image
+    build:
+      path: image-monitor
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/image-monitor:latest
+    tags: [apps, slackbot, stateless]
+  - name: image-monitor-config
+    inline: |
+      apiVersion: v1
+      binaryData:
+        image-monitor.sh: ${IMAGE_MONITOR_SCRIPT}
+        image-monitor-ignore.json: ${IMAGE_MONITOR_IGNORE_JSON}
+      kind: ConfigMap
+      metadata:
+        name: image-monitor-config
+    fileParameters:
+      - IMAGE_MONITOR_SCRIPT=./image-monitor/image-monitor.sh
+      - IMAGE_MONITOR_IGNORE_JSON=./image-monitor/image-monitor-ignore.json
+    tags: [crons, image-monitor, stateless]
+  - name: image-monitor
+    file: image-monitor/image-monitor.yaml
+    tags: [crons, image-monitor, stateless]
   - name: browser
     file: browser/browser.yaml
     tags: [apps, browser, stateless]
@@ -705,10 +727,10 @@ resources:
         name: bitwarden-secrets
     parameters:
       - BITWARDEN_ADMIN_TOKEN_BASE64
-    tags: [apps, bitwarden]
+    tags: [apps, bitwarden, vaultwarden]
   - name: bitwarden
     file: bitwarden/bitwarden.yaml
-    tags: [apps, bitwarden]
+    tags: [apps, bitwarden, vaultwarden]
   # endregion
   # region: NFS-Share + Port Forwarded Services
   # This block of services include resources that need access to shared
@@ -819,7 +841,7 @@ resources:
     build:
       path: unifi
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/unifi-controller:7.0.23-ls145
+      tag: registry.internal.aleemhaji.com/unifi-controller:7.2.94-custom
     tags: [apps, unifi]
   - name: unifi-controller
     file: unifi/unifi.yaml
@@ -985,20 +1007,6 @@ resources:
   - name: syncthing
     file: syncthing/syncthing.yaml
     tags: [apps, syncthing]
-  - name: diun-config
-    inline: |
-      apiVersion: v1
-      data:
-        webhook_url: ${DIUN_WEBHOOK_URL_BASE64}
-      kind: Secret
-      metadata:
-        name: diun-secrets
-    parameters:
-      - DIUN_WEBHOOK_URL_BASE64
-    tags: [apps, diun]
-  - name: diun
-    file: diun/diun.yaml
-    tags: [apps, diun]
   - name: bookstack-config
     inline: |
       apiVersion: v1

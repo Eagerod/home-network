@@ -1,0 +1,52 @@
+{
+	"bitnami/kubectl": [
+		"-debian-"
+	],
+	"busybox": [
+		"\\\\b-uclibc$"
+	],
+	"certbot/certbot": [
+		"^amd64-"
+	],
+	"drone/drone": [
+		"\\\\blinux-amd64"
+	],
+	"jellyfin/jellyfin": [
+		"\\\\bunstable"
+	],
+	"linuxserver/heimdall": [
+		"^version-",
+		"^amd64-",
+		"^js-",
+		"^js$",
+		"^development-"
+	],
+	"mongo": [
+		"\\\\bwindowsservercore\\\\b",
+		"\\\\bnanoserver\\\\b",
+		"\\\\bfocal\\\\b"
+	],
+	"mysql": [
+		"\\\\boracle",
+		"\\\\bdebian"
+	],
+	"postgres": [
+		"\\\\bbullseye",
+		"\\\\balpine"
+	],
+	"redis": [
+		"\\\\bbullseye",
+		"\\\\balpine"
+	],
+	"syncthing/syncthing": [
+		"^rc$",
+		"^pcap$"
+	],
+	"ubuntu": [
+		"^[a-z]+$",
+		"^[a-z]+-\\\\d+$"
+	],
+	"vaultwarden/server": [
+		"\\\\balpine$"
+	]
+}
