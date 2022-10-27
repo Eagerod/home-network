@@ -409,11 +409,6 @@ resources:
   - name: docker-registry
     file: registry/registry.yaml
     tags: [apps, registry]
-  - name: pihole
-    file: pihole/pihole.yaml
-    parameters:
-      - *pihole_ingress_controller_ip
-    tags: [apps, pihole]
   # region: Docker Image Caching
   # At this point, the registry has been pushed, and all the appropriate
   #   ingress configurations should be set to allow for images to be cached.
@@ -591,6 +586,11 @@ resources:
       tag: registry.internal.aleemhaji.com/unifi-controller:7.2.94
     tags: [docker-cache, unifi]
   # endregion
+  - name: pihole
+    file: pihole/pihole.yaml
+    parameters:
+      - *pihole_ingress_controller_ip
+    tags: [apps, pihole]
   # https://github.com/prometheus-operator/kube-prometheus#quickstart
   - name: prometheus
     file: opsbox.yaml
