@@ -606,6 +606,12 @@ resources:
   #   parallel clusters first without having any concern for services fighting
   #   over shares/volumes.
   # They should each have the stateless tag applied to them.
+  - name: image-monitor-image
+    build:
+      path: image-monitor
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/image-monitor:latest
+    tags: [apps, slackbot, stateless]
   - name: image-monitor-config
     inline: |
       apiVersion: v1

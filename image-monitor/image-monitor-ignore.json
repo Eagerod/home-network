@@ -45,5 +45,8 @@
 	"ubuntu": [
 		"^[a-z]+$",
 		"^[a-z]+-\\\\d+$"
+	],
+	"vaultwarden/server": [
+		"\\\\balpine$"
 	]
 }

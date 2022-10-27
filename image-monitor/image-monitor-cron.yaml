@@ -37,7 +37,8 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: image-monitor
-          image: registry.internal.aleemhaji.com/kubectl:1.21.0 
+          image: registry.internal.aleemhaji.com/image-monitor:latest
+          imagePullPolicy: Always
           command:
             - /scripts/base/script.sh
           env:
