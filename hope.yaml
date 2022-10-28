@@ -533,9 +533,9 @@ resources:
     tags: [docker-cache, guacamole]
   - name: gitea-image-cache
     build:
-      source: gitea/gitea:1.17.2
+      source: gitea/gitea:1.17.3
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/gitea:1.17.2
+      tag: registry.internal.aleemhaji.com/gitea:1.17.3
     tags: [docker-cache, gitea]
   - name: kubectl-image-cache
     build:
@@ -563,9 +563,9 @@ resources:
     tags: [docker-cache, bookstack]
   - name: drone-image-cache
     build:
-      source: drone/drone:2.14.0
+      source: drone/drone:2.15.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/drone/drone:2.14.0
+      tag: registry.internal.aleemhaji.com/drone/drone:2.15.0
     tags: [docker-cache, drone]
   - name: drone-agent-image-cache
     build:
