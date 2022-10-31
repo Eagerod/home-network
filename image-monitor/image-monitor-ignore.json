@@ -3,7 +3,11 @@
 		"-debian-"
 	],
 	"busybox": [
-		"\\\\b-uclibc$"
+		"\\\\buclibc\\\\b",
+		"\\\\bglibc\\\\b",
+		"\\\\bmusl\\\\b",
+		"\\\\bunstable\\\\b",
+		"\\\\bstable\\\\b"
 	],
 	"certbot/certbot": [
 		"^amd64-"
@@ -11,8 +15,25 @@
 	"drone/drone": [
 		"\\\\blinux-amd64"
 	],
+	"drone/drone-runner-kube": [
+		"\\\\blinux\\\\b"
+	],
+	"fireflyiii/core": [
+		"^develop$",
+		"\\\\bdev$"
+	],
+	"gitea/gitea": [
+		"\\\\bdev\\\\b",
+		"\\\\blatest\\\\b",
+		"\\\\brc\\\\d+\\\\b",
+		"\\\\blinux-amd64\\\\b"
+	],
 	"jellyfin/jellyfin": [
 		"\\\\bunstable"
+	],
+	"linuxserver/bookstack": [
+		"^amd64-",
+		"^version-"
 	],
 	"linuxserver/heimdall": [
 		"^version-",
@@ -24,15 +45,22 @@
 	"mongo": [
 		"\\\\bwindowsservercore\\\\b",
 		"\\\\bnanoserver\\\\b",
-		"\\\\bfocal\\\\b"
+		"\\\\bfocal\\\\b",
+		"\\\\bbionic\\\\b",
+		"\\\\bxenial\\\\b"
 	],
 	"mysql": [
 		"\\\\boracle",
 		"\\\\bdebian"
 	],
+	"pihole/pihole": [
+		"beta$"
+	],
 	"postgres": [
 		"\\\\bbullseye",
-		"\\\\balpine"
+		"\\\\balpine",
+		"\\\\bstretch",
+		"beta"
 	],
 	"redis": [
 		"\\\\bbullseye",
