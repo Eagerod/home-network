@@ -89,12 +89,17 @@ function check_repository() {
 
 # Get the list of all images used, and try to find if there are any that are
 #   newer than the ones that are currently being used.
+# The final sort ensures that only the earliest sorted version of any given
+#   image is checked, rather than all versions.
+# This prevents duplicate results when multiple versions of an image are being
+#   used in diffferent places.
 # Can also get updatable images with something like:
 # $ kubectl get pods -A -o template='{{range .items}}{{range .spec.containers}}{{.image}}
 #     {{end}}{{end}}' | grep registry.internal.aleemhaji.com | sort | uniq
 curl -fsS "https://raw.githubusercontent.com/Eagerod/home-network/master/hope.yaml" 2> /dev/null | \
     grep 'source:' | \
     sed -r 's/[[:space:]]*source:[[:space:]]*(.*)/\1/' | \
+    sort -u -t':' -k1,1 | \
 while read -r line; do
     out="$(check_repository "$line" || true)"
     if [ -z "$out" ]; then
