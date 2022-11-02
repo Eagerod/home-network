@@ -54,12 +54,13 @@
 		"\\\\bdebian"
 	],
 	"pihole/pihole": [
-		"beta$"
+		"beta"
 	],
 	"postgres": [
 		"\\\\bbullseye",
 		"\\\\balpine",
 		"\\\\bstretch",
+		"rc\\\\d+\\\\b",
 		"beta"
 	],
 	"redis": [
