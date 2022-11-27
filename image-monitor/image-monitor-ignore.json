@@ -29,11 +29,13 @@
 		"\\\\blinux-amd64\\\\b"
 	],
 	"jellyfin/jellyfin": [
-		"\\\\bunstable"
+		"\\\\bunstable",
+		"\\\\b-amd64\\\\b"
 	],
 	"linuxserver/bookstack": [
 		"^amd64-",
-		"^version-"
+		"^version-",
+		"-ls\\\\d+\\\\b"
 	],
 	"linuxserver/heimdall": [
 		"^version-",
@@ -42,12 +44,17 @@
 		"^js$",
 		"^development-"
 	],
+	"linuxserver/unifi-controller": [
+		"\\\\bversion-\\\\b",
+		"\\\\b-latest\\\\b"
+	],
 	"mongo": [
 		"\\\\bwindowsservercore\\\\b",
 		"\\\\bnanoserver\\\\b",
 		"\\\\bfocal\\\\b",
 		"\\\\bbionic\\\\b",
-		"\\\\bxenial\\\\b"
+		"\\\\bxenial\\\\b",
+		"\\\\brc\\\\d+\\\\b"
 	],
 	"mysql": [
 		"\\\\boracle",
