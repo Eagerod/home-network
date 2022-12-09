@@ -25,6 +25,8 @@ spec:
           volumeMounts:
             - name: factorio-persistent-storage
               mountPath: /var/lib/factorio/saves
+            - name: factorio-mods-persistent-storage
+              mountPath: /var/lib/factorio/mods
           env:
             - name: SAVE_GAME
               value: save-game
@@ -33,6 +35,10 @@ spec:
           nfs:
             server: 192.168.96.4
             path: /mnt/main/apps/factorio
+        - name: factorio-mods-persistent-storage
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/factorio-mods
 ---
 apiVersion: v1
 kind: Service
@@ -44,6 +50,7 @@ spec:
   ports:
     - port: 34197
       protocol: UDP
-  type: NodePort
+  type: LoadBalancer
+  loadBalancerIP: 192.168.200.130
   selector:
     app: factorio

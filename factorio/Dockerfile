@@ -1,4 +1,4 @@
-FROM registry.internal.aleemhaji.com/ubuntu:16.04
+FROM registry.internal.aleemhaji.com/ubuntu:20.04
 
 RUN \
     apt-get update -y && \
@@ -7,7 +7,7 @@ RUN \
         xz-utils && \
     apt-get clean
 
-ARG FACTORIO_SERVER_VERSION=1.0.0
+ARG FACTORIO_SERVER_VERSION=1.1.72
 
 RUN \
     curl -sSL https://www.factorio.com/get-download/$FACTORIO_SERVER_VERSION/headless/linux64 -o /tmp/$FACTORIO_SERVER_VERSION.tar.xz && \
