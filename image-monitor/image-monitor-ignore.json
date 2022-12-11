@@ -42,7 +42,8 @@
 		"^amd64-",
 		"^js-",
 		"^js$",
-		"^development-"
+		"^development-",
+		"\\\\b-ls\\\\d+$"
 	],
 	"linuxserver/unifi-controller": [
 		"\\\\bversion-\\\\b",
