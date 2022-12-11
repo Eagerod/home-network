@@ -46,8 +46,10 @@
 		"\\\\b-ls\\\\d+$"
 	],
 	"linuxserver/unifi-controller": [
+		"^amd64-\\\\b",
 		"\\\\bversion-\\\\b",
-		"\\\\b-latest\\\\b"
+		"\\\\b-latest\\\\b",
+		"\\\\b-ls\\\\d+$"
 	],
 	"mongo": [
 		"\\\\bwindowsservercore\\\\b",

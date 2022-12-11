@@ -581,9 +581,9 @@ resources:
     tags: [docker-cache, wireguard]
   - name: unifi-controller-image-cache
     build:
-      source: linuxserver/unifi-controller:7.2.94
+      source: linuxserver/unifi-controller:7.3.76
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/unifi-controller:7.2.94
+      tag: registry.internal.aleemhaji.com/unifi-controller:7.3.76
     tags: [docker-cache, unifi]
   # endregion
   - name: pihole
@@ -841,7 +841,7 @@ resources:
     build:
       path: unifi
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/unifi-controller:7.2.94-custom
+      tag: registry.internal.aleemhaji.com/unifi-controller:7.3.76-custom
     tags: [apps, unifi]
   - name: unifi-controller
     file: unifi/unifi.yaml

@@ -1,4 +1,4 @@
-FROM registry.internal.aleemhaji.com/unifi-controller:7.2.94
+FROM registry.internal.aleemhaji.com/unifi-controller:7.3.76
 
 COPY system.properties /config/data/system.properties
 
