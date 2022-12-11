@@ -20,7 +20,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: jellyfin
-          image: registry.internal.aleemhaji.com/jellyfin:10.8.6
+          image: registry.internal.aleemhaji.com/jellyfin:10.8.8
           ports:
             - containerPort: 8096
           resources:
@@ -59,7 +59,7 @@ spec:
   selector:
     app: jellyfin
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: jellyfin-ingress
@@ -75,6 +75,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: jellyfin
-              servicePort: 8096
+              service:
+                name: jellyfin
+                port:
+                  number: 8086
