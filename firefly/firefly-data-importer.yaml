@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firefly-data-importer-deployment
+  labels:
+    app: firefly-iii-data-importer
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: firefly-iii-data-importer
+  template:
+    metadata:
+      labels:
+        app: firefly-iii-data-importer
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: firefly-iii-data-importer
+          image: registry.internal.aleemhaji.com/fireflyiii-data-importer:version-0.9.17
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TRUSTED_PROXIES
+              value: '**'
+            - name: FIREFLY_III_URL
+              value: https://firefly.internal.aleemhaji.com
+            - name: VANITY_URL
+              value: https://firefly.internal.aleemhaji.com
+            - name: FIREFLY_III_CLIENT_ID
+              value: "171"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: firefly-data-importer
+  labels:
+    app: firefly-data-importer
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: firefly-iii-data-importer
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: firefly-data-importer-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://firefly-data-importer.internal.aleemhaji.com
+spec:
+  rules:
+    - host: firefly-data-importer
+    - host: firefly-data-importer.home
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: firefly-data-importer-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+spec:
+  tls:
+    - hosts:
+        - firefly-data-importer.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: firefly-data-importer.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: firefly-data-importer
+                port:
+                  number: 8080

@@ -491,9 +491,15 @@ resources:
   #   local registry, and then re-tagged with the original tag for now.
   - name: firefly-image-cache
     build:
-      source: fireflyiii/core:version-5.5.13
+      source: fireflyiii/core:version-5.7.15
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/firefly-iii:5.5.13
+      tag: registry.internal.aleemhaji.com/fireflyiii-core:version-5.7.15
+    tags: [docker-cache, firefly]
+  - name: firefly-importer-image-cache
+    build:
+      source: fireflyiii/data-importer:version-0.9.10
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/fireflyiii-data-importer:version-0.9.17
     tags: [docker-cache, firefly]
   - name: heimdall-image-cache
     build:
@@ -862,6 +868,7 @@ resources:
       data:
         mysql_password: ${FIREFLY_MYSQL_PASSWORD_BASE64}
         app_key: ${FIREFLY_APP_KEY_BASE64}
+        importer_pat: ${FIREFLY_DATA_IMPORTER_KEY_BASE64}
       kind: Secret
       metadata:
         name: firefly-secrets
@@ -870,6 +877,7 @@ resources:
       - FIREFLY_MYSQL_DATABASE
       - FIREFLY_MYSQL_PASSWORD_BASE64
       - FIREFLY_APP_KEY_BASE64
+      - FIREFLY_DATA_IMPORTER_KEY_BASE64
     tags: [apps, firefly]
   - name: firefly-init-job-create
     file: firefly/firefly-init.yaml
@@ -879,6 +887,9 @@ resources:
     tags: [apps, firefly]
   - name: firefly
     file: firefly/firefly.yaml
+    tags: [apps, firefly]
+  - name: firefly-data-importer
+    file: firefly/firefly-data-importer.yaml
     tags: [apps, firefly]
   - name: guacamole-config
     inline: |
