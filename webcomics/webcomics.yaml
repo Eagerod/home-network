@@ -68,7 +68,7 @@ spec:
               command:
                 - sh
                 - -c
-                - curl -X POST http://${WEBCOMICS_HOST}/tasks/fetch/comic 
+                - curl -X POST http://${WEBCOMICS_HOST}/tasks/fetch/comic
               env:
                 - name: WEBCOMICS_HOST
                   value: webcomics

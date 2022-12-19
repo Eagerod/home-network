@@ -1,6 +1,6 @@
-FROM lscr.io/linuxserver/unifi-controller:7.0.23-ls145
+FROM registry.internal.aleemhaji.com/unifi-controller:7.3.76
 
-COPY system.properties /usr/lib/unifi/data/system.properties
+COPY system.properties /config/data/system.properties
 
 COPY docker-entrypoint.sh docker-entrypoint.sh
 

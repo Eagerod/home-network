@@ -1,78 +1,73 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: browser-deployment
+  name: latex-deployment
   labels:
-    app: browser
+    app: latex
 spec:
   revisionHistoryLimit: 0
   replicas: 1
   selector:
     matchLabels:
-      app: browser
+      app: latex
   template:
     metadata:
       labels:
-        app: browser
+        app: latex
     spec:
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
       containers:
-        - name: browser
-          image: registry.internal.aleemhaji.com/docker-registry-browser:1.5.0
+        - name: latex
+          image: registry.internal.aleemhaji.com/latex-server:latest
           ports:
             - containerPort: 8080
-          env:
-            - name: ENABLE_DELETE_IMAGES
-              value: "true"
-            - name: DOCKER_REGISTRY_URL
-              value: https://registry.internal.aleemhaji.com
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: browser
+  name: latex
   labels:
-    app: browser
+    app: latex
 spec:
   ports:
     - port: 8080
       protocol: TCP
   type: NodePort
   selector:
-    app: browser
+    app: latex
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: browser-ingress-redirect
+  name: latex-ingress-redirect
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/temporal-redirect: https://browser.internal.aleemhaji.com
+    nginx.ingress.kubernetes.io/temporal-redirect: https://latex.internal.aleemhaji.com
 spec:
   rules:
-    - host: browser
-    - host: browser.home
+    - host: latex
+    - host: latex.home
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: browser-ingress
+  name: latex-ingress
   annotations:
     kubernetes.io/ingress.class: "nginx"
 spec:
   tls:
     - hosts:
-        - browser.internal.aleemhaji.com
+        - latex.internal.aleemhaji.com
       secretName: internal-certificate-files
   rules:
-    - host: browser.internal.aleemhaji.com
+    - host: latex.internal.aleemhaji.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: browser
+                name: latex
                 port:
                   number: 8080

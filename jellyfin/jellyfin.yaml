@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jellyfin
+  labels:
+    app: jellyfin
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jellyfin
+  serviceName: jellyfin
+  template:
+    metadata:
+      labels:
+        app: jellyfin
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: jellyfin
+          image: registry.internal.aleemhaji.com/jellyfin:10.8.8
+          ports:
+            - containerPort: 8096
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1000m"
+          volumeMounts:
+            - name: jellyfin-persistent-storage
+              mountPath: /config
+          # Confirm config volume hasn't been mounted as read-only.
+          livenessProbe:
+            exec:
+              command:
+                - touch
+                - /config/.liveness-probe
+            initialDelaySeconds: 120
+            periodSeconds: 60
+      volumes:
+        - name: jellyfin-persistent-storage
+          iscsi:
+            targetPortal: 192.168.96.4
+            iqn: iqn.2019-05.com.aleemhaji.internal.ctl:jellyfin
+            lun: 16
+            fsType: ext4
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin
+  labels:
+    app: jellyfin
+spec:
+  ports:
+    - port: 8096
+      protocol: TCP
+  selector:
+    app: jellyfin
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jellyfin-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - jellyfin.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: jellyfin.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jellyfin
+                port:
+                  number: 8096

@@ -20,7 +20,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: plex
-          image: registry.internal.aleemhaji.com/pms-docker:1.25.7.5604-980a13e02
+          image: registry.internal.aleemhaji.com/pms-docker:1.29.0.6244-819d3678c
           ports:
             - containerPort: 32400
           env:
@@ -37,8 +37,8 @@ spec:
           livenessProbe:
             exec:
               command:
-              - touch
-              - /config/Library/Application Support/Plex Media Server/.liveness-probe
+                - touch
+                - /config/Library/Application Support/Plex Media Server/.liveness-probe
             initialDelaySeconds: 120
             periodSeconds: 60
       volumes:

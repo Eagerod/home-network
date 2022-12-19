@@ -19,7 +19,8 @@ today="$(date -u +%Y-%m-%d)"
 
 results="$(curl -H "$CURL_AUTH_HEADER" -fsSL "$BOOKSTACK_API_PREFIX/search?query=\\[notify\\]" |\
 	jq -r --arg "date=$today" -r '.data[] | .tags[] + {item_name: .name, url} | select(.name = "notify") | "\(.value): <\(.url)|\(.item_name)>"' |\
-	awk -v "date=$today" '{if ($1 <= date) print}')"
+	awk -v "date=$today" '{if ($1 <= date) print}' |\
+	sort)"
 
 # Force a new notification every day, even if there's no change in the
 #   set of entities to output.

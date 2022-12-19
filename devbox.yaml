@@ -23,9 +23,9 @@ spec:
       containers:
         - name: devbox
           image: registry.internal.aleemhaji.com/busybox:1.35.0
-          command: 
+          command:
             - /bin/sh
-          stdin: true 
+          stdin: true
           tty: true
 ---
 # Just have a service sitting there, pointing at port 80.

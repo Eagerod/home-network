@@ -16,11 +16,11 @@ spec:
       labels:
         app: unifi
     spec:
-      imagePullSecrets: 
+      imagePullSecrets:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: unifi
-          image: registry.internal.aleemhaji.com/unifi-controller:7.0.23-ls145
+          image: registry.internal.aleemhaji.com/unifi-controller:7.3.76-custom
           ports:
             - containerPort: 8443
               protocol: TCP
@@ -46,15 +46,13 @@ spec:
             - containerPort: 10001
               protocol: UDP
               name: unifi-discovery
-          # At 100m CPU, it does take a while for the container to actually
-          #   start serving traffic, but once it's up, it's fine.
           resources:
             requests:
               memory: "1024Mi"
-              cpu: "100m"
+              cpu: "200m"
             limits:
               memory: "1024Mi"
-              cpu: "100m"
+              cpu: "200m"
           env:
             - name: UNIFI_SERVICE_IP
               value: ${LOAD_BALANCER_IP}
