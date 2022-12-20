@@ -22,6 +22,9 @@
 		"^develop$",
 		"\\\\bdev$"
 	],
+	"fireflyiii/data-importer": [
+		"^develop$"
+	],
 	"gitea/gitea": [
 		"\\\\bdev\\\\b",
 		"\\\\blatest\\\\b",
