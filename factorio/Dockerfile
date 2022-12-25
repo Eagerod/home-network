@@ -7,7 +7,7 @@ RUN \
         xz-utils && \
     apt-get clean
 
-ARG FACTORIO_SERVER_VERSION=1.1.72
+ARG FACTORIO_SERVER_VERSION=1.1.74
 
 RUN \
     curl -sSL https://www.factorio.com/get-download/$FACTORIO_SERVER_VERSION/headless/linux64 -o /tmp/$FACTORIO_SERVER_VERSION.tar.xz && \

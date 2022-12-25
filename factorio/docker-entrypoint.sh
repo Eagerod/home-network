@@ -6,8 +6,8 @@ if [ -z "$SAVE_GAME" ]; then
 	exit 1
 fi
 
-SERVER_SETTINGS_FILE=/var/lib/factorio/data/server-settings.json
-SERVER_SAVE_GAME=/var/lib/factorio/saves/$SAVE_GAME.zip
+SERVER_SETTINGS_FILE="/var/lib/factorio/data/server-settings.json"
+SERVER_SAVE_GAME="/var/lib/factorio/saves/$SAVE_GAME.zip"
 
 : "${SERVER_TOKEN=''}"
 : "${GAME_PUBLIC=false}"

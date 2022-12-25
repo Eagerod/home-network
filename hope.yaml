@@ -743,7 +743,7 @@ resources:
     build:
       path: factorio
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/factorio:latest
+      tag: registry.internal.aleemhaji.com/factorio:1.1.74
     tags: [apps, factorio]
   - name: factorio
     file: factorio/factorio.yaml
