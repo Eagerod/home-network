@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: firefly-iii
-          image: registry.internal.aleemhaji.com/firefly-iii:5.5.13
+          image: registry.internal.aleemhaji.com/fireflyiii-core:version-5.7.15
           ports:
             - containerPort: 8080
           env:
@@ -55,6 +55,8 @@ spec:
                   key: app_key
             - name: USE_ENCRYPTION
               value: "false"
+            - name: MAIL_MAILER
+              value: log
           volumeMounts:
             - name: file-uploads
               mountPath: /var/www/firefly-iii/storage/upload

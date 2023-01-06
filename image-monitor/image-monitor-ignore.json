@@ -1,0 +1,94 @@
+{
+	"bitnami/kubectl": [
+		"-debian-"
+	],
+	"busybox": [
+		"\\\\buclibc\\\\b",
+		"\\\\bglibc\\\\b",
+		"\\\\bmusl\\\\b",
+		"\\\\bunstable\\\\b",
+		"\\\\bstable\\\\b"
+	],
+	"certbot/certbot": [
+		"^amd64-"
+	],
+	"drone/drone": [
+		"\\\\blinux-amd64"
+	],
+	"drone/drone-runner-kube": [
+		"\\\\blinux\\\\b"
+	],
+	"fireflyiii/core": [
+		"^develop$",
+		"\\\\bdev$"
+	],
+	"fireflyiii/data-importer": [
+		"^develop$"
+	],
+	"gitea/gitea": [
+		"\\\\bdev\\\\b",
+		"\\\\blatest\\\\b",
+		"\\\\brc\\\\d+\\\\b",
+		"\\\\blinux-amd64\\\\b"
+	],
+	"jellyfin/jellyfin": [
+		"\\\\bunstable",
+		"\\\\b-amd64\\\\b"
+	],
+	"linuxserver/bookstack": [
+		"^amd64-",
+		"^version-",
+		"-ls\\\\d+\\\\b"
+	],
+	"linuxserver/heimdall": [
+		"^version-",
+		"^amd64-",
+		"^js-",
+		"^js$",
+		"^development-",
+		"\\\\b-ls\\\\d+$"
+	],
+	"linuxserver/unifi-controller": [
+		"^amd64-\\\\b",
+		"\\\\bversion-\\\\b",
+		"\\\\b-latest\\\\b",
+		"\\\\b-ls\\\\d+$"
+	],
+	"mongo": [
+		"\\\\bwindowsservercore\\\\b",
+		"\\\\bnanoserver\\\\b",
+		"\\\\bfocal\\\\b",
+		"\\\\bbionic\\\\b",
+		"\\\\bxenial\\\\b",
+		"\\\\brc\\\\d+\\\\b"
+	],
+	"mysql": [
+		"\\\\boracle",
+		"\\\\bdebian"
+	],
+	"pihole/pihole": [
+		"beta"
+	],
+	"postgres": [
+		"\\\\bbullseye",
+		"\\\\balpine",
+		"\\\\bstretch",
+		"rc\\\\d+\\\\b",
+		"beta"
+	],
+	"redis": [
+		"\\\\bbullseye",
+		"\\\\balpine"
+	],
+	"syncthing/syncthing": [
+		"^rc$",
+		"^pcap$"
+	],
+	"ubuntu": [
+		"^[a-z]+$",
+		"^[a-z]+-\\\\d+$"
+	],
+	"vaultwarden/server": [
+		"\\\\balpine$"
+	]
+}

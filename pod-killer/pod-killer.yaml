@@ -15,15 +15,15 @@ metadata:
   name: pod-killer
   namespace: ${POD_KILLER_NAMESPACE}
 rules:
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  verbs:
-  - get
-  - delete
-  - list
-  - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+      - delete
+      - list
+      - watch
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -31,8 +31,8 @@ metadata:
   name: pod-killer
   namespace: ${POD_KILLER_NAMESPACE}
 subjects:
-- kind: ServiceAccount
-  name: pod-killer
+  - kind: ServiceAccount
+    name: pod-killer
 roleRef:
   kind: Role
   name: pod-killer
@@ -74,8 +74,8 @@ spec:
         - name: pod-killer
           image: registry.internal.aleemhaji.com/kubectl:1.21.0
           command:
-             - /scripts/script.sh
-             - "10"
+            - /scripts/script.sh
+            - "10"
           volumeMounts:
             - name: pod-killer-scripts
               mountPath: /scripts

@@ -8,20 +8,20 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: events-monitor
 rules:
-- apiGroups:
-  - ""
-  resources:
-  - events
-  verbs:
-  - list
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - list
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: events-monitor-shell-monitor
 subjects:
-- kind: ServiceAccount
-  name: events-monitor
+  - kind: ServiceAccount
+    name: events-monitor
 roleRef:
   kind: Role
   name: shell-monitor
@@ -32,9 +32,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: events-monitor-events-monitor
 subjects:
-- kind: ServiceAccount
-  name: events-monitor
-  namespace: default
+  - kind: ServiceAccount
+    name: events-monitor
+    namespace: default
 roleRef:
   kind: ClusterRole
   name: events-monitor
@@ -73,7 +73,7 @@ spec:
         - name: shell-monitor
           image: registry.internal.aleemhaji.com/kubectl:1.21.0
           command:
-             - /scripts/base/script.sh
+            - /scripts/base/script.sh
           env:
             - name: CONFIG_MAP_NAME
               value: recent-events-monitor

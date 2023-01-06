@@ -42,7 +42,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: certbot-renew
-              image: registry.internal.aleemhaji.com/certbot:v1.25.0
+              image: registry.internal.aleemhaji.com/certbot:v1.31.0
               command:
                 - sh
                 - -c
@@ -56,7 +56,7 @@ spec:
                 - name: certbot-scripts
                   mountPath: /scripts
               env:
-                - name: NAMESILO_API_KEY 
+                - name: NAMESILO_API_KEY
                   valueFrom:
                     secretKeyRef:
                       name: namesilo-api-key
@@ -88,7 +88,7 @@ spec:
     - host: aleemhaji.com
       http:
         paths:
-          - path: /
+          - path: /.well-known/acme-challenge
             pathType: Prefix
             backend:
               service:
@@ -110,7 +110,7 @@ spec:
     - host: internal.aleemhaji.com
       http:
         paths:
-          - path: /
+          - path: /.well-known/acme-challenge
             pathType: Prefix
             backend:
               service:

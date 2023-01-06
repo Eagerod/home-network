@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: gitea
-          image: registry.internal.aleemhaji.com/gitea:1.14.2
+          image: registry.internal.aleemhaji.com/gitea:1.17.3
           ports:
             - containerPort: 3000
             - containerPort: 22
@@ -28,6 +28,9 @@ spec:
               mountPath: /data
             - name: ssl-cert
               mountPath: /etc/ssl/certs/
+          env:
+            - name: GITEA__OAUTH2__JWT_SIGNING_ALGORITHM
+              value: HS256
       volumes:
         - name: gitea-persistent-storage
           nfs:

@@ -26,7 +26,7 @@ spec:
           image: registry.internal.aleemhaji.com/home-network:latest
           command: 
             - /bin/sh
-          stdin: true 
+          stdin: true
           tty: true
           ports:
           - containerPort: 8067

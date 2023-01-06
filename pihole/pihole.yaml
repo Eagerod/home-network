@@ -83,6 +83,18 @@ spec:
       serviceAccountName: pihole
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - pihole
+                topologyKey: "kubernetes.io/hostname"
       # Since individual files don't reload the way that full directory mount
       #   do, copy files over to where they belong.
       # This prevents them from being read only, and lets me update the files
@@ -135,11 +147,11 @@ spec:
           startupProbe:
             exec:
               command:
-              - dig
-              - +norecurse
-              - +retry=0
-              - "@127.0.0.1"
-              - pi.hole
+                - dig
+                - +norecurse
+                - +retry=0
+                - "@127.0.0.1"
+                - pi.hole
             failureThreshold: 30
             periodSeconds: 10
         - name: hostsfile-daemon

@@ -15,7 +15,7 @@ spec:
       labels:
         app: node-red
     spec:
-      imagePullSecrets: 
+      imagePullSecrets:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: node-red

@@ -8,33 +8,33 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: drone
 rules:
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - create
-  - delete
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  - pods/log
-  verbs:
-  - get
-  - create
-  - delete
-  - list
-  - watch
-  - update
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - create
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - pods/log
+    verbs:
+      - get
+      - create
+      - delete
+      - list
+      - watch
+      - update
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: drone
 subjects:
-- kind: ServiceAccount
-  name: drone
+  - kind: ServiceAccount
+    name: drone
 roleRef:
   kind: Role
   name: drone
@@ -60,11 +60,11 @@ spec:
         app: drone
         module: web
     spec:
-      imagePullSecrets: 
+      imagePullSecrets:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: drone
-          image: registry.internal.aleemhaji.com/drone/drone:2.0.4
+          image: registry.internal.aleemhaji.com/drone/drone:2.15.0
           env:
             - name: DRONE_USER_CREATE
               value: username:aleem,admin:true
@@ -120,11 +120,11 @@ spec:
         module: runner
     spec:
       serviceAccountName: drone
-      imagePullSecrets: 
+      imagePullSecrets:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: drone
-          image: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.1
+          image: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.3
           env:
             - name: DRONE_RPC_HOST
               value: drone.internal.aleemhaji.com
