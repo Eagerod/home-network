@@ -42,6 +42,8 @@ create_node() {
     echo hope --config hope.yaml vm ip "$node_id"
     echo sshpass -p "$VM_MANAGEMENT_PASSWORD" hope --config hope.yaml node ssh "$node_id"
     echo hope --config hope.yaml node hostname "$node_id" "$node_id"
+
+    slack "Node rotator adding node to cluster $node_id"
     echo hope --config hope.yaml node init --force "$node_id"
 }
 
@@ -74,3 +76,5 @@ fi
 
 destroy_node "$node_id"
 create_node "$node_id"
+
+slack "Node rotator completed with node $node_id"
