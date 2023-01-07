@@ -21,6 +21,23 @@ spec:
     spec:
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
+      # This process uses ssh-copy-id, which requires that the SSH dir on
+      #   the host be writable.
+      # Mounting a secret directly as a mount leads to a read-only fs, so
+      #   contents have be copied beforehand.
+      initContainers:
+        - name: rotate-node-ssh-copy
+          image: registry.internal.aleemhaji.com/busybox:1.35.0
+          volumeMounts:
+            - name: ssh-key-temp
+              mountPath: /root/.ssh-temp
+            - name: writable-ssh-dir
+              mountPath: /root/.ssh
+          command:
+            - sh
+            - -c
+            - |
+              cp -R /root/.ssh-temp/. /root/.ssh/
       containers:
         - name: devbox
           image: registry.internal.aleemhaji.com/home-network:latest
@@ -34,17 +51,19 @@ spec:
           volumeMounts:
             - name: packer-data
               mountPath: /var/lib/packer
-            - name: ssh-key
+            - name: writable-ssh-dir
               mountPath: /root/.ssh
       volumes:
         - name: packer-data
           nfs:
             server: 192.168.96.4
             path: /mnt/main/apps/packer
-        - name: ssh-key
+        - name: ssh-key-temp
           secret:
             secretName: dev-ssh-key
             defaultMode: 0600
+        - name: writable-ssh-dir
+          emptyDir: {}
 ---
 # Just have a service sitting there, pointing at port 80.
 # It'll mostly be unused, but better to have the definition ready to go.
