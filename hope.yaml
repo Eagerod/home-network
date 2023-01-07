@@ -24,6 +24,7 @@ vms:
   output: /var/lib/packer/images
   images:
     - name: load-balancer
+      hypervisors: [beast1]
       parameters:
         - ESXI_ROOT_PASSWORD
         - SERVER_SSH_KEYS_DIR=/var/lib/packer/etc/ssh
@@ -31,6 +32,7 @@ vms:
         - VM_ROOT_PASSWORD
         - VM_MANAGEMENT_PASSWORD
     - name: kubernetes-node
+      hypervisors: [beast1]
       parameters:
         - ESXI_ROOT_PASSWORD
         - SERVER_SSH_KEYS_DIR=/var/lib/packer/etc/ssh
