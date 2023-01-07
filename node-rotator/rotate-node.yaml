@@ -27,16 +27,6 @@ roleRef:
   name: rotate-node
   apiGroup: rbac.authorization.k8s.io
 ---
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: rotate-node-script
-  namespace: dev
-  labels:
-    app: rotate-node
-binaryData:
-  script.sh: ${ROTATE_NODE_SCRIPT}
----
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -65,7 +55,7 @@ spec:
             - name: rotate-node
               image: registry.internal.aleemhaji.com/home-network:latest
               command:
-                - /scripts/script.sh
+                - /src/node-rotator/rotate-node.sh
               ports:
                 - containerPort: 8067
                   protocol: TCP
@@ -79,8 +69,6 @@ spec:
                   mountPath: /var/lib/packer
                 - name: ssh-key
                   mountPath: /root/.ssh
-                - name: rotate-node-scripts
-                  mountPath: /scripts
           volumes:
             - name: packer-data
               nfs:
@@ -90,7 +78,3 @@ spec:
               secret:
                 secretName: dev-ssh-key
                 defaultMode: 0600
-            - name: rotate-node-scripts
-              configMap:
-                name: rotate-node-script
-                defaultMode: 0755
