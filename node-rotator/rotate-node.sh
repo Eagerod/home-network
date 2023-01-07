@@ -18,7 +18,7 @@ destroy_node() {
 
     if hope --config hope.yaml node status "$node_id" 2> /dev/null; then
         slack "Node rotator removing node from Kubernetes cluster ($node_id)..."
-        echo hope --config hope.yaml node reset --force --delete-local-data "$node_id"
+        hope --config hope.yaml node reset --force --delete-local-data "$node_id"
     else
         slack "Node $node_id does not appear to be healthy on Kubernetes, skipping node reset and deleting directly..."
     fi
@@ -28,8 +28,8 @@ destroy_node() {
     hypervisor="$(hope --config hope.yaml node list --template "$hope_node_template" | awk -v "node=$node_id" '{if ($1 == node) print $2}')"
     if hope --config hope.yaml vm list "$hypervisor" | grep "^$node_id\$"; then
         slack "Node rotator removing node $node_id from hypervisor: $hypervisor..."
-        echo hope --config hope.yaml vm stop "$node_id"
-        echo hope --config hope.yaml vm delete "$node_id"
+        hope --config hope.yaml vm stop "$node_id"
+        hope --config hope.yaml vm delete "$node_id"
     fi
 }
 
@@ -37,14 +37,17 @@ create_node() {
     node_id="$1"
     slack "Node rotator creating fresh node $node_id"
 
-    echo hope --config hope.yaml vm create "$node_id"
-    echo hope --config hope.yaml vm start "$node_id"
-    echo hope --config hope.yaml vm ip "$node_id"
-    echo sshpass -p "$VM_MANAGEMENT_PASSWORD" hope --config hope.yaml node ssh "$node_id"
-    echo hope --config hope.yaml node hostname "$node_id" "$node_id"
+    hope --config hope.yaml vm create "kubernetes-node" "$node_id"
+    hope --config hope.yaml vm start "$node_id"
+    hope --config hope.yaml vm ip "$node_id"
+    set +x
+    echo >&2 "sshpass -p <pass> hope --config hope.yaml node ssh $node_id"
+    sshpass -p "$VM_MANAGEMENT_PASSWORD" hope --config hope.yaml node ssh "$node_id"
+    set -x
+    hope --config hope.yaml node hostname "$node_id" "$node_id"
 
     slack "Node rotator adding node to cluster $node_id"
-    echo hope --config hope.yaml node init --force "$node_id"
+    hope --config hope.yaml node init --force "$node_id"
 }
 
 cd "$HOPE_SOURCE_DIR"
@@ -74,6 +77,8 @@ if [ "$node_id" = "$NODE_NAME" ]; then
 	exit 1
 fi
 
+# kubectl -n dev exec -it -c devbox devbox-0 -- bash
+# cd /src && hope --config /src/hope.yaml vm image kubernetes-node
 destroy_node "$node_id"
 create_node "$node_id"
 
