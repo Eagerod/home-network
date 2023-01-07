@@ -1256,10 +1256,20 @@ resources:
       tag: registry.internal.aleemhaji.com/home-network:latest
     tags: [rotate-node]
   - name: dev-ssh-key
-    file: ssh-key.yaml
+    inline: |
+      apiVersion: v1
+      data:
+        id_rsa: "${DEV_SSH_KEY_BASE64}"
+        id_rsa.pub: "${DEV_SSH_PUBLIC_KEY_BASE64}"
+        known_hosts: "${DEV_KNOWN_HOSTS_BASE64}"
+      kind: Secret
+      metadata:
+        name: dev-ssh-key
+        namespace: "${SSH_KEY_NAMESPACE}"
     parameters:
       - SSH_KEY_NAMESPACE=dev
       - DEV_SSH_KEY_BASE64
+      - DEV_SSH_PUBLIC_KEY_BASE64
       - DEV_KNOWN_HOSTS_BASE64
     tags: [rotate-node]
   - name: devbox
