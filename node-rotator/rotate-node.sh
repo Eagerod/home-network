@@ -46,7 +46,6 @@ create_node() {
 }
 
 cd "$HOPE_SOURCE_DIR"
-source .env.new
 
 slack "Node rotator starting on $NODE_NAME..."
 

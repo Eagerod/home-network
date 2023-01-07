@@ -59,11 +59,30 @@ spec:
               ports:
                 - containerPort: 8067
                   protocol: TCP
+              # This does things with a lot of infra, so lots of secrets will
+              #   probably end up here.
               env:
                 - name: NODE_NAME
                   valueFrom:
                     fieldRef:
                       fieldPath: spec.nodeName
+                - name: SLACK_BOT_ALERTING_CHANNEL
+                  value: ${SLACK_BOT_ALERTING_CHANNEL}
+                - name: ESXI_ROOT_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: rotate-node-secrets
+                      key: esxi_root_password
+                - name: VM_ROOT_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: rotate-node-secrets
+                      key: vm_root_password
+                - name: VM_MANAGEMENT_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: rotate-node-secrets
+                      key: vm_management_password
               volumeMounts:
                 - name: packer-data
                   mountPath: /var/lib/packer

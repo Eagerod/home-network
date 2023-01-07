@@ -1272,6 +1272,21 @@ resources:
     fileParameters:
       - ROTATE_NODE_TAGGER_SCRIPT=node-rotator/rotate-node-tagger.sh
     tags: [rotate-node]
+  - name: rotate-node-secrets
+    inline: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: rotate-node-secrets
+        namespace: dev
+      data:
+        esxi_root_password: ${ESXI_ROOT_PASSWORD_BASE64}
+        vm_root_password: ${VM_ROOT_PASSWORD_BASE64}
+        vm_management_password: ${VM_MANAGEMENT_PASSWORD_BASE64}
+    parameters:
+      - ESXI_ROOT_PASSWORD_BASE64
+      - VM_ROOT_PASSWORD_BASE64
+      - VM_MANAGEMENT_PASSWORD_BASE64
   - name: rotate-node
     file: node-rotator/rotate-node.yaml
     parameters:
