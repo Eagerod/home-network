@@ -61,51 +61,75 @@ nodes:
   - name: home-load-balancer
     role: load-balancer
     hypervisor: beast1
+    cpu: 1
+    memory: 256
     user: packer
   - name: home-master-01
     role: master
     hypervisor: beast1
+    cpu: 2
+    memory: 4096
     user: packer
   - name: home-master-02
     role: master
     hypervisor: beast1
+    cpu: 2
+    memory: 4096
     user: packer
   - name: home-master-03
     role: master
     hypervisor: beast1
+    cpu: 2
+    memory: 4096
     user: packer
   - name: home-node-01
     role: node
     hypervisor: beast1
+    cpu: 2
+    memory: 8192
     user: packer
   - name: home-node-02
     role: node
     hypervisor: beast1
+    cpu: 2
+    memory: 8192
     user: packer
   - name: home-node-03
     role: node
     hypervisor: beast1
+    cpu: 2
+    memory: 8192
     user: packer
   - name: home-node-04
     role: node
     hypervisor: beast1
+    cpu: 2
+    memory: 8192
     user: packer
   - name: home-node-05
     role: node
     hypervisor: beast1
+    cpu: 2
+    memory: 8192
     user: packer
   - name: home-node-06
     role: node
     hypervisor: beast1
+    cpu: 2
+    memory: 8192
     user: packer
   # Provide extra capacity while cycling other nodes.
   - name: home-node-temp
     role: node
     hypervisor: beast1
+    cpu: 2
+    memory: 8192
     user: packer
   - name: home-master-temp
     role: master
     hypervisor: beast1
+    cpu: 2
+    memory: 4096
     user: packer
 loglevel: *log_level
 pod_network_cidr: 10.244.0.0/16
