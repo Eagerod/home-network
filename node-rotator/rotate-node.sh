@@ -2,6 +2,10 @@
 #
 # Remove a single node from circulation, and replace it with a freshly imaged
 #   node.
+# When run with no arguments, will destroy + recreate the oldest
+#   non-control-plane node in the cluster.
+# When run with a single argument, will destroy + recreate the named node,
+#   even if that node is a control-plane node.
 #
 set -eufo pipefail
 
@@ -20,7 +24,7 @@ destroy_node() {
         slack "Node rotator removing node from Kubernetes cluster ($node_id)..."
         hope --config hope.yaml node reset --force --delete-local-data "$node_id"
     else
-        slack "Node $node_id does not appear to be healthy on Kubernetes, skipping node reset and deleting directly..."
+        slack "Node $node_id does not appear to be in the cluster, skipping node reset and deleting directly from hypervisor..."
     fi
 
     hope_node_template='{{.Name}} {{.Hypervisor}}
@@ -50,19 +54,33 @@ create_node() {
     hope --config hope.yaml node init --force "$node_id"
 }
 
+get_unhealthy_node() {
+    if ! node_statuses="$(hope --config hope.yaml node status -t node)"; then
+        sed '1d' <<< "$node_statuses" | awk '{if ($2 != "Healthy") print $1}' | head -1
+    fi
+}
+
+get_oldest_node() {
+    kubectl get nodes -l "$LABEL_NAME=true" -o template="{{range .items}}{{.metadata.name}}{{end}}"
+}
+
 cd "$HOPE_SOURCE_DIR"
 
 slack "Node rotator starting on $NODE_NAME..."
 
-# Before even getting into the node creation/deletion flow,
-#     make sure all nodes that should be up are up.
-# If there's anything unhealthy, pop that one node off the
-#     list, and try to bring it up.
-if ! node_statuses="$(hope --config hope.yaml node status -t node)"; then
-    node_id="$(echo "$node_statuses" | sed '1d' | awk '{if ($2 != "Healthy") print $1}' | head -1)"
-    slack "Node rotator found: $node_id as possibly unhealthy. Attempting to restore capacity."
+if [ $# -eq 1 ]; then
+    node_id="$1"
+    slack "Node rotator given argument to rotate node: $node_id"
+elif [ $# -ne 0 ]; then
+    slack "Node rotator given invalid arguments. ($*) Aborting."
+    exit 1
 else
-    node_id="$(kubectl get nodes -l "$LABEL_NAME=true" -o template="{{range .items}}{{.metadata.name}}{{end}}")"
+    node_id="$(get_unhealthy_node)"
+    if [ ! -z "$node_id" ]; then
+        slack "Node rotator found: $node_id as possibly unhealthy. Attempting to restore capacity."
+    else
+        node_id="$(get_oldest_node)"
+    fi
 fi
 
 if [ -z "$node_id" ]; then
