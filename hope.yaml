@@ -161,10 +161,16 @@ resources:
         namespace: kube-system
     tags: [users]
   - name: load-balancer-namespace
-    file: https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/namespace.yaml
+    inline: |
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: metallb-system
+        labels:
+          app: metallb
     tags: [network, load-balancer]
   - name: load-balancer
-    file: metallb-ifnotpresent.yaml
+    file: metallb.yaml
     tags: [network, load-balancer]
   - name: load-balancer-config
     inline: |
