@@ -147,13 +147,11 @@ spec:
           startupProbe:
             exec:
               command:
-                - dig
-                - +norecurse
-                - +retry=0
-                - "@127.0.0.1"
-                - pi.hole
-            failureThreshold: 30
-            periodSeconds: 10
+                - sh
+                - -c
+                - dig +norecurse +retry=0 "@127.0.0.1" pi.hole && [ -f /etc/pihole/kube.list ]
+            failureThreshold: 60
+            periodSeconds: 5
         - name: hostsfile-daemon
           # This introduces a fun circular dependency.
           # Pihole tells the network where registry.internal.aleemhaji.com is,
