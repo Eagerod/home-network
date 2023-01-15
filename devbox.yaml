@@ -41,13 +41,13 @@ spec:
       containers:
         - name: devbox
           image: registry.internal.aleemhaji.com/home-network:latest
-          command: 
+          command:
             - /bin/sh
           stdin: true
           tty: true
           ports:
-          - containerPort: 8067
-            protocol: TCP
+            - containerPort: 8067
+              protocol: TCP
           env:
             - name: NODE_NAME
               valueFrom:
