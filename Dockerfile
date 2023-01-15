@@ -4,7 +4,9 @@ LABEL org.label-schema.name="home-network"
 
 RUN \
     apt-get update && \
-    apt-get install -y shellcheck && \
+    apt-get install -y \
+        jq \
+        shellcheck && \
     apt-get clean
 
 RUN pip3 install yamllint
