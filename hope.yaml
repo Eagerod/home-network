@@ -1321,3 +1321,8 @@ jobs:
     file: mongodb/tasks/mongodb-restore.yaml
     parameters:
       - MONGODB_DATABASE_NAME
+  - name: rotate-node
+    file: jobs/rotate-node.yaml
+    parameters:
+      - ROTATE_NODE_NAME
+      - SLACK_BOT_ALERTING_CHANNEL
