@@ -665,6 +665,8 @@ resources:
     tags: [crons, image-monitor, stateless]
   - name: image-monitor
     file: image-monitor/image-monitor.yaml
+    parameters:
+      - SLACK_BOT_ALERTING_CHANNEL
     tags: [crons, image-monitor, stateless]
   - name: browser
     file: browser/browser.yaml
@@ -1095,6 +1097,8 @@ resources:
     tags: [apps, bookstack]
   - name: bookstack-notifier
     file: bookstack/bookstack-notifier.yaml
+    parameters:
+      - SLACK_BOT_ALERTING_CHANNEL
     fileParameters:
       - BOOKSTACK_NOTIFIER_SCRIPT=bookstack/bookstack-notifier.sh
     tags: [apps, bookstack]
@@ -1229,12 +1233,13 @@ resources:
     file: shell-monitor/shell-monitor-base.yaml
     parameters:
       - SHELL_MONITOR_NAMESPACE=default
-      - SLACK_BOT_ALERTING_CHANNEL
     fileParameters:
       - SHELL_MONITOR_SCRIPT=shell-monitor/shell-monitor-script.sh
     tags: [shell-monitor]
   - name: events-shell-monitor
     file: shell-monitor/events-shell-monitor.yaml
+    parameters:
+      - SLACK_BOT_ALERTING_CHANNEL
     fileParameters:
       - EVENTS_SHELL_MONITOR_SCRIPT=shell-monitor/events-shell-monitor.sh
     tags: [shell-monitor]
@@ -1242,6 +1247,7 @@ resources:
     file: shell-monitor/delete-manual-jobs-monitor.yaml
     parameters:
       - KUBE_NAMESPACE=default
+      - SLACK_BOT_ALERTING_CHANNEL
     fileParameters:
       - JOBS_SHELL_MONITOR_SCRIPT=shell-monitor/delete-manual-jobs-monitor.sh
     tags: [shell-monitor]
