@@ -1,4 +1,4 @@
-FROM registry.internal.aleemhaji.com/hope:0.25.0
+FROM registry.internal.aleemhaji.com/hope:0.25.2
 
 LABEL org.label-schema.name="home-network"
 
