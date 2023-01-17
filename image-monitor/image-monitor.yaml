@@ -47,6 +47,8 @@ spec:
               value: /scripts/monitor/image-monitor.sh
             - name: UPDATE_INTERVAL
               value: "28800"
+            - name: SLACK_BOT_ALERTING_CHANNEL
+              value: ${SLACK_BOT_ALERTING_CHANNEL}
           volumeMounts:
             - name: image-monitor-script
               mountPath: /scripts/monitor

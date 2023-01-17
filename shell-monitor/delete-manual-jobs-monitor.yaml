@@ -87,6 +87,8 @@ spec:
               value: /scripts/monitor/script.sh
             - name: UPDATE_INTERVAL
               value: "3600"
+            - name: SLACK_BOT_ALERTING_CHANNEL
+              value: ${SLACK_BOT_ALERTING_CHANNEL}
           volumeMounts:
             - name: shell-monitor-base-scripts
               mountPath: /scripts/base
