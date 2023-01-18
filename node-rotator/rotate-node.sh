@@ -11,7 +11,9 @@ set -eufo pipefail
 
 LABEL_NAME="aleemhaji.com/oldest"
 SLACK_URL="https://slackbot.internal.aleemhaji.com/message"
-HOPE_SOURCE_DIR="/src"
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+HOPE_SOURCE_DIR="$(dirname "$SCRIPT_DIR")"
 
 slack() {
 	curl -sS -X POST -H "X-SLACK-CHANNEL-ID: ${SLACK_BOT_ALERTING_CHANNEL}" -d "$@" "$SLACK_URL"
