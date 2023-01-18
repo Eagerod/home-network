@@ -1,26 +1,30 @@
-# This deployment spec is meant to be pretty volatile, but overall just used
-#   for experimentation.
-# Lives in its own namespace to keep itself a little further away from all
-#   other services.
-apiVersion: apps/v1
-kind: StatefulSet
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: devbox
+  generateName: rotate-node-${ROTATE_NODE_NAME}-manual-
   namespace: dev
 spec:
-  revisionHistoryLimit: 0
-  replicas: 1
-  selector:
-    matchLabels:
-      app: devbox
-  serviceName: devbox
+  backoffLimit: 0
   template:
     metadata:
       labels:
-        app: devbox
+        app: rotate-node-manual
     spec:
+      nodeSelector:
+        aleemhaji.com/oldest: "false"
+      restartPolicy: Never
+      serviceAccountName: rotate-node
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values:
+                      - ${ROTATE_NODE_NAME}
       # This process uses ssh-copy-id, which requires that the SSH dir on
       #   the host be writable.
       # Mounting a secret directly as a mount leads to a read-only fs, so
@@ -39,15 +43,11 @@ spec:
             - |
               cp -R /root/.ssh-temp/. /root/.ssh/
       containers:
-        - name: devbox
+        - name: rotate-node
           image: registry.internal.aleemhaji.com/home-network:latest
           command:
-            - /bin/sh
-          stdin: true
-          tty: true
-          ports:
-            - containerPort: 8067
-              protocol: TCP
+            - /src/node-rotator/rotate-node.sh
+            - ${ROTATE_NODE_NAME}
           env:
             - name: NODE_NAME
               valueFrom:
@@ -86,20 +86,3 @@ spec:
             defaultMode: 0600
         - name: writable-ssh-dir
           emptyDir: {}
----
-# Just have a service sitting there, pointing at port 80.
-# It'll mostly be unused, but better to have the definition ready to go.
-apiVersion: v1
-kind: Service
-metadata:
-  name: devbox
-  namespace: dev
-spec:
-  ports:
-    - port: 8067
-      protocol: TCP
-      targetPort: 8067
-  type: LoadBalancer
-  loadBalancerIP: ${LOAD_BALANCER_IP}
-  selector:
-    app: devbox

@@ -11,6 +11,7 @@ _:
   - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.64
   - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
   - &unifi_controller_inform_url http://192.168.200.82:8080
+  - &devbox_service_ip LOAD_BALANCER_IP=192.168.200.224
   - &docker_hub_upstream_pull if-not-present
   - &local_upstream_pull always
 access_point_controller: *unifi_controller_inform_url
@@ -31,6 +32,7 @@ vms:
         - ESXI_NETWORK=VM Network
         - VM_ROOT_PASSWORD
         - VM_MANAGEMENT_PASSWORD
+        - *devbox_service_ip
     - name: kubernetes-node
       hypervisors: [beast1]
       parameters:
@@ -39,6 +41,7 @@ vms:
         - ESXI_NETWORK=VM Network
         - VM_ROOT_PASSWORD
         - VM_MANAGEMENT_PASSWORD
+        - *devbox_service_ip
 load_balancer_host: api.internal.aleemhaji.com
 nodes:
   - name: beast1
@@ -1258,10 +1261,58 @@ resources:
       metadata:
         name: dev
     tags: [rotate-node]
+  - name: home-network-image
+    build:
+      path: .
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/home-network:latest
+    tags: [rotate-node]
+  - name: dev-ssh-key
+    inline: |
+      apiVersion: v1
+      data:
+        id_rsa: "${DEV_SSH_KEY_BASE64}"
+        id_rsa.pub: "${DEV_SSH_PUBLIC_KEY_BASE64}"
+        known_hosts: "${DEV_KNOWN_HOSTS_BASE64}"
+      kind: Secret
+      metadata:
+        name: dev-ssh-key
+        namespace: "${SSH_KEY_NAMESPACE}"
+    parameters:
+      - SSH_KEY_NAMESPACE=dev
+      - DEV_SSH_KEY_BASE64
+      - DEV_SSH_PUBLIC_KEY_BASE64
+      - DEV_KNOWN_HOSTS_BASE64
+    tags: [rotate-node]
+  - name: devbox
+    file: devbox.yaml
+    parameters:
+      - *devbox_service_ip
+    tags: [rotate-node]
   - name: rotate-node-tagger
     file: node-rotator/rotate-node-tagger.yaml
     fileParameters:
       - ROTATE_NODE_TAGGER_SCRIPT=node-rotator/rotate-node-tagger.sh
+    tags: [rotate-node]
+  - name: rotate-node-secrets
+    inline: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: rotate-node-secrets
+        namespace: dev
+      data:
+        esxi_root_password: ${ESXI_ROOT_PASSWORD_BASE64}
+        vm_root_password: ${VM_ROOT_PASSWORD_BASE64}
+        vm_management_password: ${VM_MANAGEMENT_PASSWORD_BASE64}
+    parameters:
+      - ESXI_ROOT_PASSWORD_BASE64
+      - VM_ROOT_PASSWORD_BASE64
+      - VM_MANAGEMENT_PASSWORD_BASE64
+  - name: rotate-node
+    file: node-rotator/rotate-node.yaml
+    parameters:
+      - SLACK_BOT_ALERTING_CHANNEL
     tags: [rotate-node]
 jobs:
   - name: mysql-restore
@@ -1276,3 +1327,8 @@ jobs:
     file: mongodb/tasks/mongodb-restore.yaml
     parameters:
       - MONGODB_DATABASE_NAME
+  - name: rotate-node
+    file: jobs/rotate-node.yaml
+    parameters:
+      - ROTATE_NODE_NAME
+      - SLACK_BOT_ALERTING_CHANNEL

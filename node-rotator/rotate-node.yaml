@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rotate-node
+  namespace: dev
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rotate-node
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rotate-node
+subjects:
+  - kind: ServiceAccount
+    name: rotate-node
+    namespace: dev
+roleRef:
+  kind: ClusterRole
+  name: rotate-node
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: rotate-node
+  namespace: dev
+spec:
+  schedule: "0 1 * * 6,0"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: rotate-node
+        spec:
+          nodeSelector:
+            aleemhaji.com/oldest: "false"
+          restartPolicy: Never
+          serviceAccountName: rotate-node
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
+          # This process uses ssh-copy-id, which requires that the SSH dir on
+          #   the host be writable.
+          # Mounting a secret directly as a mount leads to a read-only fs, so
+          #   contents have be copied beforehand.
+          initContainers:
+            - name: rotate-node-ssh-copy
+              image: registry.internal.aleemhaji.com/busybox:1.35.0
+              volumeMounts:
+                - name: ssh-key-temp
+                  mountPath: /root/.ssh-temp
+                - name: writable-ssh-dir
+                  mountPath: /root/.ssh
+              command:
+                - sh
+                - -c
+                - |
+                  cp -R /root/.ssh-temp/. /root/.ssh/
+          containers:
+            - name: rotate-node
+              image: registry.internal.aleemhaji.com/home-network:latest
+              command:
+                - /src/node-rotator/rotate-node.sh
+              ports:
+                - containerPort: 8067
+                  protocol: TCP
+              # This does things with a lot of infra, so lots of secrets will
+              #   probably end up here.
+              env:
+                - name: NODE_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: spec.nodeName
+                - name: SLACK_BOT_ALERTING_CHANNEL
+                  value: ${SLACK_BOT_ALERTING_CHANNEL}
+                - name: ESXI_ROOT_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: rotate-node-secrets
+                      key: esxi_root_password
+                - name: VM_ROOT_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: rotate-node-secrets
+                      key: vm_root_password
+                - name: VM_MANAGEMENT_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: rotate-node-secrets
+                      key: vm_management_password
+              volumeMounts:
+                - name: packer-data
+                  mountPath: /var/lib/packer
+                - name: writable-ssh-dir
+                  mountPath: /root/.ssh
+          volumes:
+            - name: packer-data
+              nfs:
+                server: 192.168.96.4
+                path: /mnt/main/apps/packer
+            - name: ssh-key-temp
+              secret:
+                secretName: dev-ssh-key
+                defaultMode: 0600
+            - name: writable-ssh-dir
+              emptyDir: {}
