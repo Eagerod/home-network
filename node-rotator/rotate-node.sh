@@ -78,7 +78,7 @@ elif [ $# -ne 0 ]; then
     exit 1
 else
     node_id="$(get_unhealthy_node)"
-    if [ ! -z "$node_id" ]; then
+    if [ -n "$node_id" ]; then
         slack "Node rotator found: $node_id as possibly unhealthy. Attempting to restore capacity."
     else
         node_id="$(get_oldest_node)"
