@@ -1216,7 +1216,7 @@ resources:
       - SOURCE_NFS_SHARE=/mnt/main/apps/gitea
       - SOURCE_PATH=/
       - DESTINATION_NFS_SERVER=192.168.96.4
-      - DESTINATION_NFS_SHARE=/mnt/main/backup
+      - DESTINATION_NFS_SHARE=/mnt/main/backup/apps
       - DEST_PATH=/gitea
     tags: [gitea, backups]
   - name: bitwarden-backups
