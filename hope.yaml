@@ -1204,8 +1204,8 @@ resources:
       - SOURCE_NFS_SHARE=/mnt/main/apps/node-red
       - SOURCE_PATH=/flows.json
       - DESTINATION_NFS_SERVER=192.168.96.4
-      - DESTINATION_NFS_SHARE=/mnt/main/backup
-      - DEST_PATH=/node-red/
+      - DESTINATION_NFS_SHARE=/mnt/main/backup/apps
+      - DEST_PATH=/node-red
     tags: [nodered, backups]
   - name: gitea-backups
     file: crons/rsync-cron.yaml
