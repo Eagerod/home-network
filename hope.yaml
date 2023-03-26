@@ -564,7 +564,7 @@ resources:
     build:
       source: guacamole/guacamole:1.5.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/guacamole:1.54.0
+      tag: registry.internal.aleemhaji.com/guacamole:1.5.0
     tags: [docker-cache, guacamole]
   - name: guacd-image-cache
     build:
