@@ -83,7 +83,7 @@ spec:
   selector:
     app: plex
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: plex-ingress
@@ -99,6 +99,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: plex
-              servicePort: 32400
+              service:
+                name: plex
+                port:
+                  number: 32400
