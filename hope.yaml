@@ -598,9 +598,9 @@ resources:
     tags: [docker-cache, syncthing]
   - name: bookstack-image-cache
     build:
-      source: linuxserver/bookstack:22.09.1
+      source: linuxserver/bookstack:23.02.2
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/bookstack:22.09.1
+      tag: registry.internal.aleemhaji.com/bookstack:23.02.2
     tags: [docker-cache, bookstack]
   - name: drone-image-cache
     build:
