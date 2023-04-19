@@ -47,7 +47,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: slackbot
-          image: registry.internal.aleemhaji.com/nsdns:latest
+          image: registry.internal.aleemhaji.com/nsdns:v0.1.2
           command:
             - nsdns
             - watch
