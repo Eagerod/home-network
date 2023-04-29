@@ -1,6 +1,8 @@
 {
 	"bitnami/kubectl": [
-		"-debian-"
+		"-debian-",
+		"^\\\\d+$",
+		"^\\\\d+\\\\.\\\\d+$"
 	],
 	"busybox": [
 		"\\\\buclibc\\\\b",
@@ -13,7 +15,9 @@
 		"^amd64-"
 	],
 	"drone/drone": [
-		"\\\\blinux-amd64"
+		"\\\\blinux-amd64",
+		"^\\\\d+$",
+		"^\\\\d+\\\\.\\\\d+$"
 	],
 	"drone/drone-runner-kube": [
 		"\\\\blinux\\\\b"
@@ -30,6 +34,12 @@
 		"\\\\blatest\\\\b",
 		"\\\\brc\\\\d+\\\\b",
 		"\\\\blinux-amd64\\\\b"
+	],
+	"guacamole/guacamole": [
+		"\\\\b-RC\\\\d+"
+	],
+	"guacamole/guacd": [
+		"\\\\b-RC\\\\d+"
 	],
 	"jellyfin/jellyfin": [
 		"\\\\bunstable",
@@ -54,17 +64,25 @@
 		"\\\\b-latest\\\\b",
 		"\\\\b-ls\\\\d+$"
 	],
+	"masipcat/wireguard-go": [
+		"latest-amd64"
+	],
 	"mongo": [
 		"\\\\bwindowsservercore\\\\b",
 		"\\\\bnanoserver\\\\b",
 		"\\\\bfocal\\\\b",
 		"\\\\bbionic\\\\b",
 		"\\\\bxenial\\\\b",
-		"\\\\brc\\\\d+\\\\b"
+		"\\\\bjammy\\\\b",
+		"\\\\brc\\\\d*\\\\b",
+		"^\\\\d+$",
+		"^\\\\d+\\\\.\\\\d+$"
 	],
 	"mysql": [
 		"\\\\boracle",
-		"\\\\bdebian"
+		"\\\\bdebian",
+		"^\\\\d+$",
+		"^\\\\d+\\\\.\\\\d+$"
 	],
 	"pihole/pihole": [
 		"beta"
@@ -78,11 +96,16 @@
 	],
 	"redis": [
 		"\\\\bbullseye",
-		"\\\\balpine"
+		"\\\\balpine",
+		"\\\\b-rc\\\\d*$",
+		"^\\\\d+$",
+		"^\\\\d+\\\\.\\\\d+$"
 	],
 	"syncthing/syncthing": [
 		"^rc$",
-		"^pcap$"
+		"^pcap$",
+		"^\\\\d+$",
+		"^\\\\d+\\\\.\\\\d+$"
 	],
 	"ubuntu": [
 		"^[a-z]+$",
