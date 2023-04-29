@@ -20,7 +20,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: jellyfin
-          image: registry.internal.aleemhaji.com/jellyfin:10.8.8
+          image: registry.internal.aleemhaji.com/jellyfin:10.8.10
           ports:
             - containerPort: 8096
           resources:

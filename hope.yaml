@@ -550,9 +550,9 @@ resources:
     tags: [docker-cache, plex]
   - name: jellyfin-image-cache
     build:
-      source: jellyfin/jellyfin:10.8.8
+      source: jellyfin/jellyfin:10.8.10
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/jellyfin:10.8.8
+      tag: registry.internal.aleemhaji.com/jellyfin:10.8.10
     tags: [docker-cache, jellyfin]
   - name: redis-image-cache
     build:
