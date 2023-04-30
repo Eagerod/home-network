@@ -626,6 +626,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/unifi-controller:7.3.76
     tags: [docker-cache, unifi]
+  - name: uptime-kuma-image-cache
+    build:
+      source: louislam/uptime-kuma:1.21.2-alpine
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/uptime-kuma:1.21.2-alpine
+    tags: [docker-cache, uptime]
   # endregion
   - name: pihole
     file: pihole/pihole.yaml

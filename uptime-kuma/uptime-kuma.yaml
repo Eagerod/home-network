@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uptime-kuma
+  labels:
+    app: uptime-kuma
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uptime-kuma
+  template:
+    metadata:
+      labels:
+        app: uptime-kuma
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: transmission
+          image: registry.internal.aleemhaji.com/uptime-kuma:1.21.2-alpine
+          ports:
+            - containerPort: 3001
+          volumeMounts:
+            - name: uptime-kuma-persistent-storage
+              mountPath: /app/data
+      volumes:
+        - name: uptime-kuma-persistent-storage
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/uptime-kuma
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: uptime-kuma
+  labels:
+    app: uptime-kuma
+spec:
+  ports:
+    - port: 3001
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: uptime-kuma
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: uptime-ingress-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://uptime.internal.aleemhaji.com
+spec:
+  rules:
+    - host: uptime
+    - host: uptime.home
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: uptime-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - uptime.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: uptime.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: uptime-kuma
+                port:
+                  number: 3001
