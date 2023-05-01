@@ -6,7 +6,7 @@ metadata:
     app: slackbot
 spec:
   revisionHistoryLimit: 0
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: slackbot

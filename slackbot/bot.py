@@ -32,6 +32,11 @@ def finalize_error(api_return):
     return '', 200
 
 
+@app.route('/health', methods=['GET'])
+def health():
+    return '', 200
+
+
 @app.route('/message', methods=['POST'])
 def receive_internal_message():
     message_body = request.get_data()
