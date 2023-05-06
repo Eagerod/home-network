@@ -33,7 +33,8 @@
 		"\\\\bdev\\\\b",
 		"\\\\blatest\\\\b",
 		"\\\\brc\\\\d+\\\\b",
-		"\\\\blinux-amd64\\\\b"
+		"\\\\blinux-amd64\\\\b",
+		"\\\\bnightly\\\\b"
 	],
 	"guacamole/guacamole": [
 		"\\\\b-RC\\\\d+"
@@ -63,6 +64,9 @@
 		"\\\\bversion-\\\\b",
 		"\\\\b-latest\\\\b",
 		"\\\\b-ls\\\\d+$"
+	],
+	"louislam/uptime-kuma": [
+		"^base-debian$"
 	],
 	"masipcat/wireguard-go": [
 		"latest-amd64"
