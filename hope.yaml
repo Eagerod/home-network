@@ -632,6 +632,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/uptime-kuma:1.21.2-alpine
     tags: [docker-cache, uptime]
+  - name: rabbitmq-image-cache
+    build:
+      source: rabbitmq:3.11.15-management
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/rabbitmq:3.11.15-management
+    tags: [docker-cache, rmq]
   # endregion
   - name: pihole
     file: pihole/pihole.yaml
