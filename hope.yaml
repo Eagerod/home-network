@@ -658,7 +658,7 @@ resources:
       path: image-monitor
       pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/image-monitor:latest
-    tags: [apps, slackbot, stateless]
+    tags: [apps, stateless]
   - name: image-monitor-config
     inline: |
       apiVersion: v1
@@ -724,9 +724,9 @@ resources:
     parameters:
       - NAMESILO_API_KEY_BASE64
     tags: [crons, dns, certbot, stateless]
-  - name: dns-update-cron
-    file: crons/dns-cron.yaml
-    tags: [crons, dns, stateless]
+  - name: dns-manager
+    file: dns-operator.yaml
+    tags: [dns, stateless]
   - name: latex-image
     build:
       path: latex
