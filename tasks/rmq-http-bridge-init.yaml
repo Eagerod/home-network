@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rabbitmq-delay-infrastructure-init
+  namespace: tasks
+  labels:
+    job: rabbitmq-delay-infrastructure-init
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: delay-infra-init
+          image: registry.internal.aleemhaji.com/rmq-http-bridge:0.0.2
+          resources:
+            requests:
+              memory: "100Mi"
+              cpu: "100m"
+            limits:
+              memory: "100Mi"
+              cpu: "100m"
+          env:
+            - name: RABBITMQ_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secrets
+                  key: connection_string
+          args:
+            - init

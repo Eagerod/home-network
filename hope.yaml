@@ -922,13 +922,21 @@ resources:
         username: ${RMQ_USERNAME_BASE64}
         password: ${RMQ_PASSWORD_BASE64}
         .erlang-cookie: ${RMQ_PASSWORD_BASE64}
+        connection_string: ${RMQ_CONNECTION_STRING_BASE64}
     parameters:
       - RMQ_USERNAME_BASE64
       - RMQ_PASSWORD_BASE64
       - RMQ_ERLANG_COOKIE_BASE64
+      - RMQ_CONNECTION_STRING_BASE64
     tags: [apps, rmq]
   - name: rabbitmq
     file: tasks/rabbitmq.yaml
+    tags: [apps, rmq]
+  - name: rabbitmq-http-bridge-init
+    file: tasks/rmq-http-bridge-init.yaml
+    tags: [apps, rmq]
+  - name: rabbitmq-http-bridge-init-wait
+    job: tasks/rabbitmq-delay-infrastructure-init
     tags: [apps, rmq]
   # endregion
   # region: Database-Dependent Services
