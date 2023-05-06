@@ -127,6 +127,11 @@ def route_latex_cache(tex_driver, main_filename, cache_key):
     return do_latex(tex_driver, main_filename, cache_key)
 
 
+@app.route("/health", methods=["GET"])
+def health():
+    return '', 200
+
+
 def do_latex(tex_driver, main_filename, cache_key=None):
     if tex_driver not in VALID_DRIVERS:
         return 'Must provide a valid driver ({})'.format(VALID_DRIVERS), 400
