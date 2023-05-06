@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: rabbitmq
-  namespace: playground
+  namespace: tasks
 spec:
   revisionHistoryLimit: 0
   replicas: 1
@@ -15,9 +15,23 @@ spec:
       labels:
         app: rabbitmq
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      initContainers:
+        - name: erlang-cookie-copy
+          image: registry.internal.aleemhaji.com/busybox:1.35.0
+          volumeMounts:
+            - name: rabbitmq-erlang-cookie
+              mountPath: /root/src
+            - name: rabbitmq-persistent-storage
+              mountPath: /root/dest
+          command:
+            - cp
+            - /root/src/.erlang-cookie
+            - /root/dest/.erlang-cookie
       containers:
         - name: rabbitmq
-          image: rabbitmq:3.8.11-management
+          image: registry.internal.aleemhaji.com/rabbitmq:3.11.15-management
           ports:
             - containerPort: 5672
             - containerPort: 15672
@@ -25,14 +39,22 @@ spec:
             - name: rabbitmq-persistent-storage
               mountPath: /var/lib/rabbitmq
           env:
-            - name: RABBITMQ_NODENAME
-              value: rabbitmq
-            - name: RABBITMQ_ERLANG_COOKIE
+            - name: RABBITMQ_DEFAULT_USER
               valueFrom:
                 secretKeyRef:
-                  name: playground-secrets
-                  key: rabbitmq_erlang_cookie
+                  name: rabbitmq-secrets
+                  key: username
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secrets
+                  key: password
+            - name: RABBITMQ_NODENAME
+              value: rabbitmq
       volumes:
+        - name: rabbitmq-erlang-cookie
+          secret:
+            secretName: rabbitmq-secrets
         - name: rabbitmq-persistent-storage
           iscsi:
             targetPortal: 192.168.96.4
@@ -43,10 +65,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rabbitmq
-  namespace: playground
+  name: rmq
+  namespace: tasks
   labels:
-    app: rabbitmq
+    app: rmq
 spec:
   ports:
     - port: 5672

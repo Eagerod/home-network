@@ -921,9 +921,14 @@ resources:
       data:
         username: ${RMQ_USERNAME_BASE64}
         password: ${RMQ_PASSWORD_BASE64}
+        .erlang-cookie: ${RMQ_PASSWORD_BASE64}
     parameters:
       - RMQ_USERNAME_BASE64
       - RMQ_PASSWORD_BASE64
+      - RMQ_ERLANG_COOKIE_BASE64
+    tags: [apps, rmq]
+  - name: rabbitmq
+    file: tasks/rabbitmq.yaml
     tags: [apps, rmq]
   # endregion
   # region: Database-Dependent Services
