@@ -56,19 +56,20 @@ spec:
           secret:
             secretName: rabbitmq-secrets
         - name: rabbitmq-persistent-storage
-          iscsi:
-            targetPortal: 192.168.96.4
-            iqn: iqn.2019-05.com.aleemhaji.internal.ctl:rabbitmq-dev
-            lun: 61
-            fsType: ext4
+          emptyDir: {}
+      #     iscsi:
+      #       targetPortal: 192.168.96.4
+      #       iqn: iqn.2019-05.com.aleemhaji.internal.ctl:rabbitmq
+      #       lun: 61
+      #       fsType: ext4
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: rmq
+  name: rabbitmq
   namespace: tasks
   labels:
-    app: rmq
+    app: rabbitmq
 spec:
   ports:
     - port: 5672
@@ -77,7 +78,42 @@ spec:
     - port: 15672
       name: management
       protocol: TCP
-  type: LoadBalancer
-  loadBalancerIP: 192.168.200.223
   selector:
     app: rabbitmq
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rabbitmq-management-ingress-redirect
+  namespace: tasks
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://rabbitmq-management.internal.aleemhaji.com
+spec:
+  rules:
+    - host: rabbitmq-management
+    - host: rabbitmq-management.home
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rabbitmq-management-ingress
+  namespace: tasks
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - rabbitmq-management.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: rabbitmq-management.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rabbitmq
+                port:
+                  number: 15672
