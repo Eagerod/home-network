@@ -1,8 +1,8 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 #
-set -euf
+set -eufo pipefail
 
-DEPLOYMENT="rmq-http-bridge-worker-deployment"
+DEPLOYMENT="rmq-http-bridge-worker"
 MAX_REPLICAS=6
 MIN_REPLICAS=2
 MAX_MESSAGES=100
