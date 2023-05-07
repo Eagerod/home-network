@@ -5,7 +5,7 @@ metadata:
   namespace: tasks
 spec:
   revisionHistoryLimit: 0
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: rabbitmq
@@ -17,27 +17,20 @@ spec:
     spec:
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
-      initContainers:
-        - name: erlang-cookie-copy
-          image: registry.internal.aleemhaji.com/busybox:1.35.0
-          volumeMounts:
-            - name: rabbitmq-erlang-cookie
-              mountPath: /root/src
-            - name: rabbitmq-persistent-storage
-              mountPath: /root/dest
-          command:
-            - cp
-            - /root/src/.erlang-cookie
-            - /root/dest/.erlang-cookie
       containers:
         - name: rabbitmq
           image: registry.internal.aleemhaji.com/rabbitmq:3.11.15-management
           ports:
             - containerPort: 5672
             - containerPort: 15672
-          volumeMounts:
-            - name: rabbitmq-persistent-storage
-              mountPath: /var/lib/rabbitmq
+          command:
+            - sh
+            - -eufc
+            - |
+              printf 'cluster_formation.classic_config.nodes.1 = %s\ncluster_formation.classic_config.nodes.2 = %s\nlog.console.level = debug\n' \
+                rabbit@rabbitmq-0.rabbitmq rabbit@rabbitmq-1.rabbitmq > /var/lib/rabbitmq/rabbitmq.conf
+              rabbitmq-plugins --offline enable rabbitmq_shovel rabbitmq_shovel_management
+              RABBITMQ_NODENAME=rabbit@$HOSTNAME.rabbitmq rabbitmq-server --erlang-cookie "${ERLANG_COOKIE}"
           env:
             - name: RABBITMQ_DEFAULT_USER
               valueFrom:
@@ -49,8 +42,18 @@ spec:
                 secretKeyRef:
                   name: rabbitmq-secrets
                   key: password
-            - name: RABBITMQ_NODENAME
-              value: rabbitmq
+            - name: ERLANG_COOKIE
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secrets
+                  key: .erlang-cookie
+            - name: RABBITMQ_USE_LONGNAME
+              value: "true"
+            - name: RABBITMQ_CONFIG_FILE
+              value: /var/lib/rabbitmq/rabbitmq.conf
+          volumeMounts:
+            - name: rabbitmq-persistent-storage
+              mountPath: /var/lib/rabbitmq
       volumes:
         - name: rabbitmq-erlang-cookie
           secret:
