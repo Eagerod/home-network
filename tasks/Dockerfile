@@ -1,4 +1,4 @@
-FROM bitnami/kubectl:1.16.15
+FROM registry.internal.aleemhaji.com/kubectl:1.21.0
 
 USER root
 
