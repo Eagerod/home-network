@@ -27,7 +27,7 @@ spec:
             - sh
             - -eufc
             - |
-              printf 'cluster_formation.classic_config.nodes.1 = %s\ncluster_formation.classic_config.nodes.2 = %s\nlog.console.level = debug\n' \
+              printf 'cluster_formation.classic_config.nodes.1 = %s\ncluster_formation.classic_config.nodes.2 = %s\n' \
                 rabbit@rabbitmq-0.rabbitmq rabbit@rabbitmq-1.rabbitmq > /var/lib/rabbitmq/rabbitmq.conf
               rabbitmq-plugins --offline enable rabbitmq_shovel rabbitmq_shovel_management
               RABBITMQ_NODENAME=rabbit@$HOSTNAME.rabbitmq rabbitmq-server --erlang-cookie "${ERLANG_COOKIE}"
