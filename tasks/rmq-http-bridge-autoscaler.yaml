@@ -65,5 +65,5 @@ spec:
       volumes:
         - name: script
           configMap:
-            name: rmq-bridge-script
+            name: rmq-bridge-autoscaler-script
             defaultMode: 0755
