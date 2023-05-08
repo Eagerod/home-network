@@ -58,13 +58,15 @@ spec:
         - name: rabbitmq-erlang-cookie
           secret:
             secretName: rabbitmq-secrets
-        - name: rabbitmq-persistent-storage
-          emptyDir: {}
-      #     iscsi:
-      #       targetPortal: 192.168.96.4
-      #       iqn: iqn.2019-05.com.aleemhaji.internal.ctl:rabbitmq
-      #       lun: 61
-      #       fsType: ext4
+  volumeClaimTemplates:
+    - metadata:
+        name: rabbitmq-persistent-storage
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: freenas-iscsi
+        resources:
+          requests:
+            storage: 1Gi
 ---
 apiVersion: v1
 kind: Service
