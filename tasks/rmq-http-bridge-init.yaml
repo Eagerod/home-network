@@ -13,7 +13,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: delay-infra-init
-          image: registry.internal.aleemhaji.com/rmq-http-bridge:0.0.2
+          image: registry.internal.aleemhaji.com/rmq-http-bridge:v0.0.6
           resources:
             requests:
               memory: "100Mi"
