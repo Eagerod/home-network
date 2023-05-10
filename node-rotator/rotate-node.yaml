@@ -32,7 +32,7 @@ metadata:
   name: rotate-node
   namespace: dev
 spec:
-  schedule: "0 1 * * 6,0"
+  schedule: "0 8 * * 6,0"
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
   concurrencyPolicy: Forbid
