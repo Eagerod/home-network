@@ -544,9 +544,9 @@ resources:
     tags: [docker-cache, heimdall]
   - name: plex-image-cache
     build:
-      source: plexinc/pms-docker:1.31.2.6810-a607d384f
+      source: plexinc/pms-docker:1.32.1.6999-91e1e2e2c
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pms-docker:1.31.2.6810-a607d384f
+      tag: registry.internal.aleemhaji.com/pms-docker:1.32.1.6999-91e1e2e2c
     tags: [docker-cache, plex]
   - name: jellyfin-image-cache
     build:
