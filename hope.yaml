@@ -616,9 +616,9 @@ resources:
     tags: [docker-cache, drone]
   - name: wireguard-image-cache
     build:
-      source: masipcat/wireguard-go:0.0.20220316
+      source: masipcat/wireguard-go:0.0.20230223
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/wireguard-go:0.0.20220316
+      tag: registry.internal.aleemhaji.com/wireguard-go:0.0.20230223
     tags: [docker-cache, wireguard]
   - name: unifi-controller-image-cache
     build:

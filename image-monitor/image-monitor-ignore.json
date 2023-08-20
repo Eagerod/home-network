@@ -69,7 +69,7 @@
 		"^base-debian$"
 	],
 	"masipcat/wireguard-go": [
-		"latest-amd64"
+		"\\\b-amd64"
 	],
 	"mongo": [
 		"\\\\bwindowsservercore\\\\b",

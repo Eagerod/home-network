@@ -53,7 +53,7 @@ spec:
                 - NET_ADMIN
       containers:
         - name: wireguard
-          image: registry.internal.aleemhaji.com/wireguard-go:0.0.20220316
+          image: registry.internal.aleemhaji.com/wireguard-go:0.0.20230223
           imagePullPolicy: Always
           securityContext:
             privileged: true
