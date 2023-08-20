@@ -628,10 +628,10 @@ resources:
     tags: [docker-cache, unifi]
   - name: uptime-kuma-image-cache
     build:
-      source: louislam/uptime-kuma:1.21.2-alpine
+      source: louislam/uptime-kuma:1.23.0-alpine
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/uptime-kuma:1.21.2-alpine
-    tags: [docker-cache, uptime]
+      tag: registry.internal.aleemhaji.com/uptime-kuma:1.23.0-alpine
+    tags: [docker-cache, uptime-kuma]
   # endregion
   - name: pihole
     file: pihole/pihole.yaml
@@ -780,6 +780,9 @@ resources:
   - name: bitwarden
     file: bitwarden/bitwarden.yaml
     tags: [apps, bitwarden, vaultwarden]
+  - name: uptime-kuma
+    file: uptime-kuma/uptime-kuma.yaml
+    tags: [apps, uptime-kuma]
   # endregion
   # region: NFS-Share + Port Forwarded Services
   # This block of services include resources that need access to shared
