@@ -494,9 +494,9 @@ resources:
     tags: [docker-cache, mysql, redis, pihole]
   - name: mysql-57-image-cache
     build:
-      source: mysql:5.7.37
+      source: mysql:5.7.43
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/mysql:5.7.37
+      tag: registry.internal.aleemhaji.com/mysql:5.7.43
     tags: [docker-cache, mysql]
   - name: pihole-image-cache
     build:
