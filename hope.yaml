@@ -592,9 +592,9 @@ resources:
     tags: [docker-cache, bitwarden, vaultwarden]
   - name: syncthing-image-cache
     build:
-      source: syncthing/syncthing:1.23.4
+      source: syncthing/syncthing:1.23.7
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/syncthing:1.23.4
+      tag: registry.internal.aleemhaji.com/syncthing:1.23.7
     tags: [docker-cache, syncthing]
   - name: bookstack-image-cache
     build:
