@@ -622,9 +622,9 @@ resources:
     tags: [docker-cache, wireguard]
   - name: unifi-controller-image-cache
     build:
-      source: linuxserver/unifi-controller:7.3.76
+      source: linuxserver/unifi-controller:7.4.162
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/unifi-controller:7.3.76
+      tag: registry.internal.aleemhaji.com/unifi-controller:7.4.162
     tags: [docker-cache, unifi]
   - name: uptime-kuma-image-cache
     build:
@@ -893,7 +893,7 @@ resources:
     build:
       path: unifi
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/unifi-controller:7.3.76-custom
+      tag: registry.internal.aleemhaji.com/unifi-controller:7.4.162-custom
     tags: [apps, unifi]
   - name: unifi-controller
     file: unifi/unifi.yaml
