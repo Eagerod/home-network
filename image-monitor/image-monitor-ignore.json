@@ -57,6 +57,7 @@
 		"^js-",
 		"^js$",
 		"^development-",
+		"-development$",
 		"\\\\b-ls\\\\d+$"
 	],
 	"linuxserver/unifi-controller": [
