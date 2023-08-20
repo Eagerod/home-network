@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: browser
-          image: registry.internal.aleemhaji.com/docker-registry-browser:1.5.0
+          image: registry.internal.aleemhaji.com/docker-registry-browser:1.6.1
           ports:
             - containerPort: 8080
           env:
