@@ -46,11 +46,6 @@
 		"\\\\bunstable",
 		"\\\\b-amd64\\\\b"
 	],
-	"linuxserver/bookstack": [
-		"^amd64-",
-		"^version-",
-		"-ls\\\\d+\\\\b"
-	],
 	"linuxserver/heimdall": [
 		"^version-",
 		"^amd64-",

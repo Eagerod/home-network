@@ -596,12 +596,6 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/syncthing:1.23.7
     tags: [docker-cache, syncthing]
-  - name: bookstack-image-cache
-    build:
-      source: linuxserver/bookstack:23.02.2
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/bookstack:23.02.2
-    tags: [docker-cache, bookstack]
   - name: drone-image-cache
     build:
       source: drone/drone:2.17.0
@@ -1064,56 +1058,6 @@ resources:
   - name: syncthing
     file: syncthing/syncthing.yaml
     tags: [apps, syncthing]
-  - name: bookstack-config
-    inline: |
-      apiVersion: v1
-      data:
-        mysql_user: ${BOOKSTACK_MYSQL_USER}
-        mysql_database: ${BOOKSTACK_MYSQL_DATABASE}
-      kind: ConfigMap
-      metadata:
-        name: bookstack-config
-      ---
-      apiVersion: v1
-      data:
-        mysql_password: ${BOOKSTACK_MYSQL_PASSWORD_BASE64}
-      kind: Secret
-      metadata:
-        name: bookstack-secrets
-    parameters:
-      - BOOKSTACK_MYSQL_USER
-      - BOOKSTACK_MYSQL_DATABASE
-      - BOOKSTACK_MYSQL_PASSWORD_BASE64
-    tags: [apps, bookstack]
-  - name: bookstack-init-job-create
-    file: bookstack/bookstack-init.yaml
-    tags: [apps, bookstack]
-  - name: bookstack-init-job
-    job: bookstack-mysql-init
-    tags: [apps, bookstack]
-  - name: bookstack
-    file: bookstack/bookstack.yaml
-    tags: [apps, bookstack]
-  - name: bookstack-notifier-secrets
-    inline: |
-      apiVersion: v1
-      data:
-        token_id: ${BOOKSTACK_TOKEN_ID_BASE64}
-        token_secret: ${BOOKSTACK_TOKEN_SECRET_BASE64}
-      kind: Secret
-      metadata:
-        name: bookstack-notifier-secrets
-    parameters:
-      - BOOKSTACK_TOKEN_ID_BASE64
-      - BOOKSTACK_TOKEN_SECRET_BASE64
-    tags: [apps, bookstack]
-  - name: bookstack-notifier
-    file: bookstack/bookstack-notifier.yaml
-    parameters:
-      - SLACK_BOT_ALERTING_CHANNEL
-    fileParameters:
-      - BOOKSTACK_NOTIFIER_SCRIPT=bookstack/bookstack-notifier.sh
-    tags: [apps, bookstack]
   - name: drone-init
     file: drone/drone-init.yaml
     tags: [apps, drone]
@@ -1192,18 +1136,6 @@ resources:
       pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/rsync:latest
     tags: [backups]
-  - name: bookstack-backups
-    file: crons/rsync-cron.yaml
-    parameters:
-      - CRONJOB_NAME=bookstack
-      - RSYNC_OPTIONS=-avhuDH --delete --exclude=.sync --exclude=log
-      - SOURCE_NFS_SERVER=192.168.96.4
-      - SOURCE_NFS_SHARE=/mnt/main/apps/bookstack
-      - SOURCE_PATH=/
-      - DESTINATION_NFS_SERVER=192.168.96.4
-      - DESTINATION_NFS_SHARE=/mnt/main/backup/apps
-      - DEST_PATH=/bookstack
-    tags: [bookstack, backups]
   - name: node-red-backups
     file: crons/rsync-cron.yaml
     parameters:
