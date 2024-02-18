@@ -135,7 +135,7 @@ loglevel: *log_level
 pod_network_cidr: 10.244.0.0/16
 resources:
   - name: calico
-    file: https://docs.projectcalico.org/archive/v3.18/manifests/calico.yaml
+    file: calico.yaml
     tags: [network]
   - name: dashboard
     file: https://raw.githubusercontent.com/kubernetes/dashboard/v2.1.0/aio/deploy/recommended.yaml
