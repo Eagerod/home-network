@@ -138,7 +138,7 @@ resources:
     file: calico.yaml
     tags: [network]
   - name: dashboard
-    file: https://raw.githubusercontent.com/kubernetes/dashboard/v2.1.0/aio/deploy/recommended.yaml
+    file: ./kubernetes-dashboard.yaml
     tags: [apps, dashboard]
   - name: metrics-server
     file: metrics-server.yaml
