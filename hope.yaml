@@ -12,6 +12,7 @@ _:
   - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
   - &unifi_controller_inform_url http://192.168.200.82:8080
   - &devbox_service_ip LOAD_BALANCER_IP=192.168.200.224
+  - &vm_builder_service_ip LOAD_BALANCER_IP=192.168.200.222
   - &docker_hub_upstream_pull if-not-present
   - &local_upstream_pull always
 access_point_controller: *unifi_controller_inform_url
@@ -1207,7 +1208,12 @@ resources:
       path: .
       pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/home-network:latest
-    tags: [rotate-node]
+    tags: [rotate-node, build-vm]
+  - name: vm-builder-static-resources
+    file: jobs/build-vm-static.yaml
+    parameters:
+      - *vm_builder_service_ip
+    tags: [build-vm]
   - name: dev-ssh-key
     inline: |
       apiVersion: v1
@@ -1273,3 +1279,9 @@ jobs:
     parameters:
       - ROTATE_NODE_NAME
       - SLACK_BOT_ALERTING_CHANNEL
+  - name: build-vm
+    file: jobs/build-vm.yaml
+    parameters:
+      - VM_NAME
+      - SLACK_BOT_ALERTING_CHANNEL
+      - *vm_builder_service_ip

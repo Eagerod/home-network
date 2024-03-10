@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: build-vm-${VM_NAME}-manual-
+  namespace: dev
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: build-vm
+    spec:
+      # Don't run on the oldest node
+      # Need a lot of uptime to build some VMs.
+      nodeSelector:
+        aleemhaji.com/oldest: "false"
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: build-vm
+          image: registry.internal.aleemhaji.com/home-network:latest
+          command:
+            - /src/vm-builder/builder.sh
+            - ${VM_NAME}
+          ports:
+            - containerPort: 8067
+              protocol: TCP
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: SLACK_BOT_ALERTING_CHANNEL
+              value: ${SLACK_BOT_ALERTING_CHANNEL}
+            - name: LOAD_BALANCER_IP
+              value: ${LOAD_BALANCER_IP}
+            - name: ESXI_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rotate-node-secrets
+                  key: esxi_root_password
+            - name: VM_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rotate-node-secrets
+                  key: vm_root_password
+            - name: VM_MANAGEMENT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rotate-node-secrets
+                  key: vm_management_password
+          volumeMounts:
+            - name: packer-data
+              mountPath: /var/lib/packer
+      volumes:
+        - name: packer-data
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/packer
+        - name: ssh-key-temp
+          secret:
+            secretName: dev-ssh-key
+            defaultMode: 0600

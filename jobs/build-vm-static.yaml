@@ -1,0 +1,17 @@
+# Just have a service sitting there, pointing at port 80.
+# It'll mostly be unused, but better to have the definition ready to go.
+# Hope's job system needs to create resources, so this has to be created in advance.
+apiVersion: v1
+kind: Service
+metadata:
+  name: build-vm
+  namespace: dev
+spec:
+  ports:
+    - port: 8067
+      protocol: TCP
+      targetPort: 8067
+  type: LoadBalancer
+  loadBalancerIP: ${LOAD_BALANCER_IP}
+  selector:
+    app: build-vm
