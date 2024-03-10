@@ -30,6 +30,5 @@ RUN \
 RUN \
     find /src -type f -path ".git" -prune -o \
         -iname "*.yaml" -o -iname "*.yml" | \
-    grep -v "/src/metallb.yaml" | \
-    grep -v "/src/metrics-server.yaml" | \
+    grep -vE "/src/metallb.yaml|/src/metrics-server.yaml|/src/kubernetes-dashboard.yaml|/src/calico.yaml" | \
     xargs yamllint -d "{extends: default, rules: {document-start: disable, line-length: disable}}"
