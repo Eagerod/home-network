@@ -53,12 +53,14 @@ spec:
           volumeMounts:
             - name: packer-data
               mountPath: /var/lib/packer
+            - name: ssh-key
+              mountPath: /root/.ssh
       volumes:
         - name: packer-data
           nfs:
             server: 192.168.96.4
             path: /mnt/main/apps/packer
-        - name: ssh-key-temp
+        - name: ssh-key
           secret:
             secretName: dev-ssh-key
             defaultMode: 0600
