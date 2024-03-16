@@ -34,8 +34,8 @@ vms:
         - ESXI_NETWORK=VM Network
         - VM_ROOT_PASSWORD
         - VM_MANAGEMENT_PASSWORD
-        - *devbox_service_ip
-    - name: kubernetes-node
+        - LOAD_BALANCER_IP
+    - name: kubernetes-node-1-21-14
       hypervisors: [beast1]
       parameters:
         - ESXI_USERNAME=root
@@ -44,7 +44,7 @@ vms:
         - ESXI_NETWORK=VM Network
         - VM_ROOT_PASSWORD
         - VM_MANAGEMENT_PASSWORD
-        - *devbox_service_ip
+        - LOAD_BALANCER_IP
 load_balancer_host: api.internal.aleemhaji.com
 nodes:
   - name: beast1
@@ -1280,6 +1280,7 @@ jobs:
     file: jobs/rotate-node.yaml
     parameters:
       - ROTATE_NODE_NAME
+      - VM_IMAGE_NAME
       - SLACK_BOT_ALERTING_CHANNEL
   - name: build-vm
     file: jobs/build-vm.yaml

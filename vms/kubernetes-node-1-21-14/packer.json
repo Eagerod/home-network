@@ -2,7 +2,7 @@
     "builders": [
         {
             "type": "vmware-iso",
-            "vm_name": "kubernetes-node",
+            "vm_name": "kubernetes-node-1-21-14",
             "output_directory": "${OUTPUT_DIR}",
 
             "iso_url": "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-11.2.0-amd64-netinst.iso",
@@ -16,8 +16,8 @@
 
             "boot_wait": "5s",
 
-            "disk_size": "20000",
-            "memory": 1024,
+            "disk_size": "50000",
+            "memory": 2048,
 
             "http_directory": "http",
             "http_port_min": 8067,
@@ -55,11 +55,16 @@
                 "sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common vim nfs-common open-iscsi",
                 "curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg",
                 "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list",
-                "curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/google-cloud-archive-keyring.gpg",
-                "echo \"deb [signed-by=/usr/share/keyrings/google-cloud-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main\" | sudo tee /etc/apt/sources.list.d/google-cloud.list",
                 "sudo apt-get update",
-                "sudo apt-get install -y docker-ce docker-ce-cli containerd.io",
-                "sudo apt-get install -y kubelet=1.20.15-00 kubectl=1.20.15-00 kubeadm=1.20.15-00"
+                "sudo apt-get install -y docker-ce docker-ce-cli containerd.io"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "curl -fsSL -o kube-setup.sh http://${LOAD_BALANCER_IP}:8067/kube-setup.sh",
+                "chmod +x kube-setup.sh",
+                "sudo ./kube-setup.sh"
             ]
         },
         {

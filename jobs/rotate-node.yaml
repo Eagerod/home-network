@@ -55,6 +55,10 @@ spec:
                   fieldPath: spec.nodeName
             - name: SLACK_BOT_ALERTING_CHANNEL
               value: ${SLACK_BOT_ALERTING_CHANNEL}
+            - name: LOAD_BALANCER_IP
+              value: ignored-but-necessary
+            - name: VM_IMAGE_NAME
+              value: ${VM_IMAGE_NAME}
             - name: ESXI_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:

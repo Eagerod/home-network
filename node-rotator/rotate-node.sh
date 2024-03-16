@@ -15,6 +15,8 @@ SLACK_URL="https://slackbot.internal.aleemhaji.com/message"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 HOPE_SOURCE_DIR="$(dirname "$SCRIPT_DIR")"
 
+VM_IMAGE_NAME="${VM_IMAGE_NAME:-kubernetes-node}"
+
 slack() {
 	curl -sS -X POST -H "X-SLACK-CHANNEL-ID: ${SLACK_BOT_ALERTING_CHANNEL}" -d "$@" "$SLACK_URL"
 }
@@ -43,7 +45,7 @@ create_node() {
     node_id="$1"
     slack "Node rotator creating fresh node $node_id"
 
-    hope --config hope.yaml vm create "kubernetes-node" "$node_id"
+    hope --config hope.yaml vm create "$VM_IMAGE_NAME" "$node_id"
     hope --config hope.yaml vm start "$node_id"
     hope --config hope.yaml vm ip "$node_id"
     set +x
