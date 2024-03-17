@@ -2,7 +2,7 @@
     "builders": [
         {
             "type": "vmware-iso",
-            "vm_name": "kubernetes-node-1-21-14",
+            "vm_name": "kubernetes-node-1-22-17",
             "output_directory": "${OUTPUT_DIR}",
 
             "iso_url": "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-11.2.0-amd64-netinst.iso",
@@ -64,7 +64,9 @@
             "inline": [
                 "curl -fsSL -o kube-setup.sh http://${LOAD_BALANCER_IP}:8067/kube-setup.sh",
                 "chmod +x kube-setup.sh",
-                "sudo ./kube-setup.sh"
+                "sudo RELEASE=v1.22.17 ./kube-setup.sh",
+                "sudo rm kube-setup.sh",
+                "sudo kubeadm config images pull"
             ]
         },
         {

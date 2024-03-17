@@ -25,12 +25,11 @@ CRICTL_VERSION="v1.29.0"
 ARCH="amd64"
 curl -L "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-${ARCH}.tar.gz" | tar -C /usr/bin/ -xz
 
-
-RELEASE="v1.21.14"
+RELEASE="${RELEASE:-v1.21.14}"
 ARCH="amd64"
-curl -L https://storage.googleapis.com/kubernetes-release/release/${RELEASE}/bin/linux/${ARCH}/kubeadm -o /usr/bin/kubeadm
-curl -L https://storage.googleapis.com/kubernetes-release/release/${RELEASE}/bin/linux/${ARCH}/kubelet -o /usr/bin/kubelet
-curl -L https://storage.googleapis.com/kubernetes-release/release/${RELEASE}/bin/linux/${ARCH}/kubectl -o /usr/bin/kubectl
+curl -L https://storage.googleapis.com/kubernetes-release/release/"${RELEASE}"/bin/linux/${ARCH}/kubeadm -o /usr/bin/kubeadm
+curl -L https://storage.googleapis.com/kubernetes-release/release/"${RELEASE}"/bin/linux/${ARCH}/kubelet -o /usr/bin/kubelet
+curl -L https://storage.googleapis.com/kubernetes-release/release/"${RELEASE}"/bin/linux/${ARCH}/kubectl -o /usr/bin/kubectl
 chmod +x /usr/bin/kubeadm /usr/bin/kubelet /usr/bin/kubectl
 
 

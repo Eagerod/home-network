@@ -35,7 +35,7 @@ vms:
         - VM_ROOT_PASSWORD
         - VM_MANAGEMENT_PASSWORD
         - LOAD_BALANCER_IP
-    - name: kubernetes-node-1-21-14
+    - name: kubernetes-node-1-22-17
       hypervisors: [beast1]
       parameters:
         - ESXI_USERNAME=root
