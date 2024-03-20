@@ -18,7 +18,9 @@ HOPE_SOURCE_DIR="$(dirname "$SCRIPT_DIR")"
 VM_IMAGE_NAME="${VM_IMAGE_NAME:-kubernetes-node}"
 
 slack() {
-	curl -sS -X POST -H "X-SLACK-CHANNEL-ID: ${SLACK_BOT_ALERTING_CHANNEL}" -d "$@" "$SLACK_URL"
+	if ! curl -sS -X POST -H "X-SLACK-CHANNEL-ID: ${SLACK_BOT_ALERTING_CHANNEL}" -d "$@" "$SLACK_URL"; then
+        echo >&2 "Failed to send message to Slack: $*"
+    fi
 }
 
 destroy_node() {
