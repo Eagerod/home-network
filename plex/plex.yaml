@@ -32,7 +32,7 @@ spec:
                 topologyKey: "kubernetes.io/hostname"
       containers:
         - name: plex
-          image: registry.internal.aleemhaji.com/pms-docker:1.32.5.7349-8f4248874
+          image: registry.internal.aleemhaji.com/pms-docker:1.40.1.8227-c0dd5a73e
           ports:
             - containerPort: 32400
           env:
