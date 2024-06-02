@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ${NAME}-redirect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://${NAME}.internal.aleemhaji.com
+spec:
+  rules:
+    - host: ${NAME}
+    - host: ${NAME}.home
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ${NAME}
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - ${NAME}.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: ${NAME}.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ${NAME}
+                port:
+                  number: 80
