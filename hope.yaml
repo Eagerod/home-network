@@ -180,18 +180,20 @@ resources:
     tags: [network, load-balancer]
   - name: load-balancer-config
     inline: |
-      apiVersion: v1
-      kind: ConfigMap
+      apiVersion: metallb.io/v1beta1
+      kind: IPAddressPool
       metadata:
+        name: service-pool
         namespace: metallb-system
-        name: config
-      data:
-        config: |
-          address-pools:
-            - name: default
-              protocol: layer2
-              addresses:
-                - ${ADDRESS_RANGE}
+      spec:
+        addresses:
+        - ${ADDRESS_RANGE}
+      ---
+      apiVersion: metallb.io/v1beta1
+      kind: L2Advertisement
+      metadata:
+        name: service-advertisement
+        namespace: metallb-system
       ---
       apiVersion: v1
       data:
