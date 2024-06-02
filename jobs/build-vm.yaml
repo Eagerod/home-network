@@ -20,6 +20,7 @@ spec:
       containers:
         - name: build-vm
           image: registry.internal.aleemhaji.com/home-network:latest
+          imagePullPolicy: Always
           command:
             - /src/vm-builder/builder.sh
             - ${VM_NAME}

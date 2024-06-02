@@ -45,6 +45,7 @@ spec:
       containers:
         - name: rotate-node
           image: registry.internal.aleemhaji.com/home-network:latest
+          imagePullPolicy: Always
           command:
             - /src/node-rotator/rotate-node.sh
             - ${ROTATE_NODE_NAME}
