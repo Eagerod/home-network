@@ -162,7 +162,7 @@ spec:
           # Maybe I should have a temporary pihole pod without this hooked up
           #   to it, and once the registry is definitely up and resolvable,
           #   replace it with this pod?
-          image: registry.internal.aleemhaji.com/hostsfile-daemon:0.3.5-1-g653a4a5
+          image: registry.internal.aleemhaji.com/hostsfile-daemon:0.4.0
           args:
             - --ingress-ip
             - ${INGRESS_IP}
