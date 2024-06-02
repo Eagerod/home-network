@@ -5,8 +5,8 @@
             "vm_name": "kubernetes-node-1-22-17",
             "output_directory": "${OUTPUT_DIR}",
 
-            "iso_url": "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-11.2.0-amd64-netinst.iso",
-            "iso_checksum": "sha512:c685b85cf9f248633ba3cd2b9f9e781fa03225587e0c332aef2063f6877a1f0622f56d44cf0690087b0ca36883147ecb5593e3da6f965968402cdbdf12f6dd74",
+            "iso_url": "https://cdimage.debian.org/mirror/cdimage/archive/11.9.0/amd64/iso-cd/debian-11.9.0-amd64-netinst.iso",
+            "iso_checksum": "sha512:0194bd9b7476f26bc59569fe6439cb046ed747a47632fb5324cc3c294b8231b53e497ac6e216cef581b44dcfad8a76da4bd860f0d930cebe06ad2995b3cb812c",
 
             "ssh_username": "packer",
             "ssh_password": "${VM_MANAGEMENT_PASSWORD}",
@@ -83,8 +83,12 @@
         {
             "type": "shell",
             "inline": [
+                "sudo rm -f /etc/ssh/ssh_host_*_key",
+                "sudo rm -f /etc/ssh/ssh_host_*.pub",
                 "sudo mv /tmp/ssh-certs-temp/* /etc/ssh/",
                 "sudo chown -R root:root /etc/ssh",
+                "sudo chmod 600 /etc/ssh/ssh_host_*_key",
+                "sudo chmod 644 /etc/ssh/ssh_host_*.pub",
                 "rm -rf /tmp/ssh-certs-temp"
             ]
         },
