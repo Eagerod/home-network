@@ -18,8 +18,8 @@ spec:
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
       containers:
-        - name: transmission
-          image: registry.internal.aleemhaji.com/uptime-kuma:1.21.2-alpine
+        - name: uptime-kuma
+          image: registry.internal.aleemhaji.com/uptime-kuma:1.23.0-alpine
           ports:
             - containerPort: 3001
           volumeMounts:

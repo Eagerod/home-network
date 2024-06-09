@@ -18,9 +18,21 @@ spec:
     spec:
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - jellyfin
+                topologyKey: "kubernetes.io/hostname"
       containers:
         - name: plex
-          image: registry.internal.aleemhaji.com/pms-docker:1.31.2.6810-a607d384f
+          image: registry.internal.aleemhaji.com/pms-docker:1.32.5.7349-8f4248874
           ports:
             - containerPort: 32400
           env:

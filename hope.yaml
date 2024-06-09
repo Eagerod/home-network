@@ -517,9 +517,9 @@ resources:
     tags: [docker-cache, mysql, redis, pihole]
   - name: mysql-57-image-cache
     build:
-      source: mysql:5.7.37
+      source: mysql:5.7.43
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/mysql:5.7.37
+      tag: registry.internal.aleemhaji.com/mysql:5.7.43
     tags: [docker-cache, mysql]
   - name: pihole-image-cache
     build:
@@ -529,9 +529,9 @@ resources:
     tags: [docker-cache, pihole]
   - name: browser-image-cache
     build:
-      source: klausmeyer/docker-registry-browser:1.5.0
+      source: klausmeyer/docker-registry-browser:1.6.1
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/docker-registry-browser:1.5.0
+      tag: registry.internal.aleemhaji.com/docker-registry-browser:1.6.1
     tags: [docker-cache, browser]
   - name: curl-cache
     build:
@@ -561,15 +561,15 @@ resources:
     tags: [docker-cache, firefly]
   - name: heimdall-image-cache
     build:
-      source: linuxserver/heimdall:2.5.4
+      source: linuxserver/heimdall:2.5.6
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/heimdall:2.5.4
+      tag: registry.internal.aleemhaji.com/heimdall:2.5.6
     tags: [docker-cache, heimdall]
   - name: plex-image-cache
     build:
-      source: plexinc/pms-docker:1.31.2.6810-a607d384f
+      source: plexinc/pms-docker:1.32.5.7349-8f4248874
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pms-docker:1.31.2.6810-a607d384f
+      tag: registry.internal.aleemhaji.com/pms-docker:1.32.5.7349-8f4248874
     tags: [docker-cache, plex]
   - name: jellyfin-image-cache
     build:
@@ -609,22 +609,16 @@ resources:
     tags: [docker-cache, kubectl]
   - name: bitwarden-image-cache
     build:
-      source: vaultwarden/server:1.28.1
+      source: vaultwarden/server:1.29.1
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.28.1
+      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.29.1
     tags: [docker-cache, bitwarden, vaultwarden]
   - name: syncthing-image-cache
     build:
-      source: syncthing/syncthing:1.23.4
+      source: syncthing/syncthing:1.23.7
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/syncthing:1.23.4
+      tag: registry.internal.aleemhaji.com/syncthing:1.23.7
     tags: [docker-cache, syncthing]
-  - name: bookstack-image-cache
-    build:
-      source: linuxserver/bookstack:23.02.2
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/bookstack:23.02.2
-    tags: [docker-cache, bookstack]
   - name: drone-image-cache
     build:
       source: drone/drone:2.17.0
@@ -639,22 +633,22 @@ resources:
     tags: [docker-cache, drone]
   - name: wireguard-image-cache
     build:
-      source: masipcat/wireguard-go:0.0.20220316
+      source: masipcat/wireguard-go:0.0.20230223
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/wireguard-go:0.0.20220316
+      tag: registry.internal.aleemhaji.com/wireguard-go:0.0.20230223
     tags: [docker-cache, wireguard]
   - name: unifi-controller-image-cache
     build:
-      source: linuxserver/unifi-controller:7.3.76
+      source: linuxserver/unifi-controller:7.4.162
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/unifi-controller:7.3.76
+      tag: registry.internal.aleemhaji.com/unifi-controller:7.4.162
     tags: [docker-cache, unifi]
   - name: uptime-kuma-image-cache
     build:
-      source: louislam/uptime-kuma:1.21.2-alpine
+      source: louislam/uptime-kuma:1.23.0-alpine
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/uptime-kuma:1.21.2-alpine
-    tags: [docker-cache, uptime]
+      tag: registry.internal.aleemhaji.com/uptime-kuma:1.23.0-alpine
+    tags: [docker-cache, uptime-kuma]
   - name: rabbitmq-image-cache
     build:
       source: rabbitmq:3.11.15-management
@@ -809,6 +803,9 @@ resources:
   - name: bitwarden
     file: bitwarden/bitwarden.yaml
     tags: [apps, bitwarden, vaultwarden]
+  - name: uptime-kuma
+    file: uptime-kuma/uptime-kuma.yaml
+    tags: [apps, uptime-kuma]
   # endregion
   # region: NFS-Share + Port Forwarded Services
   # This block of services include resources that need access to shared
@@ -970,7 +967,7 @@ resources:
     build:
       path: unifi
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/unifi-controller:7.3.76-custom
+      tag: registry.internal.aleemhaji.com/unifi-controller:7.4.162-custom
     tags: [apps, unifi]
   - name: unifi-controller
     file: unifi/unifi.yaml
@@ -1141,56 +1138,6 @@ resources:
   - name: syncthing
     file: syncthing/syncthing.yaml
     tags: [apps, syncthing]
-  - name: bookstack-config
-    inline: |
-      apiVersion: v1
-      data:
-        mysql_user: ${BOOKSTACK_MYSQL_USER}
-        mysql_database: ${BOOKSTACK_MYSQL_DATABASE}
-      kind: ConfigMap
-      metadata:
-        name: bookstack-config
-      ---
-      apiVersion: v1
-      data:
-        mysql_password: ${BOOKSTACK_MYSQL_PASSWORD_BASE64}
-      kind: Secret
-      metadata:
-        name: bookstack-secrets
-    parameters:
-      - BOOKSTACK_MYSQL_USER
-      - BOOKSTACK_MYSQL_DATABASE
-      - BOOKSTACK_MYSQL_PASSWORD_BASE64
-    tags: [apps, bookstack]
-  - name: bookstack-init-job-create
-    file: bookstack/bookstack-init.yaml
-    tags: [apps, bookstack]
-  - name: bookstack-init-job
-    job: bookstack-mysql-init
-    tags: [apps, bookstack]
-  - name: bookstack
-    file: bookstack/bookstack.yaml
-    tags: [apps, bookstack]
-  - name: bookstack-notifier-secrets
-    inline: |
-      apiVersion: v1
-      data:
-        token_id: ${BOOKSTACK_TOKEN_ID_BASE64}
-        token_secret: ${BOOKSTACK_TOKEN_SECRET_BASE64}
-      kind: Secret
-      metadata:
-        name: bookstack-notifier-secrets
-    parameters:
-      - BOOKSTACK_TOKEN_ID_BASE64
-      - BOOKSTACK_TOKEN_SECRET_BASE64
-    tags: [apps, bookstack]
-  - name: bookstack-notifier
-    file: bookstack/bookstack-notifier.yaml
-    parameters:
-      - SLACK_BOT_ALERTING_CHANNEL
-    fileParameters:
-      - BOOKSTACK_NOTIFIER_SCRIPT=bookstack/bookstack-notifier.sh
-    tags: [apps, bookstack]
   - name: drone-init
     file: drone/drone-init.yaml
     tags: [apps, drone]
@@ -1278,18 +1225,6 @@ resources:
       pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/rsync:latest
     tags: [backups]
-  - name: bookstack-backups
-    file: crons/rsync-cron.yaml
-    parameters:
-      - CRONJOB_NAME=bookstack
-      - RSYNC_OPTIONS=-avhuDH --delete --exclude=.sync --exclude=log
-      - SOURCE_NFS_SERVER=192.168.96.4
-      - SOURCE_NFS_SHARE=/mnt/main/apps/bookstack
-      - SOURCE_PATH=/
-      - DESTINATION_NFS_SERVER=192.168.96.4
-      - DESTINATION_NFS_SHARE=/mnt/main/backup/apps
-      - DEST_PATH=/bookstack
-    tags: [bookstack, backups]
   - name: node-red-backups
     file: crons/rsync-cron.yaml
     parameters:

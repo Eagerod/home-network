@@ -6,7 +6,6 @@ set -euf
 
 MANUAL_JOB_REGEXP='-manual-[[:alnum:]]\{3\}[[:space:]]'
 ONE_MONTH_AGO="$(date -u -d '1 month ago' '+%Y-%m-%dT%H:%M:%SZ')"
-KUBE_NAMESPACE="${KUBE_NAMESPACE}"
 
 # Newline to start the monitored output.
 echo ""

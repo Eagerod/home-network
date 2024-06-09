@@ -18,6 +18,18 @@ spec:
     spec:
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - plex
+                topologyKey: "kubernetes.io/hostname"
       containers:
         - name: jellyfin
           image: registry.internal.aleemhaji.com/jellyfin:10.8.10

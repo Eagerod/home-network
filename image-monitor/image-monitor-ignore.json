@@ -46,17 +46,13 @@
 		"\\\\bunstable",
 		"\\\\b-amd64\\\\b"
 	],
-	"linuxserver/bookstack": [
-		"^amd64-",
-		"^version-",
-		"-ls\\\\d+\\\\b"
-	],
 	"linuxserver/heimdall": [
 		"^version-",
 		"^amd64-",
 		"^js-",
 		"^js$",
 		"^development-",
+		"-development$",
 		"\\\\b-ls\\\\d+$"
 	],
 	"linuxserver/unifi-controller": [
@@ -66,10 +62,15 @@
 		"\\\\b-ls\\\\d+$"
 	],
 	"louislam/uptime-kuma": [
-		"^base-debian$"
+		"\\\\b-debian$",
+		"^base\\\\b",
+		"^base2\\\\b",
+		"\\\\bbeta\\\\b",
+		"\\\\btest\\\\b",
+		"nightly"
 	],
 	"masipcat/wireguard-go": [
-		"latest-amd64"
+		"\\\b-amd64"
 	],
 	"mongo": [
 		"\\\\bwindowsservercore\\\\b",
