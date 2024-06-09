@@ -1,3 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: syncthing-cache
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: freenas-iscsi
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -37,9 +48,8 @@ spec:
             server: 192.168.96.4
             path: /mnt/main/backup
         - name: syncthing-persistent-storage
-          nfs:
-            server: 192.168.96.4
-            path: /mnt/main/apps/syncthing
+          persistentVolumeClaim:
+            claimName: syncthing-cache
 ---
 apiVersion: v1
 kind: Service
