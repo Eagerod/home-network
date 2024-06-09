@@ -1,54 +1,32 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: rotate-node-${ROTATE_NODE_NAME}-manual-
+  generateName: build-vm-${VM_NAME}-manual-
   namespace: dev
 spec:
   backoffLimit: 0
   template:
     metadata:
       labels:
-        app: rotate-node-manual
+        app: build-vm
     spec:
+      # Don't run on the oldest node
+      # Need a lot of uptime to build some VMs.
       nodeSelector:
         aleemhaji.com/oldest: "false"
       restartPolicy: Never
-      serviceAccountName: rotate-node
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: kubernetes.io/hostname
-                    operator: NotIn
-                    values:
-                      - ${ROTATE_NODE_NAME}
-      # This process uses ssh-copy-id, which requires that the SSH dir on
-      #   the host be writable.
-      # Mounting a secret directly as a mount leads to a read-only fs, so
-      #   contents have be copied beforehand.
-      initContainers:
-        - name: rotate-node-ssh-copy
-          image: registry.internal.aleemhaji.com/busybox:1.35.0
-          volumeMounts:
-            - name: ssh-key-temp
-              mountPath: /root/.ssh-temp
-            - name: writable-ssh-dir
-              mountPath: /root/.ssh
-          command:
-            - sh
-            - -c
-            - |
-              cp -R /root/.ssh-temp/. /root/.ssh/
       containers:
-        - name: rotate-node
+        - name: build-vm
           image: registry.internal.aleemhaji.com/home-network:latest
           imagePullPolicy: Always
           command:
-            - /src/node-rotator/rotate-node.sh
-            - ${ROTATE_NODE_NAME}
+            - /src/vm-builder/builder.sh
+            - ${VM_NAME}
+          ports:
+            - containerPort: 8067
+              protocol: TCP
           env:
             - name: NODE_NAME
               valueFrom:
@@ -57,9 +35,7 @@ spec:
             - name: SLACK_BOT_ALERTING_CHANNEL
               value: ${SLACK_BOT_ALERTING_CHANNEL}
             - name: LOAD_BALANCER_IP
-              value: ignored-but-necessary
-            - name: VM_IMAGE_NAME
-              value: ${VM_IMAGE_NAME}
+              value: ${LOAD_BALANCER_IP}
             - name: ESXI_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -78,16 +54,14 @@ spec:
           volumeMounts:
             - name: packer-data
               mountPath: /var/lib/packer
-            - name: writable-ssh-dir
+            - name: ssh-key
               mountPath: /root/.ssh
       volumes:
         - name: packer-data
           nfs:
             server: 192.168.96.4
             path: /mnt/main/apps/packer
-        - name: ssh-key-temp
+        - name: ssh-key
           secret:
             secretName: dev-ssh-key
             defaultMode: 0600
-        - name: writable-ssh-dir
-          emptyDir: {}

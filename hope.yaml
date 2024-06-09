@@ -12,6 +12,7 @@ _:
   - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
   - &unifi_controller_inform_url http://192.168.200.82:8080
   - &devbox_service_ip LOAD_BALANCER_IP=192.168.200.224
+  - &vm_builder_service_ip LOAD_BALANCER_IP=192.168.200.222
   - &docker_hub_upstream_pull if-not-present
   - &local_upstream_pull always
 access_point_controller: *unifi_controller_inform_url
@@ -27,21 +28,23 @@ vms:
     - name: load-balancer
       hypervisors: [beast1]
       parameters:
+        - ESXI_USERNAME=root
         - ESXI_ROOT_PASSWORD
         - SERVER_SSH_KEYS_DIR=/var/lib/packer/etc/ssh
         - ESXI_NETWORK=VM Network
         - VM_ROOT_PASSWORD
         - VM_MANAGEMENT_PASSWORD
-        - *devbox_service_ip
-    - name: kubernetes-node
+        - LOAD_BALANCER_IP
+    - name: kubernetes-node-1-22-17
       hypervisors: [beast1]
       parameters:
+        - ESXI_USERNAME=root
         - ESXI_ROOT_PASSWORD
         - SERVER_SSH_KEYS_DIR=/var/lib/packer/etc/ssh
         - ESXI_NETWORK=VM Network
         - VM_ROOT_PASSWORD
         - VM_MANAGEMENT_PASSWORD
-        - *devbox_service_ip
+        - LOAD_BALANCER_IP
 load_balancer_host: api.internal.aleemhaji.com
 nodes:
   - name: beast1
@@ -160,10 +163,10 @@ resources:
     tags: [rmq, tasks]
   # endregion
   - name: calico
-    file: https://docs.projectcalico.org/archive/v3.18/manifests/calico.yaml
+    file: calico.yaml
     tags: [network]
   - name: dashboard
-    file: https://raw.githubusercontent.com/kubernetes/dashboard/v2.1.0/aio/deploy/recommended.yaml
+    file: ./kubernetes-dashboard.yaml
     tags: [apps, dashboard]
   - name: metrics-server
     file: metrics-server.yaml
@@ -193,18 +196,20 @@ resources:
     tags: [network, load-balancer]
   - name: load-balancer-config
     inline: |
-      apiVersion: v1
-      kind: ConfigMap
+      apiVersion: metallb.io/v1beta1
+      kind: IPAddressPool
       metadata:
+        name: service-pool
         namespace: metallb-system
-        name: config
-      data:
-        config: |
-          address-pools:
-            - name: default
-              protocol: layer2
-              addresses:
-                - ${ADDRESS_RANGE}
+      spec:
+        addresses:
+        - ${ADDRESS_RANGE}
+      ---
+      apiVersion: metallb.io/v1beta1
+      kind: L2Advertisement
+      metadata:
+        name: service-advertisement
+        namespace: metallb-system
       ---
       apiVersion: v1
       data:
@@ -567,15 +572,15 @@ resources:
     tags: [docker-cache, heimdall]
   - name: plex-image-cache
     build:
-      source: plexinc/pms-docker:1.32.5.7349-8f4248874
+      source: plexinc/pms-docker:1.40.1.8227-c0dd5a73e
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pms-docker:1.32.5.7349-8f4248874
+      tag: registry.internal.aleemhaji.com/pms-docker:1.40.1.8227-c0dd5a73e
     tags: [docker-cache, plex]
   - name: jellyfin-image-cache
     build:
-      source: jellyfin/jellyfin:10.8.10
+      source: jellyfin/jellyfin:10.8.13
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/jellyfin:10.8.10
+      tag: registry.internal.aleemhaji.com/jellyfin:10.8.13
     tags: [docker-cache, jellyfin]
   - name: redis-image-cache
     build:
@@ -609,15 +614,15 @@ resources:
     tags: [docker-cache, kubectl]
   - name: bitwarden-image-cache
     build:
-      source: vaultwarden/server:1.29.1
+      source: vaultwarden/server:1.30.5
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.29.1
+      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.30.5
     tags: [docker-cache, bitwarden, vaultwarden]
   - name: syncthing-image-cache
     build:
-      source: syncthing/syncthing:1.23.7
+      source: syncthing/syncthing:1.27.3
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/syncthing:1.23.7
+      tag: registry.internal.aleemhaji.com/syncthing:1.27.3
     tags: [docker-cache, syncthing]
   - name: drone-image-cache
     build:
@@ -645,10 +650,16 @@ resources:
     tags: [docker-cache, unifi]
   - name: uptime-kuma-image-cache
     build:
-      source: louislam/uptime-kuma:1.23.0-alpine
+      source: louislam/uptime-kuma:1.23.11-alpine
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/uptime-kuma:1.23.0-alpine
+      tag: registry.internal.aleemhaji.com/uptime-kuma:1.23.11-alpine
     tags: [docker-cache, uptime-kuma]
+  - name: nginx-image-cache
+    build:
+      source: nginx:1.27.0
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/nginx:1.27.0
+    tags: [docker-cache, knowledge]
   - name: rabbitmq-image-cache
     build:
       source: rabbitmq:3.13.3-management
@@ -806,6 +817,16 @@ resources:
   - name: uptime-kuma
     file: uptime-kuma/uptime-kuma.yaml
     tags: [apps, uptime-kuma]
+  - name: knowledge-service
+    file: barebones-nginx/service.yaml
+    parameters:
+      - NAME=knowledge
+    tags: [apps, web, knowledge]
+  - name: knowledge-ingress
+    file: barebones-nginx/internal-ingress.yaml
+    parameters:
+      - NAME=knowledge
+    tags: [apps, web, knowledge]
   # endregion
   # region: NFS-Share + Port Forwarded Services
   # This block of services include resources that need access to shared
@@ -1289,7 +1310,12 @@ resources:
       path: .
       pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/home-network:latest
-    tags: [rotate-node]
+    tags: [rotate-node, build-vm]
+  - name: vm-builder-static-resources
+    file: jobs/build-vm-static.yaml
+    parameters:
+      - *vm_builder_service_ip
+    tags: [build-vm]
   - name: dev-ssh-key
     inline: |
       apiVersion: v1
@@ -1354,4 +1380,11 @@ jobs:
     file: jobs/rotate-node.yaml
     parameters:
       - ROTATE_NODE_NAME
+      - VM_IMAGE_NAME
       - SLACK_BOT_ALERTING_CHANNEL
+  - name: build-vm
+    file: jobs/build-vm.yaml
+    parameters:
+      - VM_NAME
+      - SLACK_BOT_ALERTING_CHANNEL
+      - *vm_builder_service_ip

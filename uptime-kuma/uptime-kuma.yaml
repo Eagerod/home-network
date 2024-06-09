@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: uptime-kuma
-          image: registry.internal.aleemhaji.com/uptime-kuma:1.23.0-alpine
+          image: registry.internal.aleemhaji.com/uptime-kuma:1.23.11-alpine
           ports:
             - containerPort: 3001
           volumeMounts:

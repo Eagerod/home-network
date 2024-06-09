@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${NAME}
+  labels:
+    app: ${NAME}
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${NAME}
+  template:
+    metadata:
+      labels:
+        app: ${NAME}
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: nginx
+          image: registry.internal.aleemhaji.com/nginx:1.27.0
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: site-data
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: site-data
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/${NAME}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${NAME}
+  labels:
+    app: ${NAME}
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: ${NAME}

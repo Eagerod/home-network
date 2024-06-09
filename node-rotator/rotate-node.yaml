@@ -72,9 +72,6 @@ spec:
               image: registry.internal.aleemhaji.com/home-network:latest
               command:
                 - /src/node-rotator/rotate-node.sh
-              ports:
-                - containerPort: 8067
-                  protocol: TCP
               # This does things with a lot of infra, so lots of secrets will
               #   probably end up here.
               env:
@@ -84,6 +81,10 @@ spec:
                       fieldPath: spec.nodeName
                 - name: SLACK_BOT_ALERTING_CHANNEL
                   value: ${SLACK_BOT_ALERTING_CHANNEL}
+                - name: VM_IMAGE_NAME
+                  value: kubernetes-node-1-21-14
+                - name: LOAD_BALANCER_IP
+                  value: ignored-but-necessary
                 - name: ESXI_ROOT_PASSWORD
                   valueFrom:
                     secretKeyRef:
