@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+  namespace: tasks
+spec:
+  revisionHistoryLimit: 0
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rabbitmq
+  serviceName: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: rabbitmq
+          image: registry.internal.aleemhaji.com/rabbitmq:3.13.3-management
+          ports:
+            - containerPort: 5672
+            - containerPort: 15672
+          command:
+            - sh
+            - -eufc
+            - |
+              printf 'cluster_formation.classic_config.nodes.1 = %s\ncluster_formation.classic_config.nodes.2 = %s\n' \
+                rabbit@rabbitmq-0.rabbitmq rabbit@rabbitmq-1.rabbitmq > /var/lib/rabbitmq/rabbitmq.conf
+              rabbitmq-plugins --offline enable rabbitmq_shovel rabbitmq_shovel_management
+              RABBITMQ_NODENAME=rabbit@$HOSTNAME.rabbitmq rabbitmq-server --erlang-cookie "${ERLANG_COOKIE}"
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secrets
+                  key: username
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secrets
+                  key: password
+            - name: ERLANG_COOKIE
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secrets
+                  key: .erlang-cookie
+            - name: RABBITMQ_USE_LONGNAME
+              value: "true"
+            - name: RABBITMQ_CONFIG_FILE
+              value: /var/lib/rabbitmq/rabbitmq.conf
+          volumeMounts:
+            - name: rabbitmq-persistent-storage
+              mountPath: /var/lib/rabbitmq
+      volumes:
+        - name: rabbitmq-erlang-cookie
+          secret:
+            secretName: rabbitmq-secrets
+  volumeClaimTemplates:
+    - metadata:
+        name: rabbitmq-persistent-storage
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: freenas-iscsi
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: tasks
+  labels:
+    app: rabbitmq
+spec:
+  ports:
+    - port: 5672
+      name: rmq
+      protocol: TCP
+    - port: 15672
+      name: management
+      protocol: TCP
+  selector:
+    app: rabbitmq
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rabbitmq-management-ingress-redirect
+  namespace: tasks
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://rabbitmq-management.internal.aleemhaji.com
+spec:
+  rules:
+    - host: rabbitmq-management
+    - host: rabbitmq-management.home
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rabbitmq-management-ingress
+  namespace: tasks
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - rabbitmq-management.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: rabbitmq-management.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rabbitmq
+                port:
+                  number: 15672
