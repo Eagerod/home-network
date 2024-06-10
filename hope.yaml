@@ -677,9 +677,14 @@ resources:
     file: opsbox.yaml
     parameters:
       - JOB_NAME=deploy-prometheus
-      - SCRIPT=cd /tmp; curl -fsSL https://github.com/prometheus-operator/kube-prometheus/archive/v0.7.0.tar.gz | tar xvz; cd kube-prometheus-0.7.0; kubectl create -f manifests/setup; until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done; kubectl create -f manifests;
+      - SCRIPT=cd /tmp; curl -fsSL https://github.com/prometheus-operator/kube-prometheus/archive/v0.10.0.tar.gz | tar xvz; cd kube-prometheus-0.10.0; kubectl create -f manifests/setup; until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done; kubectl create -f manifests;
+    tags: [monitoring]
+  - name: prometheus-wait
+    job: kube-system/ops-deploy-prometheus
+    tags: [monitoring]
   - name: grafana
     file: grafana/grafana.yaml
+    tags: [monitoring]
   # region: Stateless Services
   # The set of services in this block are services that don't rely on storing
   #   any state on disk.
