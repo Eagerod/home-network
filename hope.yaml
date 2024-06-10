@@ -138,29 +138,21 @@ loglevel: *log_level
 pod_network_cidr: 10.244.0.0/16
 resources:
   # region: Namespaces
-  - name: load-balancer-namespace
-    inline: |
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: metallb-system
-        labels:
-          app: metallb
-    tags: [network, load-balancer]
+  - name: default-namespace
+    file: infra/namespace.yaml
+    parameters:
+      - NAMESPACE=default
+    tags: [namespaces]
   - name: dev-namespace
-    inline: |
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: dev
-    tags: [rotate-node]
+    file: infra/namespace.yaml
+    parameters:
+      - NAMESPACE=dev
+    tags: [namespaces, rotate-node]
   - name: tasks-namespace
-    inline: |
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: tasks
-    tags: [rmq, tasks]
+    file: infra/namespace.yaml
+    parameters:
+      - NAMESPACE=tasks
+    tags: [namespaces, rmq, tasks]
   # endregion
   - name: calico
     file: calico.yaml
