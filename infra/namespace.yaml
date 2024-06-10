@@ -3,3 +3,12 @@ kind: Namespace
 metadata:
   name: "${NAMESPACE}"
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+    name: ${DOCKER_REGISTRY_HOSTNAME}
+    namespace: ${NAMESPACE}
+type: kubernetes.io/dockerconfigjson
+data:
+    .dockerconfigjson: ${DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64}
+---
