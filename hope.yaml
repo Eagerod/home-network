@@ -144,6 +144,10 @@ resources:
       - NAMESPACE=default
       - DOCKER_REGISTRY_HOSTNAME
       - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - INCLUDE_EXTERNAL_CERTS=true
+      - INCLUDE_BARE_DOMAIN=true
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
     tags: [namespaces]
   - name: dev-namespace
     file: infra/namespace.yaml
@@ -151,6 +155,10 @@ resources:
       - NAMESPACE=dev
       - DOCKER_REGISTRY_HOSTNAME
       - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
     tags: [namespaces, rotate-node]
   - name: monitoring-namespace
     file: infra/namespace.yaml
@@ -158,6 +166,10 @@ resources:
       - NAMESPACE=monitoring
       - DOCKER_REGISTRY_HOSTNAME
       - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
     tags: [namespaces, monitoring]
   - name: kube-system-namespace
     file: infra/namespace.yaml
@@ -165,6 +177,21 @@ resources:
       - NAMESPACE=kube-system
       - DOCKER_REGISTRY_HOSTNAME
       - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
+    tags: [namespaces]
+  - name: kubernetes-dashboard-namespace
+    file: infra/namespace.yaml
+    parameters:
+      - NAMESPACE=kubernetes-dashboard
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
     tags: [namespaces]
   - name: tasks-namespace
     file: infra/namespace.yaml
@@ -172,6 +199,10 @@ resources:
       - NAMESPACE=tasks
       - DOCKER_REGISTRY_HOSTNAME
       - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
     tags: [namespaces, rmq, tasks]
   # endregion
   - name: calico
@@ -1175,42 +1206,6 @@ resources:
       - SLACK_BOT_ALERTING_CHANNEL
     fileParameters:
       - POD_KILLER_SCRIPT=pod-killer/pod-killer.sh
-  - name: certbot-update-kubernetes-dashboard
-    file: certbot/certbot-generic-cron.yaml
-    parameters:
-      - KUBERNETES_NAMESPACE=kubernetes-dashboard
-      - INCLUDE_EXTERNAL_CERTS=false
-      - INCLUDE_BARE_DOMAIN=false
-    fileParameters:
-      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
-    tags: [crons, certbot]
-  - name: certbot-update-monitoring
-    file: certbot/certbot-generic-cron.yaml
-    parameters:
-      - KUBERNETES_NAMESPACE=monitoring
-      - INCLUDE_EXTERNAL_CERTS=false
-      - INCLUDE_BARE_DOMAIN=false
-    fileParameters:
-      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
-    tags: [crons, certbot]
-  - name: certbot-update-default
-    file: certbot/certbot-generic-cron.yaml
-    parameters:
-      - KUBERNETES_NAMESPACE=default
-      - INCLUDE_EXTERNAL_CERTS=true
-      - INCLUDE_BARE_DOMAIN=true
-    fileParameters:
-      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
-    tags: [crons, certbot]
-  - name: certbot-update-tasks
-    file: certbot/certbot-generic-cron.yaml
-    parameters:
-      - KUBERNETES_NAMESPACE=tasks
-      - INCLUDE_EXTERNAL_CERTS=false
-      - INCLUDE_BARE_DOMAIN=false
-    fileParameters:
-      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
-    tags: [crons, certbot]
   - name: certbot-cron
     file: certbot/certbot.yaml
     fileParameters:

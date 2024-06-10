@@ -12,3 +12,89 @@ type: kubernetes.io/dockerconfigjson
 data:
     .dockerconfigjson: ${DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64}
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: certbot
+  namespace: ${NAMESPACE}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: certbot
+  namespace: ${NAMESPACE}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "patch", "create"]  # Might actually be able to remove "list"?
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: certbot-manage-secrets
+  namespace: ${NAMESPACE}
+subjects:
+  - kind: ServiceAccount
+    name: certbot
+    namespace: ${NAMESPACE}
+roleRef:
+  kind: Role
+  name: certbot
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: certbot-update-script
+  namespace: ${NAMESPACE}
+binaryData:
+  update-secrets.sh: "${UPDATE_SECRETS_SCRIPT}"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: certbot-copy
+  namespace: ${NAMESPACE}
+spec:
+  schedule: "0 0 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: certbot-copy
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: certbot
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
+          containers:
+            - name: certbot-copy
+              image: registry.internal.aleemhaji.com/kubectl:1.21.0
+              command:
+                - sh
+                - /scripts/update-secrets.sh
+              env:
+                - name: KUBERNETES_NAMESPACE
+                  value: ${NAMESPACE}
+                - name: INCLUDE_EXTERNAL_CERTS
+                  value: "${INCLUDE_EXTERNAL_CERTS}"
+                - name: INCLUDE_BARE_DOMAIN
+                  value: "${INCLUDE_BARE_DOMAIN}"
+              volumeMounts:
+                - name: certbot-storage
+                  mountPath: /etc/letsencrypt
+                - name: certbot-scripts
+                  mountPath: /scripts
+          volumes:
+            - name: certbot-storage
+              nfs:
+                server: 192.168.96.4
+                path: /mnt/main/apps/certificates
+            - name: certbot-scripts
+              configMap:
+                name: certbot-update-script
+                defaultMode: 0755
