@@ -1,0 +1,263 @@
+# region: Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "${NAMESPACE}"
+---
+# endregion
+# region: Docker Secrets
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${DOCKER_REGISTRY_HOSTNAME}
+  namespace: ${NAMESPACE}
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: ${DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64}
+---
+# endregoin
+# region: Certificate Management
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: certbot
+  namespace: ${NAMESPACE}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: certbot
+  namespace: ${NAMESPACE}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "patch", "create"]  # Might actually be able to remove "list"?
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: certbot-manage-secrets
+  namespace: ${NAMESPACE}
+subjects:
+  - kind: ServiceAccount
+    name: certbot
+    namespace: ${NAMESPACE}
+roleRef:
+  kind: Role
+  name: certbot
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: certbot-update-script
+  namespace: ${NAMESPACE}
+binaryData:
+  update-secrets.sh: "${UPDATE_SECRETS_SCRIPT}"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: certbot-copy
+  namespace: ${NAMESPACE}
+spec:
+  schedule: "0 0 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: certbot-copy
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: certbot
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
+          containers:
+            - name: certbot-copy
+              image: registry.internal.aleemhaji.com/kubectl:1.21.0
+              command:
+                - sh
+                - /scripts/update-secrets.sh
+              env:
+                - name: KUBERNETES_NAMESPACE
+                  value: ${NAMESPACE}
+                - name: INCLUDE_EXTERNAL_CERTS
+                  value: "${INCLUDE_EXTERNAL_CERTS}"
+                - name: INCLUDE_BARE_DOMAIN
+                  value: "${INCLUDE_BARE_DOMAIN}"
+              volumeMounts:
+                - name: certbot-storage
+                  mountPath: /etc/letsencrypt
+                - name: certbot-scripts
+                  mountPath: /scripts
+          volumes:
+            - name: certbot-storage
+              nfs:
+                server: 192.168.96.4
+                path: /mnt/main/apps/certificates
+            - name: certbot-scripts
+              configMap:
+                name: certbot-update-script
+                defaultMode: 0755
+---
+# endregion
+# region: Pod Killer
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-killer
+  namespace: ${NAMESPACE}
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pod-killer
+  namespace: ${NAMESPACE}
+rules:
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, delete, list, watch]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pod-killer
+  namespace: ${NAMESPACE}
+subjects:
+  - kind: ServiceAccount
+    name: pod-killer
+roleRef:
+  kind: Role
+  name: pod-killer
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  labels:
+    app: pod-killer
+  name: pod-killer-config
+  namespace: ${NAMESPACE}
+binaryData:
+  script.sh: ${POD_KILLER_SCRIPT}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-killer
+  namespace: ${NAMESPACE}
+  labels:
+    app: pod-killer
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pod-killer
+  template:
+    metadata:
+      labels:
+        app: pod-killer
+    spec:
+      serviceAccountName: pod-killer
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: pod-killer
+          image: registry.internal.aleemhaji.com/kubectl:1.21.0
+          command:
+            - /scripts/script.sh
+            - "${NAMESPACE}"
+            - "${POD_KILLER_CONTAINER_RESTART_LIMIT}"
+          volumeMounts:
+            - name: pod-killer-scripts
+              mountPath: /scripts
+      volumes:
+        - name: pod-killer-scripts
+          configMap:
+            name: pod-killer-config
+            defaultMode: 0755
+---
+# endregion
+# region: Job Cleaner
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jobs-monitor
+  namespace: ${NAMESPACE}
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: jobs-monitor
+  namespace: ${NAMESPACE}
+rules:
+  - apiGroups: [batch]
+    resources: [jobs]
+    verbs: [list, delete]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: jobs-monitor
+  namespace: ${NAMESPACE}
+subjects:
+  - kind: ServiceAccount
+    name: jobs-monitor
+roleRef:
+  kind: Role
+  name: jobs-monitor
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: job-monitor-script
+  namespace: ${NAMESPACE}
+  labels:
+    app: jobs-monitor
+binaryData:
+  script.sh: ${JOBS_SHELL_MONITOR_SCRIPT}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jobs-cleaner
+  namespace: ${NAMESPACE}
+  labels:
+    app: jobs-cleaner
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jobs-cleaner
+  template:
+    metadata:
+      labels:
+        app: jobs-cleaner
+    spec:
+      serviceAccountName: jobs-monitor
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: jobs-cleaner
+          image: registry.internal.aleemhaji.com/kubectl:1.21.0
+          command:
+            - /scripts/script.sh
+            - "${NAMESPACE}"
+            - "${JOB_RETENTION_WINDOW}"
+          volumeMounts:
+            - name: job-monitor-script
+              mountPath: /scripts
+      volumes:
+        - name: job-monitor-script
+          configMap:
+            name: job-monitor-script
+            defaultMode: 0755
+---
+# endregion

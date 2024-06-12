@@ -10,23 +10,26 @@ slack() {
 	curl -sS -X POST -H "X-SLACK-CHANNEL-ID: ${SLACK_BOT_ALERTING_CHANNEL}" -d "$@" "$SLACK_URL"
 }
 
-if [ $# -ne 1 ]; then
+if [ $# -ne 2 ]; then
 	echo >&2 "Usage:"
-	echo >&2 "  $0 <n>"
+	echo >&2 "  $0 <namespace> <n_restarts>"
 	exit 1
 fi
 
+namespace="$1"
+n_restarts="$2"
 # shellcheck disable=SC2016
 pod_template='{{range .items}}{{$name := .metadata.name}}{{range .status.containerStatuses}}{{$name}} {{.restartCount}}
 {{end}}{{end}}'
 
 slack 'Pod killer starting up on '"$(hostname)"'.
-Killing pods with '"$1"' or more container restarts.'
+Killing pods in namespace "'"$namespace"'" with '"$n_restarts"' or more container restarts.'
 
 while true; do
-	kubectl get pods -n "${POD_KILLER_NAMESPACE}" -o template="$pod_template" | awk '{for (i = 0; i < $2; i++) print $1}' | uniq -c | awk '$1 >= '"$1"' { print $2 }' | while read -r pod; do
-		slack "Pod killer is killing \"${POD_KILLER_NAMESPACE}/$pod\""
-		kubectl delete pod -n "${POD_KILLER_NAMESPACE}" "$pod"
+	echo "Run: $(date)"
+	kubectl get pods -n "${namespace}" -o template="$pod_template" | awk '{for (i = 0; i < $2; i++) print $1}' | uniq -c | awk '$1 >= '"$n_restarts"' { print $2 }' | while read -r pod; do
+		slack "Pod killer is killing \"${namespace}/$pod\""
+		kubectl delete pod -n "${namespace}" "$pod"
 	done
 
 	sleep 60

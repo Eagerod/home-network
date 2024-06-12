@@ -138,29 +138,102 @@ loglevel: *log_level
 pod_network_cidr: 10.244.0.0/16
 resources:
   # region: Namespaces
-  - name: load-balancer-namespace
-    inline: |
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: metallb-system
-        labels:
-          app: metallb
-    tags: [network, load-balancer]
+  - name: default-namespace
+    file: infra/namespace.yaml
+    parameters:
+      - NAMESPACE=default
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - SLACK_BOT_ALERTING_CHANNEL
+      - INCLUDE_EXTERNAL_CERTS=true
+      - INCLUDE_BARE_DOMAIN=true
+      - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
+    tags: [namespaces]
   - name: dev-namespace
-    inline: |
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: dev
-    tags: [rotate-node]
+    file: infra/namespace.yaml
+    parameters:
+      - NAMESPACE=dev
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - SLACK_BOT_ALERTING_CHANNEL
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+      - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
+    tags: [namespaces, rotate-node]
+  - name: monitoring-namespace
+    file: infra/namespace.yaml
+    parameters:
+      - NAMESPACE=monitoring
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - SLACK_BOT_ALERTING_CHANNEL
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+      - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
+    tags: [namespaces, monitoring]
+  - name: kube-system-namespace
+    file: infra/namespace.yaml
+    parameters:
+      - NAMESPACE=kube-system
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - SLACK_BOT_ALERTING_CHANNEL
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+      - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
+    tags: [namespaces]
+  - name: kubernetes-dashboard-namespace
+    file: infra/namespace.yaml
+    parameters:
+      - NAMESPACE=kubernetes-dashboard
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - SLACK_BOT_ALERTING_CHANNEL
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+      - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
+    tags: [namespaces]
   - name: tasks-namespace
-    inline: |
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: tasks
-    tags: [rmq, tasks]
+    file: infra/namespace.yaml
+    parameters:
+      - NAMESPACE=tasks
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - SLACK_BOT_ALERTING_CHANNEL
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+      - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
+    tags: [namespaces, rmq, tasks]
   # endregion
   - name: calico
     file: calico.yaml
@@ -422,41 +495,6 @@ resources:
                       port:
                         number: 443
     tags: [apps, dashboard]
-  - name: cluster-registry-secrets-default
-    file: registry/registry-secrets.yaml
-    parameters:
-      - NAMESPACE=default
-      - DOCKER_REGISTRY_HOSTNAME
-      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
-    tags: [apps, registry]
-  - name: cluster-registry-secrets-dev
-    file: registry/registry-secrets.yaml
-    parameters:
-      - NAMESPACE=dev
-      - DOCKER_REGISTRY_HOSTNAME
-      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
-    tags: [apps, registry]
-  - name: cluster-registry-secrets-monitoring
-    file: registry/registry-secrets.yaml
-    parameters:
-      - NAMESPACE=monitoring
-      - DOCKER_REGISTRY_HOSTNAME
-      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
-    tags: [apps, registry]
-  - name: cluster-registry-secrets-kube-system
-    file: registry/registry-secrets.yaml
-    parameters:
-      - NAMESPACE=kube-system
-      - DOCKER_REGISTRY_HOSTNAME
-      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
-    tags: [apps, registry]
-  - name: cluster-registry-secrets-tasks
-    file: registry/registry-secrets.yaml
-    parameters:
-      - NAMESPACE=tasks
-      - DOCKER_REGISTRY_HOSTNAME
-      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
-    tags: [apps, registry]
   - name: docker-registry-htpasswd-secrets
     inline: |
       apiVersion: v1
@@ -1191,49 +1229,6 @@ resources:
     file: drone/drone.yaml
     tags: [apps, drone]
   # endregion
-  - name: pod-killer
-    file: pod-killer/pod-killer.yaml
-    parameters:
-      - POD_KILLER_NAMESPACE=default
-      - SLACK_BOT_ALERTING_CHANNEL
-    fileParameters:
-      - POD_KILLER_SCRIPT=pod-killer/pod-killer.sh
-  - name: certbot-update-kubernetes-dashboard
-    file: certbot/certbot-generic-cron.yaml
-    parameters:
-      - KUBERNETES_NAMESPACE=kubernetes-dashboard
-      - INCLUDE_EXTERNAL_CERTS=false
-      - INCLUDE_BARE_DOMAIN=false
-    fileParameters:
-      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
-    tags: [crons, certbot]
-  - name: certbot-update-monitoring
-    file: certbot/certbot-generic-cron.yaml
-    parameters:
-      - KUBERNETES_NAMESPACE=monitoring
-      - INCLUDE_EXTERNAL_CERTS=false
-      - INCLUDE_BARE_DOMAIN=false
-    fileParameters:
-      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
-    tags: [crons, certbot]
-  - name: certbot-update-default
-    file: certbot/certbot-generic-cron.yaml
-    parameters:
-      - KUBERNETES_NAMESPACE=default
-      - INCLUDE_EXTERNAL_CERTS=true
-      - INCLUDE_BARE_DOMAIN=true
-    fileParameters:
-      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
-    tags: [crons, certbot]
-  - name: certbot-update-tasks
-    file: certbot/certbot-generic-cron.yaml
-    parameters:
-      - KUBERNETES_NAMESPACE=tasks
-      - INCLUDE_EXTERNAL_CERTS=false
-      - INCLUDE_BARE_DOMAIN=false
-    fileParameters:
-      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
-    tags: [crons, certbot]
   - name: certbot-cron
     file: certbot/certbot.yaml
     fileParameters:
