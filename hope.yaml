@@ -148,9 +148,11 @@ resources:
       - INCLUDE_EXTERNAL_CERTS=true
       - INCLUDE_BARE_DOMAIN=true
       - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
     fileParameters:
       - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
       - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
     tags: [namespaces]
   - name: dev-namespace
     file: infra/namespace.yaml
@@ -162,9 +164,11 @@ resources:
       - INCLUDE_EXTERNAL_CERTS=false
       - INCLUDE_BARE_DOMAIN=false
       - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
     fileParameters:
       - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
       - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
     tags: [namespaces, rotate-node]
   - name: monitoring-namespace
     file: infra/namespace.yaml
@@ -176,9 +180,11 @@ resources:
       - INCLUDE_EXTERNAL_CERTS=false
       - INCLUDE_BARE_DOMAIN=false
       - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
     fileParameters:
       - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
       - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
     tags: [namespaces, monitoring]
   - name: kube-system-namespace
     file: infra/namespace.yaml
@@ -190,9 +196,11 @@ resources:
       - INCLUDE_EXTERNAL_CERTS=false
       - INCLUDE_BARE_DOMAIN=false
       - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
     fileParameters:
       - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
       - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
     tags: [namespaces]
   - name: kubernetes-dashboard-namespace
     file: infra/namespace.yaml
@@ -204,9 +212,11 @@ resources:
       - INCLUDE_EXTERNAL_CERTS=false
       - INCLUDE_BARE_DOMAIN=false
       - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
     fileParameters:
       - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
       - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
     tags: [namespaces]
   - name: tasks-namespace
     file: infra/namespace.yaml
@@ -218,9 +228,11 @@ resources:
       - INCLUDE_EXTERNAL_CERTS=false
       - INCLUDE_BARE_DOMAIN=false
       - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
     fileParameters:
       - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
       - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
     tags: [namespaces, rmq, tasks]
   # endregion
   - name: calico

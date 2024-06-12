@@ -26,6 +26,7 @@ slack 'Pod killer starting up on '"$(hostname)"'.
 Killing pods in namespace "'"$namespace"'" with '"$n_restarts"' or more container restarts.'
 
 while true; do
+	echo "Run: $(date)"
 	kubectl get pods -n "${namespace}" -o template="$pod_template" | awk '{for (i = 0; i < $2; i++) print $1}' | uniq -c | awk '$1 >= '"$n_restarts"' { print $2 }' | while read -r pod; do
 		slack "Pod killer is killing \"${namespace}/$pod\""
 		kubectl delete pod -n "${namespace}" "$pod"
