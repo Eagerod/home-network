@@ -22,6 +22,7 @@ age_str="$2"
 MANUAL_JOB_REGEXP='-manual-[[:alnum:]]\{3,5\}[[:space:]]'
 ONE_MONTH_AGO="$(date -u -d "$age_str ago" '+%Y-%m-%dT%H:%M:%SZ')"
 JOBS_COLUMNS='custom-columns=NAME:{.metadata.name},SUCCEEDED:{.status.succeeded},COMPLETED:{.status.completionTime}'
+# shellcheck disable=SC2016
 AWK_SCRIPT='{if ($2 == 1 && $3 < arg) print $1}'
 
 slack 'Manual job-run cleaup running on '"$(hostname)"'.
