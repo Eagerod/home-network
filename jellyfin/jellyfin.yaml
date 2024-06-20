@@ -32,7 +32,7 @@ spec:
                 topologyKey: "kubernetes.io/hostname"
       containers:
         - name: jellyfin
-          image: registry.internal.aleemhaji.com/jellyfin:10.8.13
+          image: registry.internal.aleemhaji.com/jellyfin:10.9.6
           ports:
             - containerPort: 8096
           resources:
