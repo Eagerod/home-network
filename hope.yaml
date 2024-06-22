@@ -312,7 +312,6 @@ resources:
         53: "default/pihole-tcp:53"
         3306: "default/mysql:3306"
         5432: "default/postgres:5432"
-        6379: "default/redis:6379"
         27017: "default/mongodb:27017"
         51413: "default/osstransmission:51413"
       ---
@@ -374,9 +373,6 @@ resources:
           protocol: TCP
         - port: 5432
           name: postgres
-          protocol: TCP
-        - port: 6379
-          name: redis
           protocol: TCP
         - port: 27017
           name: mongodb
@@ -557,7 +553,7 @@ resources:
       source: busybox:1.35.0
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/busybox:1.35.0
-    tags: [docker-cache, mysql, redis, pihole]
+    tags: [docker-cache, mysql, pihole]
   - name: mysql-57-image-cache
     build:
       source: mysql:5.7.43
@@ -620,12 +616,6 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/jellyfin:10.9.6
     tags: [docker-cache, jellyfin]
-  - name: redis-image-cache
-    build:
-      source: redis:5
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/redis:5
-    tags: [docker-cache, redis]
   - name: guacamole-image-cache
     build:
       source: guacamole/guacamole:1.5.1
@@ -787,9 +777,6 @@ resources:
   - name: slackbot
     file: slackbot/slackbot.yaml
     tags: [apps, slackbot, stateless]
-  - name: redis
-    file: redis/redis.yaml
-    tags: [apps, redis, stateless]
   - name: dns-update-secrets
     inline: |
       apiVersion: v1

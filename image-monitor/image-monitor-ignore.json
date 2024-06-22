@@ -99,13 +99,6 @@
 		"rc\\\\d+\\\\b",
 		"beta"
 	],
-	"redis": [
-		"\\\\bbullseye",
-		"\\\\balpine",
-		"\\\\b-rc\\\\d*$",
-		"^\\\\d+$",
-		"^\\\\d+\\\\.\\\\d+$"
-	],
 	"syncthing/syncthing": [
 		"^rc$",
 		"^pcap$",
