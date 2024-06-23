@@ -313,7 +313,6 @@ resources:
         3306: "default/mysql:3306"
         5432: "default/postgres:5432"
         27017: "default/mongodb:27017"
-        51413: "default/osstransmission:51413"
       ---
       apiVersion: v1
       kind: ConfigMap
