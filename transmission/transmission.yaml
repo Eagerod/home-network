@@ -55,7 +55,6 @@ spec:
     - port: 51413
       protocol: TCP
       name: torrent
-  type: NodePort
   selector:
     app: osstransmission
 ---

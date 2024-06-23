@@ -191,7 +191,6 @@ spec:
     - port: 53
       protocol: TCP
       name: dns
-  type: NodePort
   selector:
     app: pihole
 ---
@@ -207,7 +206,6 @@ spec:
   ports:
     - port: 53
       protocol: UDP
-  type: NodePort
   selector:
     app: pihole
 ---

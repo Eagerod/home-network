@@ -56,7 +56,6 @@ spec:
     - port: 22
       protocol: TCP
       name: ssh
-  type: NodePort
   selector:
     app: gitea
 ---

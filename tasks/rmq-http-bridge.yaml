@@ -98,7 +98,6 @@ spec:
   ports:
     - port: 8080
       protocol: TCP
-  type: NodePort
   selector:
     app: rmq-http-bridge-server
 ---

@@ -82,6 +82,5 @@ spec:
   ports:
     - port: 5432
       protocol: TCP
-  type: NodePort
   selector:
     app: postgres

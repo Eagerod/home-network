@@ -61,7 +61,6 @@ spec:
   ports:
     - port: 8384
       protocol: TCP
-  type: NodePort
   selector:
     app: syncthing
 ---
