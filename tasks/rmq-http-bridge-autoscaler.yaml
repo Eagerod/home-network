@@ -53,7 +53,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: rmq-http-bridge-autoscaler
-          image: registry.internal.aleemhaji.com/rmq-bridge-autoscaler:latest
+          image: registry.internal.aleemhaji.com/rmq-bridge-autoscaler:1.21.0
           command:
             - /scripts/autoscaler.sh
           volumeMounts:

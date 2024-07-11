@@ -1001,7 +1001,7 @@ resources:
     build:
       path: tasks
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/rmq-bridge-autoscaler:latest
+      tag: registry.internal.aleemhaji.com/rmq-bridge-autoscaler:1.21.0
     tags: [apps, rmq]
   - name: rabbitmq-http-bridge-autoscaler
     file: tasks/rmq-http-bridge-autoscaler.yaml
