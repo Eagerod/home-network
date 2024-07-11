@@ -1,4 +1,5 @@
 # https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+# Remove any master:NoSchedule tolerations that show up.
 ---
 # Copyright 2017 The Kubernetes Authors.
 #
@@ -231,10 +232,6 @@ spec:
       serviceAccountName: kubernetes-dashboard
       nodeSelector:
         "kubernetes.io/os": linux
-      # Comment the following tolerations if Dashboard must not be deployed on master
-      tolerations:
-        - key: node-role.kubernetes.io/master
-          effect: NoSchedule
 
 ---
 
@@ -299,10 +296,6 @@ spec:
       serviceAccountName: kubernetes-dashboard
       nodeSelector:
         "kubernetes.io/os": linux
-      # Comment the following tolerations if Dashboard must not be deployed on master
-      tolerations:
-        - key: node-role.kubernetes.io/master
-          effect: NoSchedule
       volumes:
         - name: tmp-volume
           emptyDir: {}
