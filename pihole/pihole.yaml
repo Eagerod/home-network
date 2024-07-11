@@ -191,6 +191,8 @@ spec:
     - port: 53
       protocol: TCP
       name: dns
+  type: LoadBalancer
+  loadBalancerIP: ${LOAD_BALANCER_IP}
   selector:
     app: pihole
 ---
@@ -206,6 +208,8 @@ spec:
   ports:
     - port: 53
       protocol: UDP
+  type: LoadBalancer
+  loadBalancerIP: ${LOAD_BALANCER_IP}
   selector:
     app: pihole
 ---

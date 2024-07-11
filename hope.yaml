@@ -13,6 +13,7 @@ _:
   - &unifi_controller_inform_url http://192.168.200.82:8080
   - &devbox_service_ip LOAD_BALANCER_IP=192.168.200.224
   - &vm_builder_service_ip LOAD_BALANCER_IP=192.168.200.222
+  - &pihole_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.217
   - &docker_hub_upstream_pull if-not-present
   - &local_upstream_pull always
 access_point_controller: *unifi_controller_inform_url
@@ -698,6 +699,7 @@ resources:
     file: pihole/pihole.yaml
     parameters:
       - *pihole_ingress_controller_ip
+      - *pihole_load_balancer_service_ip
     tags: [apps, pihole]
   # https://github.com/prometheus-operator/kube-prometheus#quickstart
   - name: prometheus
