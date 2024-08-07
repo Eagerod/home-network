@@ -36,7 +36,7 @@ vms:
         - VM_ROOT_PASSWORD
         - VM_MANAGEMENT_PASSWORD
         - LOAD_BALANCER_IP
-    - name: kubernetes-node-1-22-17
+    - name: kubernetes-node-12.6.0-1.22.17
       hypervisors: [beast1]
       parameters:
         - ESXI_USERNAME=root
@@ -46,6 +46,19 @@ vms:
         - VM_ROOT_PASSWORD
         - VM_MANAGEMENT_PASSWORD
         - LOAD_BALANCER_IP
+    - name: kubernetes-node-12.6.0-1.23.17
+      hypervisors: [beast1]
+      parameters:
+        - ESXI_USERNAME=root
+        - ESXI_ROOT_PASSWORD
+        - SERVER_SSH_KEYS_DIR=/var/lib/packer/etc/ssh
+        - ESXI_NETWORK=VM Network
+        - VM_ROOT_PASSWORD
+        - VM_MANAGEMENT_PASSWORD
+        - LOAD_BALANCER_IP
+        - DEBIAN_VERSION=12.6.0
+        - DEBIAN_SHA512=712cf43c5c9d60dbd5190144373c18b910c89051193c47534a68b0cd137c99bd8274902f59b25aba3b6ba3e5bca51d7c433c06522f40adb93aacc5e21acf57eb
+        - KUBERNETES_VERSION=1.23.17
 load_balancer_host: api.internal.aleemhaji.com
 nodes:
   - name: beast1
