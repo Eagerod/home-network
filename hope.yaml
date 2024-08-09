@@ -250,7 +250,7 @@ resources:
     tags: [namespaces, rmq, tasks]
   # endregion
   - name: calico
-    file: calico.yaml
+    file: infra/cluster/calico.yaml
     tags: [network]
   - name: dashboard
     file: ./kubernetes-dashboard.yaml
@@ -279,7 +279,7 @@ resources:
         namespace: kube-system
     tags: [users]
   - name: load-balancer
-    file: metallb.yaml
+    file: infra/cluster/metallb.yaml
     tags: [network, load-balancer]
   - name: load-balancer-config
     inline: |

@@ -1,4 +1,6 @@
-# https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml
+# https://raw.githubusercontent.com/metallb/metallb/v0.14.2/config/manifests/metallb-native.yaml
+#
+# File copied exactly from source.
 ---
 apiVersion: v1
 kind: Namespace
@@ -1733,12 +1735,13 @@ spec:
       - args:
         - --port=7472
         - --log-level=info
+        - --tls-min-version=VersionTLS12
         env:
         - name: METALLB_ML_SECRET_NAME
           value: memberlist
         - name: METALLB_DEPLOYMENT
           value: controller
-        image: quay.io/metallb/controller:v0.13.12
+        image: quay.io/metallb/controller:v0.14.2
         livenessProbe:
           failureThreshold: 3
           httpGet:
@@ -1831,7 +1834,7 @@ spec:
           value: app=metallb,component=speaker
         - name: METALLB_ML_SECRET_KEY_PATH
           value: /etc/ml_secret_key
-        image: quay.io/metallb/speaker:v0.13.12
+        image: quay.io/metallb/speaker:v0.14.2
         livenessProbe:
           failureThreshold: 3
           httpGet:
