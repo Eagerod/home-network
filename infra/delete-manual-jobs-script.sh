@@ -20,18 +20,19 @@ namespace="$1"
 age_str="$2"
 
 MANUAL_JOB_REGEXP='-manual-[[:alnum:]]\{3,5\}[[:space:]]'
-ONE_MONTH_AGO="$(date -u -d "$age_str ago" '+%Y-%m-%dT%H:%M:%SZ')"
 JOBS_COLUMNS='custom-columns=NAME:{.metadata.name},SUCCEEDED:{.status.succeeded},COMPLETED:{.status.completionTime}'
+
 # shellcheck disable=SC2016
 AWK_SCRIPT='{if ($2 == 1 && $3 < arg) print $1}'
 
-slack 'Manual job-run cleaup running on '"$(hostname)"'.
+slack 'Manual job-run cleanup running on '"$(hostname)"'.
 Deleting successful manually run jobs in namespace "'"$namespace"'" older than '"$age_str"'.'
 
 while true; do
-	echo "Run: $(date)"
-	kubectl -n "$namespace" get jobs -o "$JOBS_COLUMNS" | sed '1d' | grep -- "$MANUAL_JOB_REGEXP" | awk -v "arg=$ONE_MONTH_AGO" "$AWK_SCRIPT" | while read -r job; do
-		slack "Job monitor deleting old manually run job: $job"
+    one_month_ago="$(date -u -d "$age_str ago" '+%Y-%m-%dT%H:%M:%SZ')"
+	echo "Run: $(date) -> $one_month_ago"
+	kubectl -n "$namespace" get jobs -o "$JOBS_COLUMNS" | sed '1d' | grep -- "$MANUAL_JOB_REGEXP" | awk -v "arg=$one_month_ago" "$AWK_SCRIPT" | while read -r job; do
+		slack "Job monitor deleting old manually run job: $namespace/$job"
 		kubectl -n "${namespace}" delete job "$job"
 	done
 
