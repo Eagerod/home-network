@@ -310,10 +310,10 @@ resources:
       - *metallb_address_range
     tags: [network, load-balancer]
   - name: ingress-controller
-    file: nginx-ingress-daemonset-plus-tcp-udp-proxy.yaml
+    file: infra/cluster/nginx-ingress-daemonset-plus-tcp-udp-proxy.yaml
     tags: [network, ingress, ingress-internal]
   - name: ingress-controller-external
-    file: nginx-ingress-daemonset-external.yaml
+    file: infra/cluster/nginx-ingress-daemonset-external.yaml
     tags: [network, ingress, ingress-external]
   - name: ingress-controller-configs
     inline: |

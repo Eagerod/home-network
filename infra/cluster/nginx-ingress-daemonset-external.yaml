@@ -14,7 +14,7 @@
 #   kubectl delete -n ingress-nginx-external $(kubectl get jobs -n ingress-nginx-external -oname)
 #
 # General process:
-# https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.4.0
+# https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.5.1
 # Download, unzip
 # cat ./deploy/static/provider/baremetal/deploy.yaml | sed 's/kind: Deployment/kind: DaemonSet/' | sed 's/\(namespace: ingress-nginx\)/\1-external/' | sed 's/\(--ingress-class=nginx\)/\1-external/'
 #
@@ -26,6 +26,7 @@
 #
 # Add the tcp + udp service configmap names to the controller container args.
 #
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -43,7 +44,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx
   namespace: ingress-nginx-external
 ---
@@ -55,7 +56,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-admission
   namespace: ingress-nginx-external
 ---
@@ -67,7 +68,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx
   namespace: ingress-nginx-external
 rules:
@@ -121,7 +122,7 @@ rules:
 - apiGroups:
   - ""
   resourceNames:
-  - ingress-controller-leader
+  - ingress-nginx-leader
   resources:
   - configmaps
   verbs:
@@ -136,7 +137,7 @@ rules:
 - apiGroups:
   - coordination.k8s.io
   resourceNames:
-  - ingress-controller-leader
+  - ingress-nginx-leader
   resources:
   - leases
   verbs:
@@ -172,7 +173,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-admission
   namespace: ingress-nginx-external
 rules:
@@ -191,7 +192,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx
 rules:
 - apiGroups:
@@ -273,7 +274,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-admission
 rules:
 - apiGroups:
@@ -292,7 +293,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx
   namespace: ingress-nginx-external
 roleRef:
@@ -312,7 +313,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-admission
   namespace: ingress-nginx-external
 roleRef:
@@ -331,7 +332,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-external
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -350,7 +351,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-admission-external
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -371,7 +372,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-controller
   namespace: ingress-nginx-external
 ---
@@ -383,7 +384,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-controller
   namespace: ingress-nginx-external
 spec:
@@ -415,7 +416,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-controller-admission
   namespace: ingress-nginx-external
 spec:
@@ -438,7 +439,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-controller
   namespace: ingress-nginx-external
 spec:
@@ -459,7 +460,7 @@ spec:
       containers:
       - args:
         - /nginx-ingress-controller
-        - --election-id=ingress-controller-leader
+        - --election-id=ingress-nginx-leader
         - --controller-class=k8s.io/ingress-nginx
         - --ingress-class=nginx-external
         - --configmap=$(POD_NAMESPACE)/ingress-nginx-controller
@@ -477,7 +478,7 @@ spec:
               fieldPath: metadata.namespace
         - name: LD_PRELOAD
           value: /usr/local/lib/libmimalloc.so
-        image: registry.k8s.io/ingress-nginx/controller:v1.4.0@sha256:34ee929b111ffc7aa426ffd409af44da48e5a0eea1eb2207994d9e0c0882d143
+        image: registry.k8s.io/ingress-nginx/controller:v1.5.1@sha256:4ba73c697770664c1e00e9f968de14e08f606ff961c76e5d7033a4a9c593c629
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
@@ -549,7 +550,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-admission-create
   namespace: ingress-nginx-external
 spec:
@@ -560,7 +561,7 @@ spec:
         app.kubernetes.io/instance: ingress-nginx
         app.kubernetes.io/name: ingress-nginx
         app.kubernetes.io/part-of: ingress-nginx
-        app.kubernetes.io/version: 1.4.0
+        app.kubernetes.io/version: 1.5.1
       name: ingress-nginx-admission-create
     spec:
       containers:
@@ -596,7 +597,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-admission-patch
   namespace: ingress-nginx-external
 spec:
@@ -607,7 +608,7 @@ spec:
         app.kubernetes.io/instance: ingress-nginx
         app.kubernetes.io/name: ingress-nginx
         app.kubernetes.io/part-of: ingress-nginx
-        app.kubernetes.io/version: 1.4.0
+        app.kubernetes.io/version: 1.5.1
       name: ingress-nginx-admission-patch
     spec:
       containers:
@@ -645,7 +646,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: nginx
 spec:
   controller: k8s.io/ingress-nginx
@@ -658,7 +659,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.4.0
+    app.kubernetes.io/version: 1.5.1
   name: ingress-nginx-admission
 webhooks:
 - admissionReviewVersions:
