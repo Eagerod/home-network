@@ -30,5 +30,6 @@ RUN \
 RUN \
     find /src -type f -path ".git" -prune -o \
         -iname "*.yaml" -o -iname "*.yml" | \
-    grep -vE "/src/(metallb|metrics-server|kubernetes-dashboard|calico|nginx-ingress-daemonset-external|nginx-ingress-daemonset-plus-tcp-udp-proxy)\.(yml|yaml)" | \
+    grep -vE "/src/infra/cluster/(metallb|calico|nginx-ingress-daemonset-external|nginx-ingress-daemonset-plus-tcp-udp-proxy)\.(yml|yaml)" | \
+    grep -vE "/src/(metrics-server|kubernetes-dashboard)\.(yml|yaml)" | \
     xargs yamllint -d "{extends: default, rules: {document-start: disable, line-length: disable}}"
