@@ -655,9 +655,9 @@ resources:
     tags: [docker-cache, kubectl]
   - name: bitwarden-image-cache
     build:
-      source: vaultwarden/server:1.30.5
+      source: vaultwarden/server:1.31.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.30.5
+      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.31.0
     tags: [docker-cache, bitwarden, vaultwarden]
   - name: syncthing-image-cache
     build:
