@@ -667,9 +667,9 @@ resources:
     tags: [docker-cache, syncthing]
   - name: drone-image-cache
     build:
-      source: drone/drone:2.17.0
+      source: drone/drone:2.24.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/drone/drone:2.17.0
+      tag: registry.internal.aleemhaji.com/drone/drone:2.24.0
     tags: [docker-cache, drone]
   - name: drone-agent-image-cache
     build:
