@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gitea-deployment
+  name: gitea
   labels:
     app: gitea
 spec:
@@ -49,48 +49,15 @@ metadata:
   labels:
     app: gitea
 spec:
+  type: LoadBalancer
+  loadBalancerIP: ${LOAD_BALANCER_IP}
   ports:
-    - port: 3000
+    - port: 443
       protocol: TCP
       name: web
+      targetPort: 3000
     - port: 22
       protocol: TCP
       name: ssh
   selector:
     app: gitea
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: gitea-ingress-redirect
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/temporal-redirect: https://gitea.internal.aleemhaji.com
-spec:
-  rules:
-    - host: gitea
-    - host: gitea.home
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: gitea-ingress
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-spec:
-  tls:
-    - hosts:
-        - gitea.internal.aleemhaji.com
-      secretName: internal-certificate-files
-  rules:
-    - host: gitea.internal.aleemhaji.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: gitea
-                port:
-                  number: 3000

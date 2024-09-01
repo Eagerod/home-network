@@ -7,6 +7,7 @@ _:
   - &ingress_controller_service_ip LOAD_BALANCER_IP=192.168.200.64
   - &ingress_controller_external_service_ip LOAD_BALANCER_IP=192.168.200.129
   - &plex_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.69
+  - &gitea_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.126
   - &wireguard_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.123
   - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.64
   - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
@@ -369,9 +370,6 @@ resources:
       spec:
         externalTrafficPolicy: Local
         ports:
-        - port: 22
-          name: gitea-ssh
-          protocol: TCP
         - port: 53
           name: dns
           protocol: TCP
@@ -843,6 +841,8 @@ resources:
     tags: [crons, tedbot]
   - name: gitea
     file: gitea/gitea.yaml
+    parameters:
+      - *gitea_load_balancer_service_ip
     tags: [apps, gitea]
   - name: bitwarden-config
     inline: |
