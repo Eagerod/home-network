@@ -695,9 +695,9 @@ resources:
     tags: [docker-cache, uptime-kuma]
   - name: nginx-image-cache
     build:
-      source: nginx:1.27.0
+      source: nginx:1.27.1-alpine
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/nginx:1.27.0
+      tag: registry.internal.aleemhaji.com/nginx:1.27.1-alpine
     tags: [docker-cache, knowledge]
   - name: rabbitmq-image-cache
     build:

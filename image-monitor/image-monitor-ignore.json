@@ -99,6 +99,16 @@
 		"^\\\\d+$",
 		"^\\\\d+\\\\.\\\\d+$"
 	],
+	"nginx": [
+		"^stable-",
+		"^mainline-",
+		"-perl$",
+		"-otel$",
+		"^alpine$",
+		"-slim$",
+		"^\\\\d+-",
+		"-bookworm$"
+	],
 	"pihole/pihole": [
 		"beta"
 	],

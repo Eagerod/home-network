@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: nginx
-          image: registry.internal.aleemhaji.com/nginx:1.27.0
+          image: registry.internal.aleemhaji.com/nginx:1.27.1-alpine
           ports:
             - containerPort: 80
           volumeMounts:
