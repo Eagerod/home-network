@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: rabbitmq
-          image: registry.internal.aleemhaji.com/rabbitmq:3.13.3-management
+          image: registry.internal.aleemhaji.com/rabbitmq:3.13.7-management-alpine
           ports:
             - containerPort: 5672
             - containerPort: 15672
