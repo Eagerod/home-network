@@ -27,6 +27,11 @@ spec:
               value: "true"
             - name: DOCKER_REGISTRY_URL
               value: https://registry.internal.aleemhaji.com
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: registry-browser-secrets
+                  key: key_base
 ---
 apiVersion: v1
 kind: Service

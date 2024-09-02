@@ -756,6 +756,16 @@ resources:
     parameters:
       - SLACK_BOT_ALERTING_CHANNEL
     tags: [crons, image-monitor, stateless]
+  - name: browser-secrets
+    inline: |
+      apiVersion: v1
+      data:
+        key_base: ${DOCKER_REGISTRY_BROWSER_SECRET_KEY_BASE_BASE64}
+      kind: Secret
+      metadata:
+        name: registry-browser-secrets
+    parameters:
+      - DOCKER_REGISTRY_BROWSER_SECRET_KEY_BASE_BASE64
   - name: browser
     file: browser/browser.yaml
     tags: [apps, browser, stateless]
