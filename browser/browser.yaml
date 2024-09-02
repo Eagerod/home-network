@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: browser-deployment
+  name: browser
   labels:
     app: browser
 spec:
@@ -44,7 +44,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: browser-ingress-redirect
+  name: browser-redirect
   annotations:
     kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/temporal-redirect: https://browser.internal.aleemhaji.com
@@ -56,7 +56,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: browser-ingress
+  name: browser
   annotations:
     kubernetes.io/ingress.class: "nginx"
 spec:
