@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: uptime-kuma
-          image: registry.internal.aleemhaji.com/uptime-kuma:1.23.11-alpine
+          image: registry.internal.aleemhaji.com/uptime-kuma:1.23.13-alpine
           ports:
             - containerPort: 3001
           volumeMounts:
@@ -47,7 +47,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: uptime-ingress-redirect
+  name: uptime-kuma-redirect
   annotations:
     kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/temporal-redirect: https://uptime.internal.aleemhaji.com
@@ -59,7 +59,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: uptime-ingress
+  name: uptime-kuma
   annotations:
     kubernetes.io/ingress.class: "nginx"
 spec:
