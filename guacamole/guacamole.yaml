@@ -20,9 +20,9 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: guacd
-          image: registry.internal.aleemhaji.com/guacd:1.5.1
+          image: registry.internal.aleemhaji.com/guacd:1.5.5
         - name: guacamole
-          image: registry.internal.aleemhaji.com/guacamole:1.5.1
+          image: registry.internal.aleemhaji.com/guacamole:1.5.5
           ports:
             - containerPort: 8080
           env:

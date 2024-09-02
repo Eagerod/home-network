@@ -629,15 +629,15 @@ resources:
     tags: [docker-cache, jellyfin]
   - name: guacamole-image-cache
     build:
-      source: guacamole/guacamole:1.5.1
+      source: guacamole/guacamole:1.5.5
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/guacamole:1.5.1
+      tag: registry.internal.aleemhaji.com/guacamole:1.5.5
     tags: [docker-cache, guacamole]
   - name: guacd-image-cache
     build:
-      source: guacamole/guacd:1.5.1
+      source: guacamole/guacd:1.5.5
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/guacd:1.5.1
+      tag: registry.internal.aleemhaji.com/guacd:1.5.5
     tags: [docker-cache, guacamole]
   - name: gitea-image-cache
     build:
