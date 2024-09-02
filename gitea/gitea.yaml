@@ -22,7 +22,7 @@ spec:
           image: registry.internal.aleemhaji.com/gitea:1.22.1-rootless
           ports:
             - containerPort: 3000
-            - containerPort: 22
+            - containerPort: 2222
           volumeMounts:
             - name: gitea-persistent-storage
               mountPath: /data
@@ -31,6 +31,8 @@ spec:
           env:
             - name: GITEA__OAUTH2__JWT_SIGNING_ALGORITHM
               value: HS256
+            - name: GITEA_APP_INI
+              value: /data/gitea/conf/app.ini
       volumes:
         - name: gitea-persistent-storage
           nfs:
@@ -59,5 +61,6 @@ spec:
     - port: 22
       protocol: TCP
       name: ssh
+      targetPort: 2222
   selector:
     app: gitea
