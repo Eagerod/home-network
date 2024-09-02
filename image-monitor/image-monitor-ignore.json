@@ -50,6 +50,9 @@
 		"\\\\bunstable",
 		"\\\\b-amd64\\\\b"
 	],
+	"klausmeyer/docker-registry-browser:": [
+		"^master$"
+	],
 	"linuxserver/heimdall": [
 		"^version-",
 		"^amd64-",

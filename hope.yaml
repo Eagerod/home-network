@@ -579,9 +579,9 @@ resources:
     tags: [docker-cache, pihole]
   - name: browser-image-cache
     build:
-      source: klausmeyer/docker-registry-browser:1.6.1
+      source: klausmeyer/docker-registry-browser:1.7.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/docker-registry-browser:1.6.1
+      tag: registry.internal.aleemhaji.com/docker-registry-browser:1.7.0
     tags: [docker-cache, browser]
   - name: curl-cache
     build:
