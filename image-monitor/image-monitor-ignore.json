@@ -30,6 +30,10 @@
 		"^develop$"
 	],
 	"gitea/gitea": [
+		"^\\\\d+$",
+		"^\\\\d+\\\\.\\\\d+$",
+		"^\\\\d+-rootless$",
+		"^\\\\d+\\\\.\\\\d+-rootless$",
 		"\\\\bdev\\\\b",
 		"\\\\blatest\\\\b",
 		"\\\\brc\\\\d+\\\\b",

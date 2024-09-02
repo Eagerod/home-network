@@ -737,7 +737,7 @@ resources:
       path: image-monitor
       pull: *local_upstream_pull
       tag: registry.internal.aleemhaji.com/image-monitor:latest
-    tags: [apps, stateless]
+    tags: [apps, stateless, image-monitor]
   - name: image-monitor-config
     inline: |
       apiVersion: v1
