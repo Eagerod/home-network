@@ -250,6 +250,8 @@ resources:
       - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
     tags: [namespaces, rmq, tasks]
   # endregion
+  - name: node-setup
+    file: infra/cluster/node-setup.yaml
   - name: calico
     file: infra/cluster/calico.yaml
     tags: [network]
