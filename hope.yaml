@@ -588,7 +588,7 @@ resources:
       source: curlimages/curl:7.80.0
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/curl:7.80.0
-    tags: [docker-cache, remindmebot, webcomics]
+    tags: [docker-cache, remindmebot]
   - name: postgres-image-cache
     build:
       source: postgres:9
@@ -1196,20 +1196,6 @@ resources:
   - name: blobstore
     file: blobstore/blobstore.yaml
     tags: [apps, blobstore]
-  - name: webcomics-config
-    inline: |
-      apiVersion: v1
-      data:
-        database: ${WEBCOMICS_DATABASE_BASE64}
-      kind: Secret
-      metadata:
-        name: webcomics-secrets
-    parameters:
-      - WEBCOMICS_DATABASE_BASE64
-    tags: [apps, webcomics]
-  - name: webcomics
-    file: webcomics/webcomics.yaml
-    tags: [apps, webcomics]
   - name: syncthing
     file: syncthing/syncthing.yaml
     tags: [apps, syncthing]
