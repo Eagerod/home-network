@@ -13,21 +13,23 @@ spec:
       labels:
         name: node-setup
     spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
       containers:
-      - name: node-setup
-        image: registry.internal.aleemhaji.com/busybox:1.35.0
-        command:
-          - sh
-          - -xefc
-          - |
-            sysctl -w fs.inotify.max_user_watches="$INOTIFY_MAX_USER_WATCHES"
-            cat /proc/sys/fs/inotify/max_user_watches
-            while true; do
-              echo >&2 "Still sleeping..."
-              sleep 3600
-            done
-        env:
-          - name: INOTIFY_MAX_USER_WATCHES
-            value: "1048576"
-        securityContext:
-          privileged: true
+        - name: node-setup
+          image: registry.internal.aleemhaji.com/busybox:1.35.0
+          command:
+            - sh
+            - -xefc
+            - |
+              sysctl -w fs.inotify.max_user_watches="$INOTIFY_MAX_USER_WATCHES"
+              cat /proc/sys/fs/inotify/max_user_watches
+              while true; do
+                echo >&2 "Still sleeping..."
+                sleep 3600
+              done
+          env:
+            - name: INOTIFY_MAX_USER_WATCHES
+              value: "1048576"
+          securityContext:
+            privileged: true
