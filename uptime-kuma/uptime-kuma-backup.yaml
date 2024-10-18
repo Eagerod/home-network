@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: uptime-kuma-backup
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: uptime-kuma-backup
+rules:
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+    resourceNames:
+      - uptime-kuma-0
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get"]
+    resourceNames:
+      - uptime-kuma-0
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: uptime-kuma-backup
+subjects:
+  - kind: ServiceAccount
+    name: uptime-kuma-backup
+roleRef:
+  kind: Role
+  name: uptime-kuma-backup
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: uptime-kuma-backup-script
+binaryData:
+  script.js: ${BACKUP_SCRIPT}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: uptime-kuma-backup
+spec:
+  schedule: "0 6 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: uptime-kuma-backup
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
+          containers:
+            - name: backup
+              image: registry.internal.aleemhaji.com/kubectl:1.21.0
+              # Have to copy into /app to make sure node_modules are picked up.
+              command:
+                - sh
+                - -xeufc
+                - |
+                  # kubectl cp /scripts/script.js uptime-kuma-0:/app/backup.js
+                  cat /scripts/script.js | kubectl exec -i uptime-kuma-0 -- /bin/sh -c 'cat > /app/backup.js'
+                  kubectl exec uptime-kuma-0 -- sh -c "(cd /app && node ./backup.js /app/data/kuma.db monitor)" > /backup/monitor.sql
+                  kubectl exec uptime-kuma-0 -- sh -c "(cd /app && node ./backup.js /app/data/kuma.db notification)" > /backup/notification.sql
+                  kubectl exec uptime-kuma-0 -- sh -c "(cd /app && node ./backup.js /app/data/kuma.db monitor_notification)" > /backup/monitor_notification.sql
+                  kubectl exec uptime-kuma-0 -- sh -c "(cd /app && node ./backup.js /app/data/kuma.db group)" > /backup/group.sql
+                  kubectl exec uptime-kuma-0 -- sh -c "(cd /app && node ./backup.js /app/data/kuma.db monitor_group)" > /backup/monitor_group.sql
+              volumeMounts:
+                - name: backup-source
+                  mountPath: /backup
+                - name: scripts
+                  mountPath: /scripts
+          volumes:
+            - name: backup-source
+              nfs:
+                server: 192.168.96.4
+                path: /mnt/main/backup/apps/uptime-kuma
+            - name: scripts
+              configMap:
+                name: uptime-kuma-backup-script

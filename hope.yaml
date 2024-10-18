@@ -652,7 +652,7 @@ resources:
       source: bitnami/kubectl:1.21.0
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/kubectl:1.21.0
-    tags: [docker-cache, kubectl]
+    tags: [docker-cache, kubectl, uptime-kuma]
   - name: bitwarden-image-cache
     build:
       source: vaultwarden/server:1.32.0
@@ -872,6 +872,11 @@ resources:
     tags: [apps, bitwarden, vaultwarden]
   - name: uptime-kuma
     file: uptime-kuma/uptime-kuma.yaml
+    tags: [apps, uptime-kuma]
+  - name: uptime-kuma-backup
+    file: uptime-kuma/uptime-kuma-backup.yaml
+    fileParameters:
+      - BACKUP_SCRIPT=uptime-kuma/backup.js
     tags: [apps, uptime-kuma]
   - name: knowledge-service
     file: barebones-nginx/service.yaml

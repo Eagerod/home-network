@@ -1,5 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: uptime-kuma
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: freenas-iscsi
+---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: uptime-kuma
   labels:
@@ -10,6 +21,7 @@ spec:
   selector:
     matchLabels:
       app: uptime-kuma
+  serviceName: uptime-kuma
   template:
     metadata:
       labels:
@@ -27,9 +39,8 @@ spec:
               mountPath: /app/data
       volumes:
         - name: uptime-kuma-persistent-storage
-          nfs:
-            server: 192.168.96.4
-            path: /mnt/main/apps/uptime-kuma
+          persistentVolumeClaim:
+            claimName: uptime-kuma
 ---
 apiVersion: v1
 kind: Service
