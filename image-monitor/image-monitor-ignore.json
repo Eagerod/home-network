@@ -81,7 +81,8 @@
 		"^base2\\\\b",
 		"\\\\bbeta\\\\b",
 		"\\\\btest\\\\b",
-		"nightly"
+		"nightly",
+		"^debian$"
 	],
 	"masipcat/wireguard-go": [
 		"\\\b-amd64"
