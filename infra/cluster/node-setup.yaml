@@ -17,7 +17,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: node-setup
-          image: registry.internal.aleemhaji.com/busybox:1.35.0
+          image: registry.internal.aleemhaji.com/busybox:1.37.0
           command:
             - sh
             - -xefc

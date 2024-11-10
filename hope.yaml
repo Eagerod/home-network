@@ -563,9 +563,9 @@ resources:
     tags: [docker-cache, mongodb, unifi]
   - name: busybox-image-cache
     build:
-      source: busybox:1.35.0
+      source: busybox:1.37.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/busybox:1.35.0
+      tag: registry.internal.aleemhaji.com/busybox:1.37.0
     tags: [docker-cache, mysql, pihole]
   - name: mysql-57-image-cache
     build:

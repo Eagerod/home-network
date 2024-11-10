@@ -27,7 +27,7 @@ spec:
       #   contents have be copied beforehand.
       initContainers:
         - name: rotate-node-ssh-copy
-          image: registry.internal.aleemhaji.com/busybox:1.35.0
+          image: registry.internal.aleemhaji.com/busybox:1.37.0
           volumeMounts:
             - name: ssh-key-temp
               mountPath: /root/.ssh-temp
