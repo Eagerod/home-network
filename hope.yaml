@@ -637,9 +637,9 @@ resources:
     tags: [docker-cache, guacamole]
   - name: gitea-image-cache
     build:
-      source: gitea/gitea:1.22.1-rootless
+      source: gitea/gitea:1.22.3-rootless
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/gitea:1.22.1-rootless
+      tag: registry.internal.aleemhaji.com/gitea:1.22.3-rootless
     tags: [docker-cache, gitea]
   - name: kubectl-image-cache
     build:
