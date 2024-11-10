@@ -585,12 +585,6 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/docker-registry-browser:1.7.0
     tags: [docker-cache, browser]
-  - name: curl-cache
-    build:
-      source: curlimages/curl:7.80.0
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/curl:7.80.0
-    tags: [docker-cache, remindmebot]
   - name: postgres-image-cache
     build:
       source: postgres:9
@@ -1159,36 +1153,6 @@ resources:
   - name: node-red
     file: node-red/node-red.yaml
     tags: [apps, node-red]
-  - name: remindmebot-config
-    inline: |
-      apiVersion: v1
-      data:
-        bot_username: ${REMINDMEBOT_USERNAME}
-      kind: ConfigMap
-      metadata:
-        name: remindmebot-config
-      ---
-      apiVersion: v1
-      data:
-        bot_api_key: ${REMINDMEBOT_API_KEY_BASE64}
-        database: ${REMINDMEBOT_DATABASE_BASE64}
-      kind: Secret
-      metadata:
-        name: remindmebot-secrets
-    parameters:
-      - REMINDMEBOT_USERNAME
-      - REMINDMEBOT_API_KEY_BASE64
-      - REMINDMEBOT_DATABASE_BASE64
-    tags: [apps, remindmebot]
-  - name: remindmebot-init-job-start
-    file: remindmebot/remindmebot-init.yaml
-    tags: [apps, remindmebot]
-  - name: remindmebot-init-job
-    job: remindmebot-init
-    tags: [apps, remindmebot]
-  - name: remindmebot
-    file: remindmebot/remindmebot.yaml
-    tags: [apps, remindmebot]
   - name: blobstore-config
     inline: |
       apiVersion: v1
