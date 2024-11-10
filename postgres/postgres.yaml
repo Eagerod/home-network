@@ -16,6 +16,21 @@ spec:
       labels:
         app: postgres
     spec:
+      # Don't run on any other node running another db.
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - mysql
+                        - mongodb
+                        - postgres
+                topologyKey: "kubernetes.io/hostname"
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
       initContainers:
