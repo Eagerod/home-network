@@ -17,7 +17,8 @@
 	"drone/drone": [
 		"\\\\blinux-amd64",
 		"^\\\\d+$",
-		"^\\\\d+\\\\.\\\\d+$"
+		"^\\\\d+\\\\.\\\\d+$",
+		"\\\\bdebug\\\\b"
 	],
 	"drone/drone-runner-kube": [
 		"\\\\blinux\\\\b"
