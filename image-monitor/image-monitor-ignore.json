@@ -25,7 +25,8 @@
 	],
 	"fireflyiii/core": [
 		"^develop$",
-		"\\\\bdev$"
+		"\\\\bdev$",
+		"\\\\balpha\\\\b"
 	],
 	"fireflyiii/data-importer": [
 		"^develop$"
