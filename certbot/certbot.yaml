@@ -19,7 +19,7 @@ binaryData:
   dns-renew.sh: ${DNS_RENEW_SCRIPT}
 ---
 # EFF recommends running `certbot renew` a couple times per day.
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: certbot
@@ -41,7 +41,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: certbot-renew
-              image: registry.internal.aleemhaji.com/certbot:v1.31.0
+              image: registry.internal.aleemhaji.com/certbot/certbot:v1.32.2
               command:
                 - sh
                 - -c
