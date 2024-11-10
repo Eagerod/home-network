@@ -50,7 +50,9 @@
 	],
 	"jellyfin/jellyfin": [
 		"\\\\bunstable",
-		"\\\\b-amd64\\\\b"
+		"\\\\b-amd64\\\\b",
+		"^\\\\d{10}$",
+		"\\\\d{8}-\\\\d{6}$"
 	],
 	"klausmeyer/docker-registry-browser:": [
 		"^master$"
