@@ -369,8 +369,8 @@ resources:
       apiVersion: v1
       kind: ConfigMap
       metadata:
-        name: ingress-nginx-controller
-        namespace: ingress-nginx-external
+        name: ingress-nginx-controller-external
+        namespace: ingress-nginx
       data:
         http-redirect-code: "302"
         enable-real-ip: "true"
@@ -389,9 +389,6 @@ resources:
       spec:
         externalTrafficPolicy: Local
         ports:
-        - port: 53
-          name: dns
-          protocol: TCP
         - port: 80
           name: http
           protocol: TCP
@@ -439,10 +436,10 @@ resources:
       apiVersion: v1
       kind: Service
       metadata:
-        name: nginx-ingress-tcp
+        name: nginx-ingress-external-tcp
         labels:
-          app: nginx-ingress
-        namespace: ingress-nginx-external
+          app: nginx-ingress-external
+        namespace: ingress-nginx
         annotations:
           metallb.universe.tf/allow-shared-ip: ingress-external
       spec:
@@ -458,23 +455,6 @@ resources:
         loadBalancerIP: ${LOAD_BALANCER_IP}
         selector:
           app.kubernetes.io/name: ingress-nginx
-      # ---
-      # apiVersion: v1
-      # kind: Service
-      # metadata:
-      #   name: nginx-ingress-udp
-      #   labels:
-      #     app: nginx-ingress
-      #   namespace: ingress-nginx-external
-      #   annotations:
-      #     metallb.universe.tf/allow-shared-ip: ingress-external
-      # spec:
-      #   externalTrafficPolicy: Local
-      #   ports:
-      #   type: LoadBalancer
-      #   loadBalancerIP: ${LOAD_BALANCER_IP}
-      #   selector:
-      #     app.kubernetes.io/name: ingress-nginx
     tags: [network, ingress, ingress-external]
     parameters:
       - *ingress_controller_external_service_ip

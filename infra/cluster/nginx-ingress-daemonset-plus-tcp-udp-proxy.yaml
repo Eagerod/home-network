@@ -14,9 +14,8 @@
 #   kubectl delete -n ingress-nginx $(kubectl get jobs -n ingress-nginx -oname)
 #
 # General process:
-# https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.5.1
-# Download, unzip
-# cat ./deploy/static/provider/baremetal/deploy.yaml | sed 's/kind: Deployment/kind: DaemonSet/'
+# https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/baremetal/deploy.yaml
+# cat - | sed 's/kind: Deployment/kind: DaemonSet/'
 # Remove the Deployment update strategy
 # Add the tcp + udp service configmap names to the controller container args.
 # Make sure the ingress-nginx-controller configmap isn't replaced
