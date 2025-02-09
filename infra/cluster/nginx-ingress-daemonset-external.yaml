@@ -58,6 +58,11 @@ spec:
     port: 443
     protocol: TCP
     targetPort: https
+  - appProtocol: http
+    name: prometheus
+    port: 10254
+    protocol: TCP
+    targetPort: prometheus
   selector:
     app.kubernetes.io/component: controller
     app.kubernetes.io/instance: ingress-nginx-external
@@ -109,6 +114,9 @@ spec:
       app.kubernetes.io/name: ingress-nginx
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "10254"
       labels:
         app.kubernetes.io/component: controller
         app.kubernetes.io/instance: ingress-nginx-external
@@ -164,6 +172,9 @@ spec:
           protocol: TCP
         - containerPort: 8443
           name: webhook
+          protocol: TCP
+        - containerPort: 10254
+          name: prometheus
           protocol: TCP
         readinessProbe:
           failureThreshold: 3
