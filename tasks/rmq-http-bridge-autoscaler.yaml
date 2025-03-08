@@ -61,7 +61,7 @@ spec:
               mountPath: /scripts
           env:
             - name: TASK_SERVER_URL
-              value: https://tasks.internal.aleemhaji.com
+              value: http://rmq-http-bridge.tasks.svc.cluster.local:8080
       volumes:
         - name: script
           configMap:
