@@ -1,4 +1,15 @@
 #!/usr/bin/env sh
+#
+# Update TXT records in Namesilo for certbot renewals.
+#
+set -euf
+
+# Certbot envs
+: "${CERTBOT_DOMAIN:?CERTBOT_DOMAIN must be passed in from certbot}"
+: "${CERTBOT_VALIDATION:?CERTBOT_VALIDATION must be passed in from certbot}"
+
+# Namesilo envs
+: "${NAMESILO_API_KEY:?NAMESILO_API_KEY is required to interface with Namesilo}"
 
 ACTUAL_DOMAIN="_acme-challenge.$CERTBOT_DOMAIN"
 SUBDOMAIN="$(printf "%s" "$ACTUAL_DOMAIN" | sed 's/.aleemhaji.com//')"
