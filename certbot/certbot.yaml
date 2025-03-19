@@ -42,7 +42,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: certbot-renew
-              image: registry.internal.aleemhaji.com/certbot/certbot:v3.2.0
+              image: registry.internal.aleemhaji.com/certbot/certbot-custom:v3.2.0
               command:
                 - sh
                 - -c
@@ -56,11 +56,16 @@ spec:
                 - name: certbot-scripts
                   mountPath: /scripts
               env:
-                - name: NAMESILO_API_KEY
+                - name: CF_API_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: namesilo-api-key
-                      key: value
+                      name: cloudflare-dns
+                      key: api_token
+                - name: CF_ZONE_ID
+                  valueFrom:
+                    configMapKeyRef:
+                      name: cloudflare-dns
+                      key: zone_id
               ports:
                 - containerPort: 80
           volumes:
