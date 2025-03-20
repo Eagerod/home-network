@@ -19,6 +19,7 @@ binaryData:
   dns-renew.sh: ${DNS_RENEW_SCRIPT}
 ---
 # EFF recommends running `certbot renew` a couple times per day.
+# kubectl create job --from=cronjob/certbot "certbot-manual-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom  | head -c 5)"
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -41,7 +42,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: certbot-renew
-              image: registry.internal.aleemhaji.com/certbot/certbot:v1.32.2
+              image: registry.internal.aleemhaji.com/certbot/certbot-custom:v3.2.0
               command:
                 - sh
                 - -c
@@ -55,11 +56,16 @@ spec:
                 - name: certbot-scripts
                   mountPath: /scripts
               env:
-                - name: NAMESILO_API_KEY
+                - name: CF_API_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: namesilo-api-key
-                      key: value
+                      name: cloudflare-dns
+                      key: api_token
+                - name: CF_ZONE_ID
+                  valueFrom:
+                    configMapKeyRef:
+                      name: cloudflare-dns
+                      key: zone_id
               ports:
                 - containerPort: 80
           volumes:

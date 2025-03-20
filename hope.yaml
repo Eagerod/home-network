@@ -545,9 +545,9 @@ resources:
     tags: [docker-cache, transmission]
   - name: certbot-image-cache
     build:
-      source: certbot/certbot:v1.32.2
+      source: certbot/certbot:v3.2.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/certbot/certbot:v1.32.2
+      tag: registry.internal.aleemhaji.com/certbot/certbot:v3.2.0
     tags: [docker-cache, certbot]
   - name: mongo-37-image-cache
     build:
@@ -1197,6 +1197,32 @@ resources:
     file: drone/drone.yaml
     tags: [apps, drone]
   # endregion
+  - name: certbot-image
+    build:
+      path: certbot
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/certbot/certbot-custom:v3.2.0
+    tags: [crons, certbot]
+  - name: certbot-cloudflare-secrets
+    inline: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: cloudflare-dns
+      data:
+        api_token: ${CLOUDFLARE_DNS_API_KEY_BASE64}
+    parameters:
+      - CLOUDFLARE_DNS_API_KEY_BASE64
+  - name: certbot-cloudflare-configs
+    inline: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: cloudflare-dns
+      data:
+        zone_id: ${CLOUDFLARE_ZONE_ID}
+    parameters:
+      - CLOUDFLARE_ZONE_ID
   - name: certbot-cron
     file: certbot/certbot.yaml
     fileParameters:
