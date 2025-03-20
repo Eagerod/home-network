@@ -20,20 +20,20 @@ CF_PAYLOAD="$(jq -nc --arg name "$ACTUAL_DOMAIN" --arg content "\"$CERTBOT_VALID
     '{type: "TXT", name: $name, content: $content}')"
 
 # Get existing record ID (if any)
-echo "Fetching existing TXT record for ${ACTUAL_DOMAIN}..."
+echo >&2 "Fetching existing TXT record for ${ACTUAL_DOMAIN}..."
 RESPONSE="$(curl -s -X GET \
     -H "Authorization: Bearer ${CF_API_TOKEN}" \
-	"https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records?type=TXT&name=${ACTUAL_DOMAIN}")"
+    "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records?type=TXT&name=${ACTUAL_DOMAIN}")"
 
 if RECORD_ID="$(jq -r '.result[0].id' <<< "$RESPONSE")"; then
-    echo "Existing record found (ID: ${RECORD_ID}), updating it..."
+    echo >&2 "Existing record found (ID: ${RECORD_ID}), updating it..."
     RESPONSE="$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records/${RECORD_ID}" \
         -H "Authorization: Bearer ${CF_API_TOKEN}" \
         -H "Content-Type: application/json" \
         --data "$CF_PAYLOAD")"
 else
-	# Probably won't work with the API Key that I have.
-    echo "No existing record found, creating a new one..."
+    # Probably won't work with the API Key that I have.
+    echo >&2 "No existing record found, creating a new one..."
     RESPONSE="$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records" \
         -H "Authorization: Bearer ${CF_API_TOKEN}" \
         -H "Content-Type: application/json" \
