@@ -1,4 +1,4 @@
-FROM registry.internal.aleemhaji.com/hope:0.25.2
+FROM registry.internal.aleemhaji.com/hope:0.32.0
 
 LABEL org.label-schema.name="home-network"
 
@@ -6,10 +6,9 @@ RUN \
     apt-get update && \
     apt-get install -y \
         jq \
-        shellcheck && \
+        shellcheck \
+        yamllint && \
     apt-get clean
-
-RUN pip3 install yamllint
 
 # Not included in the repo, for licencing reasons.
 COPY VMware-ovftool-* .

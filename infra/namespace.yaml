@@ -55,6 +55,7 @@ metadata:
 binaryData:
   update-secrets.sh: "${UPDATE_SECRETS_SCRIPT}"
 ---
+# kubectl create -n default job --from=cronjob/certbot-copy "certbot-copy-manual-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom  | head -c 5)"
 apiVersion: batch/v1
 kind: CronJob
 metadata:

@@ -232,7 +232,7 @@ resources:
       - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
       - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
       - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
-    tags: [namespaces]
+    tags: [namespaces, dashboard]
   - name: tasks-namespace
     file: infra/namespace.yaml
     parameters:
@@ -255,8 +255,16 @@ resources:
   - name: calico
     file: infra/cluster/calico.yaml
     tags: [network]
-  - name: dashboard
-    file: ./kubernetes-dashboard.yaml
+  - name: kubernetes-dashboard-helm
+    helm:
+      namespace: kubernetes-dashboard
+      repo: kubernetes-dashboard
+      name: kubernetes-dashboard
+      path: https://kubernetes.github.io/dashboard/
+      chart: kubernetes-dashboard/kubernetes-dashboard
+      version: "7.11.1"
+  - name: kubernetes-dashboard-ingress
+    file: infra/services/kubernetes-dashboard-ingress.yaml
     tags: [apps, dashboard]
   - name: metrics-server
     file: metrics-server.yaml
@@ -267,6 +275,15 @@ resources:
       metadata:
         name: aleem
         namespace: kube-system
+      ---
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: aleem
+        namespace: kube-system
+        annotations:
+          kubernetes.io/service-account.name: aleem
+      type: kubernetes.io/service-account-token
       ---
       apiVersion: rbac.authorization.k8s.io/v1
       kind: ClusterRoleBinding
@@ -464,46 +481,6 @@ resources:
     tags: [network, ingress, ingress-external]
     parameters:
       - *ingress_controller_external_service_ip
-  - name: kubernetes-dashboard-ingress
-    inline: |
-      apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      metadata:
-        namespace: kubernetes-dashboard
-        name: dashboard-ingress-redirect
-        annotations:
-          kubernetes.io/ingress.class: "nginx"
-          nginx.ingress.kubernetes.io/temporal-redirect: https://dashboard.internal.aleemhaji.com
-      spec:
-        rules:
-          - host: dashboard
-          - host: dashboard.home
-      ---
-      apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      metadata:
-        namespace: kubernetes-dashboard
-        name: dashboard-ingress
-        annotations:
-          kubernetes.io/ingress.class: "nginx"
-          nginx.ingress.kubernetes.io/backend-protocol: "https"
-      spec:
-        tls:
-          - hosts:
-              - dashboard.internal.aleemhaji.com
-            secretName: internal-certificate-files
-        rules:
-          - host: dashboard.internal.aleemhaji.com
-            http:
-              paths:
-                - path: /
-                  pathType: Prefix
-                  backend:
-                    service:
-                      name: kubernetes-dashboard
-                      port:
-                        number: 443
-    tags: [apps, dashboard]
   - name: docker-registry-htpasswd-secrets
     inline: |
       apiVersion: v1
