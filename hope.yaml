@@ -232,7 +232,7 @@ resources:
       - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
       - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
       - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
-    tags: [namespaces]
+    tags: [namespaces, dashboard]
   - name: tasks-namespace
     file: infra/namespace.yaml
     parameters:
@@ -270,6 +270,15 @@ resources:
       metadata:
         name: aleem
         namespace: kube-system
+      ---
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: aleem
+        namespace: kube-system
+        annotations:
+          kubernetes.io/service-account.name: aleem
+      type: kubernetes.io/service-account-token
       ---
       apiVersion: rbac.authorization.k8s.io/v1
       kind: ClusterRoleBinding
