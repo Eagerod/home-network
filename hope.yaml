@@ -255,9 +255,14 @@ resources:
   - name: calico
     file: infra/cluster/calico.yaml
     tags: [network]
-  - name: dashboard
-    file: infra/services/kubernetes-dashboard.yaml
-    tags: [apps, dashboard]
+  - name: kubernetes-dashboard-helm
+    helm:
+      namespace: kubernetes-dashboard
+      repo: kubernetes-dashboard
+      name: kubernetes-dashboard
+      path: https://kubernetes.github.io/dashboard/
+      chart: kubernetes-dashboard/kubernetes-dashboard
+      version: "7.11.1"
   - name: kubernetes-dashboard-ingress
     file: infra/services/kubernetes-dashboard-ingress.yaml
     tags: [apps, dashboard]
