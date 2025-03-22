@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bitwarden-deployment
+  name: bitwarden
   labels:
     app: bitwarden
 spec:
@@ -20,7 +20,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: bitwarden
-          image: registry.internal.aleemhaji.com/vaultwarden/server:1.32.0
+          image: registry.internal.aleemhaji.com/vaultwarden/server:1.33.2
           ports:
             - containerPort: 80
           volumeMounts:
@@ -61,11 +61,11 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: bitwarden-ingress-redirect
+  name: bitwarden-redirect
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/temporal-redirect: https://bitwarden.internal.aleemhaji.com
 spec:
+  ingressClassName: nginx
   rules:
     - host: bitwarden
     - host: bitwarden.home
@@ -73,13 +73,13 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: bitwarden-ingress
+  name: bitwarden
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
     nginx.ingress.kubernetes.io/proxy-redirect-from: "bitwarden"
     nginx.ingress.kubernetes.io/proxy-redirect-to: "https://bitwarden.internal.aleemhaji.com"
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - bitwarden.internal.aleemhaji.com
