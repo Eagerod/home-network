@@ -55,9 +55,9 @@ kind: Ingress
 metadata:
   name: blobstore-redirect
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/temporal-redirect: https://blob.internal.aleemhaji.com
 spec:
+  ingressClassName: nginx
   rules:
     - host: blob
     - host: blob.home
@@ -67,9 +67,9 @@ kind: Ingress
 metadata:
   name: blobstore
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/proxy-body-size: "16M"
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - blob.internal.aleemhaji.com
