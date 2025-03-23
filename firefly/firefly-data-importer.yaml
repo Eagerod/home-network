@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: firefly-data-importer-deployment
+  name: firefly-iii-data-importer
   labels:
     app: firefly-iii-data-importer
 spec:
