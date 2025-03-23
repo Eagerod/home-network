@@ -594,9 +594,9 @@ resources:
     tags: [docker-cache, plex]
   - name: jellyfin-image-cache
     build:
-      source: jellyfin/jellyfin:10.10.1
+      source: jellyfin/jellyfin:10.10.6
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/jellyfin/jellyfin:10.10.1
+      tag: registry.internal.aleemhaji.com/jellyfin/jellyfin:10.10.6
     tags: [docker-cache, jellyfin]
   - name: guacamole-image-cache
     build:

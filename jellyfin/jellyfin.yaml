@@ -32,7 +32,7 @@ spec:
                 topologyKey: "kubernetes.io/hostname"
       containers:
         - name: jellyfin
-          image: registry.internal.aleemhaji.com/jellyfin/jellyfin:10.10.1
+          image: registry.internal.aleemhaji.com/jellyfin/jellyfin:10.10.6
           ports:
             - containerPort: 8096
           resources:
@@ -75,10 +75,21 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: jellyfin-ingress
+  name: jellyfin-redirect
   annotations:
-    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/temporal-redirect: https://jellyfin.internal.aleemhaji.com
 spec:
+  ingressClassName: nginx
+  rules:
+    - host: jellyfin
+    - host: jellyfin.home
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jellyfin
+spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - jellyfin.internal.aleemhaji.com
