@@ -1,3 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: freenas-iscsi
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -58,11 +69,8 @@ spec:
               - secret:
                   name: internal-certificate-files
         - name: mysql-persistent-storage
-          iscsi:
-            targetPortal: 192.168.96.4
-            iqn: iqn.2019-05.com.aleemhaji.internal.ctl:mysql
-            lun: 12
-            fsType: ext4
+          persistentVolumeClaim:
+            claimName: mysql
 ---
 apiVersion: v1
 kind: Service
@@ -77,7 +85,7 @@ spec:
   selector:
     app: mysql
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: mysql-backup
