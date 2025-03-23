@@ -669,9 +669,9 @@ resources:
     tags: [docker-cache, knowledge]
   - name: rabbitmq-image-cache
     build:
-      source: rabbitmq:3.13.7-management-alpine
+      source: rabbitmq:4.0.7-management-alpine
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/rabbitmq:3.13.7-management-alpine
+      tag: registry.internal.aleemhaji.com/rabbitmq:4.0.7-management-alpine
     tags: [docker-cache, rmq]
   # endregion
   - name: pihole

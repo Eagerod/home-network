@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: rabbitmq
-          image: registry.internal.aleemhaji.com/rabbitmq:3.13.7-management-alpine
+          image: registry.internal.aleemhaji.com/rabbitmq:4.0.7-management-alpine
           ports:
             - containerPort: 5672
             - containerPort: 15672
@@ -89,12 +89,12 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: rabbitmq-management-ingress-redirect
+  name: rabbitmq-management-redirect
   namespace: tasks
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/temporal-redirect: https://rabbitmq-management.internal.aleemhaji.com
 spec:
+  ingressClassName: nginx
   rules:
     - host: rabbitmq-management
     - host: rabbitmq-management.home
@@ -102,11 +102,10 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: rabbitmq-management-ingress
+  name: rabbitmq-management
   namespace: tasks
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - rabbitmq-management.internal.aleemhaji.com
