@@ -1,9 +1,9 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: guacamole-mysql-init
+  name: guacamole-app-init
   labels:
-    job: guacamole-mysql-init
+    job: guacamole-app-init
 spec:
   template:
     spec:
@@ -11,7 +11,7 @@ spec:
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
       initContainers:
-        - name: guacamole-mysql-init-script-creator
+        - name: guacamole-app-init-script-creator
           image: registry.internal.aleemhaji.com/guacamole:1.3.0
           command:
             - sh
@@ -21,25 +21,20 @@ spec:
             - name: init-scripts
               mountPath: /scripts
       containers:
-        - name: guacamole-mysql-init
-          image: registry.internal.aleemhaji.com/mysql:5.7.37
+        - name: guacamole-app-init
+          image: registry.internal.aleemhaji.com/mysql:8.0.23
           command:
             - sh
-            - -ce
+            - -cex
             - |
-              mysql -h ${MYSQL_HOST} -u root -e " \
-                CREATE USER IF NOT EXISTS ${GUACAMOLE_DB_USER}@'10.244.%.%'; \
-                SET PASSWORD FOR ${GUACAMOLE_DB_USER}@'10.244.%.%' = PASSWORD('${GUACAMOLE_DB_PASSWORD}'); \
-                CREATE DATABASE IF NOT EXISTS ${GUACAMOLE_DB_NAME}; \
-                GRANT ALL ON $${GUACAMOLE_DB_NAME}.* TO $${GUACAMOLE_DB_USER}@'10.244.%.%';"
               # The Guacamole init job isn't idempotent, so check for the
               #   presence of the first table it errors out on and exit if it
               #   already exists.
-              if mysql -h ${MYSQL_HOST} -u root guacamole -e 'select 1 from guacamole_connection_group'; then
-                echo >&2 "Guacamole MySQL database it probably already initialized."
+              if mysql -h ${MYSQL_HOST} -u root ${GUACAMOLE_DB_NAME} -e 'select 1 from guacamole_connection_group'; then
+                echo >&2 "Guacamole MySQL database has probably already been initialized."
                 exit 0
               fi
-              mysql -h ${MYSQL_HOST} -u root guacamole < /scripts/init.sql
+              mysql -h ${MYSQL_HOST} -u root ${GUACAMOLE_DB_NAME} < /scripts/init.sql
           env:
             - name: MYSQL_PWD
               valueFrom:
@@ -48,21 +43,11 @@ spec:
                   key: root_password
             - name: MYSQL_HOST
               value: mysql
-            - name: GUACAMOLE_DB_USER
-              valueFrom:
-                configMapKeyRef:
-                  name: guacamole-config
-                  key: mysql_user
             - name: GUACAMOLE_DB_NAME
               valueFrom:
                 configMapKeyRef:
                   name: guacamole-config
                   key: mysql_database
-            - name: GUACAMOLE_DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: guacamole-secrets
-                  key: mysql_password
           volumeMounts:
             - name: init-scripts
               mountPath: /scripts

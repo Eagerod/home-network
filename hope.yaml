@@ -1081,11 +1081,22 @@ resources:
       - GUACAMOLE_MYSQL_DATABASE
       - GUACAMOLE_MYSQL_PASSWORD_BASE64
     tags: [apps, guacamole]
+  - name: guacamole-data-init-job-create
+    file: mysql/mysql-create-database.yaml
+    parameters:
+      - DATABASE_NAME=guacamole
+      - DB_USER=guacamole
+      - PASSWORD_SECRET_NAME=guacamole-secrets
+      - PASSWORD_SECRET_KEY=mysql_password
+    tags: [apps, guacamole]
+  - name: guacamole-data-init-job-wait
+    job: default/guacamole-mysql-init
+    tags: [apps, guacamole]
   - name: guacamole-init-job-create
     file: guacamole/guacamole-init.yaml
     tags: [apps, guacamole]
-  - name: guacamole-init-job
-    job: guacamole-mysql-init
+  - name: guacamole-init-job-wait
+    job: default/guacamole-app-init
     tags: [apps, guacamole]
   - name: guacamole
     file: guacamole/guacamole.yaml
