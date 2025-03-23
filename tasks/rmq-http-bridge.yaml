@@ -104,11 +104,10 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: rmq-http-bridge-ingress
+  name: rmq-http-bridge
   namespace: tasks
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - tasks.internal.aleemhaji.com
