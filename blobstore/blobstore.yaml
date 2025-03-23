@@ -18,6 +18,18 @@ spec:
     spec:
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - blobstore
+                topologyKey: "kubernetes.io/hostname"
       containers:
         - name: blobstore
           image: registry.internal.aleemhaji.com/blobstore:0.1.3
