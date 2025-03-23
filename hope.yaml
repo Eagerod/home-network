@@ -627,9 +627,9 @@ resources:
     tags: [docker-cache, bitwarden, vaultwarden]
   - name: syncthing-image-cache
     build:
-      source: syncthing/syncthing:1.27.10
+      source: syncthing/syncthing:1.29.3
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/syncthing:1.27.10
+      tag: registry.internal.aleemhaji.com/syncthing:1.29.3
     tags: [docker-cache, syncthing]
   - name: drone-image-cache
     build:
