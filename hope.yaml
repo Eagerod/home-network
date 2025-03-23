@@ -657,9 +657,9 @@ resources:
     tags: [docker-cache, unifi]
   - name: uptime-kuma-image-cache
     build:
-      source: louislam/uptime-kuma:1.23.15-alpine
+      source: louislam/uptime-kuma:1.23.16-alpine
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/louislam/uptime-kuma:1.23.15-alpine
+      tag: registry.internal.aleemhaji.com/louislam/uptime-kuma:1.23.16-alpine
     tags: [docker-cache, uptime-kuma]
   - name: nginx-image-cache
     build:
