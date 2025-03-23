@@ -68,7 +68,7 @@ roleRef:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pihole-deployment
+  name: pihole
   labels:
     app: pihole
 spec:
@@ -162,7 +162,7 @@ spec:
           # Maybe I should have a temporary pihole pod without this hooked up
           #   to it, and once the registry is definitely up and resolvable,
           #   replace it with this pod?
-          image: registry.internal.aleemhaji.com/hostsfile-daemon:0.4.0
+          image: registry.internal.aleemhaji.com/hostsfile-daemon:0.5.0
           args:
             - --ingress-ip
             - ${INGRESS_IP}
@@ -216,11 +216,11 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: pihole-ingress-redirect
+  name: pihole-redirect
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/temporal-redirect: https://pihole.internal.aleemhaji.com
 spec:
+  ingressClassName: nginx
   rules:
     - host: pihole
     - host: pihole.home
@@ -228,10 +228,9 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: pihole-special-redirect
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
+  name: pihole-special
 spec:
+  ingressClassName: nginx
   rules:
     - host: pi.hole
       http:
@@ -247,10 +246,9 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: pihole-ingress
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
+  name: pihole
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - pihole.internal.aleemhaji.com
