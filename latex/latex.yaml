@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: latex-deployment
+  name: latex
   labels:
     app: latex
 spec:
@@ -39,11 +39,11 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: latex-ingress-redirect
+  name: latex-redirect
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/temporal-redirect: https://latex.internal.aleemhaji.com
 spec:
+  ingressClassName: nginx
   rules:
     - host: latex
     - host: latex.home
@@ -51,10 +51,9 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: latex-ingress
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
+  name: latex
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - latex.internal.aleemhaji.com

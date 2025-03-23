@@ -31,7 +31,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: syncthing
-          image: registry.internal.aleemhaji.com/syncthing:1.27.10
+          image: registry.internal.aleemhaji.com/syncthing:1.29.3
           ports:
             - containerPort: 8384
           env:
@@ -67,11 +67,11 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: syncthing-ingress-redirect
+  name: syncthing-redirect
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/temporal-redirect: https://syncthing.internal.aleemhaji.com
 spec:
+  ingressClassName: nginx
   rules:
     - host: syncthing
     - host: syncthing.home
@@ -79,11 +79,11 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: syncthing-ingress
+  name: syncthing
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - syncthing.internal.aleemhaji.com

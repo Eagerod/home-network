@@ -2,9 +2,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ${NAME}-external
-  annotations:
-    kubernetes.io/ingress.class: "nginx-external"
 spec:
+  ingressClassName: nginx-external
   tls:
     - hosts:
         - ${NAME}.aleemhaji.com

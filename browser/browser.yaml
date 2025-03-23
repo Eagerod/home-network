@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: browser
-          image: registry.internal.aleemhaji.com/docker-registry-browser:1.7.0
+          image: registry.internal.aleemhaji.com/docker-registry-browser:1.7.5
           ports:
             - containerPort: 8080
           env:
@@ -51,9 +51,9 @@ kind: Ingress
 metadata:
   name: browser-redirect
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/temporal-redirect: https://browser.internal.aleemhaji.com
 spec:
+  ingressClassName: nginx
   rules:
     - host: browser
     - host: browser.home
@@ -62,9 +62,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: browser
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - browser.internal.aleemhaji.com

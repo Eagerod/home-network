@@ -407,9 +407,6 @@ resources:
         - port: 27017
           name: mongodb
           protocol: TCP
-        - port: 51413
-          name: osstransmission
-          protocol: TCP
         type: LoadBalancer
         loadBalancerIP: ${LOAD_BALANCER_IP}
         selector:
@@ -519,7 +516,7 @@ resources:
       source: ubuntu:20.04
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/ubuntu:20.04
-    tags: [docker-cache, transmission]
+    tags: [docker-cache, image-monitor]
   - name: certbot-image-cache
     build:
       source: certbot/certbot:v3.2.0
@@ -558,9 +555,9 @@ resources:
     tags: [docker-cache, pihole]
   - name: browser-image-cache
     build:
-      source: klausmeyer/docker-registry-browser:1.7.0
+      source: klausmeyer/docker-registry-browser:1.7.5
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/docker-registry-browser:1.7.0
+      tag: registry.internal.aleemhaji.com/docker-registry-browser:1.7.5
     tags: [docker-cache, browser]
   - name: postgres-image-cache
     build:
@@ -568,25 +565,23 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/postgres:9
     tags: [docker-cache, postgres]
-  # This image has been pulled from dockerhub, so it has to be pulled from the
-  #   local registry, and then re-tagged with the original tag for now.
   - name: firefly-image-cache
     build:
-      source: fireflyiii/core:version-5.7.15
+      source: fireflyiii/core:version-6.2.10
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/fireflyiii-core:version-5.7.15
+      tag: registry.internal.aleemhaji.com/fireflyiii-core:version-6.2.10
     tags: [docker-cache, firefly]
-  - name: firefly-importer-image-cache
+  - name: firefly-data-importer-image-cache
     build:
-      source: fireflyiii/data-importer:version-0.9.17
+      source: fireflyiii/data-importer:version-1.6.1
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/fireflyiii-data-importer:version-0.9.17
+      tag: registry.internal.aleemhaji.com/fireflyiii-data-importer:version-1.6.1
     tags: [docker-cache, firefly]
   - name: heimdall-image-cache
     build:
-      source: linuxserver/heimdall:2.6.1
+      source: linuxserver/heimdall:2.6.3
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/heimdall:2.6.1
+      tag: registry.internal.aleemhaji.com/heimdall:2.6.3
     tags: [docker-cache, heimdall]
   - name: plex-image-cache
     build:
@@ -596,9 +591,9 @@ resources:
     tags: [docker-cache, plex]
   - name: jellyfin-image-cache
     build:
-      source: jellyfin/jellyfin:10.10.1
+      source: jellyfin/jellyfin:10.10.6
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/jellyfin/jellyfin:10.10.1
+      tag: registry.internal.aleemhaji.com/jellyfin/jellyfin:10.10.6
     tags: [docker-cache, jellyfin]
   - name: guacamole-image-cache
     build:
@@ -626,27 +621,27 @@ resources:
     tags: [docker-cache, kubectl, uptime-kuma]
   - name: bitwarden-image-cache
     build:
-      source: vaultwarden/server:1.32.0
+      source: vaultwarden/server:1.33.2
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.32.0
+      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.33.2
     tags: [docker-cache, bitwarden, vaultwarden]
   - name: syncthing-image-cache
     build:
-      source: syncthing/syncthing:1.27.10
+      source: syncthing/syncthing:1.29.3
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/syncthing:1.27.10
+      tag: registry.internal.aleemhaji.com/syncthing:1.29.3
     tags: [docker-cache, syncthing]
   - name: drone-image-cache
     build:
-      source: drone/drone:2.24.0
+      source: drone/drone:2.26.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/drone/drone:2.24.0
+      tag: registry.internal.aleemhaji.com/drone/drone:2.26.0
     tags: [docker-cache, drone]
   - name: drone-agent-image-cache
     build:
-      source: drone/drone-runner-kube:1.0.0-rc.3
+      source: drone/drone-runner-kube:1.0.0-rc.5
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.3
+      tag: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.5
     tags: [docker-cache, drone]
   - name: wireguard-image-cache
     build:
@@ -662,9 +657,9 @@ resources:
     tags: [docker-cache, unifi]
   - name: uptime-kuma-image-cache
     build:
-      source: louislam/uptime-kuma:1.23.15-alpine
+      source: louislam/uptime-kuma:1.23.16-alpine
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/louislam/uptime-kuma:1.23.15-alpine
+      tag: registry.internal.aleemhaji.com/louislam/uptime-kuma:1.23.16-alpine
     tags: [docker-cache, uptime-kuma]
   - name: nginx-image-cache
     build:
@@ -674,9 +669,9 @@ resources:
     tags: [docker-cache, knowledge]
   - name: rabbitmq-image-cache
     build:
-      source: rabbitmq:3.13.7-management-alpine
+      source: rabbitmq:4.0.7-management-alpine
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/rabbitmq:3.13.7-management-alpine
+      tag: registry.internal.aleemhaji.com/rabbitmq:4.0.7-management-alpine
     tags: [docker-cache, rmq]
   # endregion
   - name: pihole
@@ -868,15 +863,6 @@ resources:
   #   externally through.
   # These shouldn't have any database dependencies, but can have NFS and
   #   ingress.
-  - name: transmission-image
-    build:
-      path: transmission
-      pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/transmission:2004
-    tags: [apps, transmission]
-  - name: osstransmission
-    file: transmission/transmission.yaml
-    tags: [apps, transmission]
   - name: plex
     file: plex/plex.yaml
     parameters:

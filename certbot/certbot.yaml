@@ -81,10 +81,9 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: bare-ingress-external
-  annotations:
-    kubernetes.io/ingress.class: "nginx-external"
+  name: bare-external
 spec:
+  ingressClassName: nginx-external
   tls:
     - hosts:
         - aleemhaji.com
@@ -104,10 +103,9 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: bare-internal-ingress-external
-  annotations:
-    kubernetes.io/ingress.class: "nginx-external"
+  name: internal-external # lol
 spec:
+  ingressClassName: nginx-external
   tls:
     - hosts:
         - internal.aleemhaji.com

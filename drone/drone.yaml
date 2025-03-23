@@ -64,7 +64,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: drone
-          image: registry.internal.aleemhaji.com/drone/drone:2.24.0
+          image: registry.internal.aleemhaji.com/drone/drone:2.26.0
           env:
             - name: DRONE_USER_CREATE
               value: username:aleem,admin:true
@@ -124,7 +124,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: drone
-          image: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.3
+          image: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.5
           env:
             - name: DRONE_RPC_HOST
               value: drone.internal.aleemhaji.com
@@ -156,9 +156,9 @@ kind: Ingress
 metadata:
   name: drone-redirect
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/temporal-redirect: https://drone.internal.aleemhaji.com
 spec:
+  ingressClassName: nginx
   rules:
     - host: drone
     - host: drone.home
@@ -167,9 +167,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: drone
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - drone.internal.aleemhaji.com

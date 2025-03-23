@@ -4,9 +4,9 @@ metadata:
   namespace: monitoring
   name: grafana-ingress-redirect
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/temporal-redirect: https://grafana.internal.aleemhaji.com
 spec:
+  ingressClassName: nginx
   rules:
     - host: grafana
     - host: grafana.home
@@ -16,9 +16,8 @@ kind: Ingress
 metadata:
   namespace: monitoring
   name: grafana-ingress
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - grafana.internal.aleemhaji.com
