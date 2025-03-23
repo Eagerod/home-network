@@ -582,9 +582,9 @@ resources:
     tags: [docker-cache, firefly]
   - name: heimdall-image-cache
     build:
-      source: linuxserver/heimdall:2.6.1
+      source: linuxserver/heimdall:2.6.3
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/heimdall:2.6.1
+      tag: registry.internal.aleemhaji.com/heimdall:2.6.3
     tags: [docker-cache, heimdall]
   - name: plex-image-cache
     build:
