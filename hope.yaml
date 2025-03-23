@@ -568,19 +568,17 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/postgres:9
     tags: [docker-cache, postgres]
-  # This image has been pulled from dockerhub, so it has to be pulled from the
-  #   local registry, and then re-tagged with the original tag for now.
   - name: firefly-image-cache
     build:
-      source: fireflyiii/core:version-5.7.15
+      source: fireflyiii/core:version-6.2.10
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/fireflyiii-core:version-5.7.15
+      tag: registry.internal.aleemhaji.com/fireflyiii-core:version-6.2.10
     tags: [docker-cache, firefly]
-  - name: firefly-importer-image-cache
+  - name: firefly-data-importer-image-cache
     build:
-      source: fireflyiii/data-importer:version-0.9.17
+      source: fireflyiii/data-importer:version-1.6.1
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/fireflyiii-data-importer:version-0.9.17
+      tag: registry.internal.aleemhaji.com/fireflyiii-data-importer:version-1.6.1
     tags: [docker-cache, firefly]
   - name: heimdall-image-cache
     build:
