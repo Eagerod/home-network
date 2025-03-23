@@ -1201,7 +1201,7 @@ resources:
     build:
       path: crons
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/rsync:latest
+      tag: registry.internal.aleemhaji.com/rsync:3.4.0
     tags: [backups]
   - name: node-red-backups
     file: crons/rsync-cron.yaml

@@ -1,8 +1,3 @@
-FROM registry.internal.aleemhaji.com/ubuntu:16.04
+FROM registry.internal.aleemhaji.com/alpine:3.21.3
 
-RUN \
-    apt-get update -y && \
-    apt-get install -y \
-        curl \
-        rsync && \
-    apt-get clean
+RUN apk --no-cache add rsync=3.4.0-r0

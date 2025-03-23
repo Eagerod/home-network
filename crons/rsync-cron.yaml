@@ -20,7 +20,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: rsync
-              image: registry.internal.aleemhaji.com/rsync:latest
+              image: registry.internal.aleemhaji.com/rsync:3.4.0
               command:
                 - sh
                 - -cex
