@@ -1129,10 +1129,15 @@ resources:
       tag: registry.internal.aleemhaji.com/node-red:latest
     tags: [apps, node-red]
   - name: node-red-init-job-create
-    file: node-red/node-red-init.yaml
+    file: mysql/mysql-create-database.yaml
+    parameters:
+      - DATABASE_NAME=nodered
+      - DB_USER=nodered
+      - PASSWORD_SECRET_NAME=node-red-secrets
+      - PASSWORD_SECRET_KEY=mysql_password
     tags: [apps, node-red]
-  - name: node-red-init-job
-    job: node-red-mysql-init
+  - name: node-red-init-job-wait
+    job: default/nodered-mysql-init
     tags: [apps, node-red]
   - name: node-red
     file: node-red/node-red.yaml
