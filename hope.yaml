@@ -638,15 +638,15 @@ resources:
     tags: [docker-cache, syncthing]
   - name: drone-image-cache
     build:
-      source: drone/drone:2.24.0
+      source: drone/drone:2.26.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/drone/drone:2.24.0
+      tag: registry.internal.aleemhaji.com/drone/drone:2.26.0
     tags: [docker-cache, drone]
   - name: drone-agent-image-cache
     build:
-      source: drone/drone-runner-kube:1.0.0-rc.3
+      source: drone/drone-runner-kube:1.0.0-rc.5
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.3
+      tag: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.5
     tags: [docker-cache, drone]
   - name: wireguard-image-cache
     build:
