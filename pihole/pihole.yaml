@@ -30,6 +30,22 @@ data:
   lan.list: |
     ${INGRESS_IP} registry.internal.aleemhaji.com registry
 ---
+# Bootstrap configuration specifically to allow the cluster to start back up
+#   again after a pretty major failure.
+# Allows the pihole to start without the registry being available, and thus,
+#   allows the main pihole to restore DNS to the rest of the network.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pihole-bootstrap-config
+data:
+  resolv.conf:
+    nameserver 127.0.0.1
+  02-lan.conf: |
+    addn-hosts=/etc/pihole/lan.list
+  lan.list: |
+    ${INGRESS_IP} registry.internal.aleemhaji.com registry
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -94,6 +110,10 @@ spec:
     matchLabels:
       app: pihole
       type: default
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
   template:
     metadata:
       name: pihole
@@ -193,10 +213,14 @@ spec:
         - name: config-root
           emptyDir: {}
 ---
+# This deployment should pretty much always have 0 replicas, so it's set to
+#   have 0 here.
+# It only exists to expose the registry.internal.aleemhaji.com DNS record
+#   to the network so that the deployment that requires that host can start.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pihole-bootstrap-deployment
+  name: pihole-bootstrap
   labels:
     app: pihole-bootstrap
 spec:
@@ -214,15 +238,13 @@ spec:
         type: bootstrap
     spec:
       serviceAccountName: pihole
-      imagePullSecrets:
-        - name: registry.internal.aleemhaji.com
       # Since individual files don't reload the way that full directory mount
       #   do, copy files over to where they belong.
       # This prevents them from being read only, and lets me update the files
       #   however I want without needing to restart the pod.
       initContainers:
         - name: pihole-config
-          image: busybox:1.35.0
+          image: busybox:1.37.0
           volumeMounts:
             - name: pihole-static-config
               mountPath: pihole-static-config
@@ -264,22 +286,30 @@ spec:
           startupProbe:
             exec:
               command:
-              - dig
-              - +norecurse
-              - +retry=0
-              - "@127.0.0.1"
-              - pi.hole
+                - dig
+                - +norecurse
+                - +retry=0
+                - "@127.0.0.1"
+                - pi.hole
             failureThreshold: 30
             periodSeconds: 10
       volumes:
         - name: pihole-static-config
           configMap:
-            name: pihole-static-config
+            name: pihole-bootstrap-config
         - name: config-root
           emptyDir: {}
 ---
-# Intentionally targets both deployments.
-# Boostrap needs to be scaled down when the main system is up.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pihole
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: pihole
+---
 apiVersion: v1
 kind: Service
 metadata:
