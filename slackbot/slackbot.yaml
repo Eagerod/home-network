@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: slackbot-deployment
+  name: slackbot
   labels:
     app: slackbot
 spec:
@@ -57,22 +57,9 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: slackbot-ingress-redirect
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/temporal-redirect: https://slackbot.internal.aleemhaji.com
+  name: slackbot
 spec:
-  rules:
-    - host: slackbot
-    - host: slackbot.home
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: slackbot-ingress
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
-spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - slackbot.internal.aleemhaji.com
