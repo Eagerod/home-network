@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${DATABASE_NAME}-mysql-init
+  labels:
+    job: ${DATABASE_NAME}-mysql-init
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: ${DATABASE_NAME}-mysql-init
+          image: registry.internal.aleemhaji.com/mysql:8.0.23
+          command:
+            - sh
+            - -cx
+            - |
+              mysql -h ${MYSQL_HOST} -u root -e "CREATE USER IF NOT EXISTS ${DB_USER}@'10.244.%.%'"
+              { set +x; } 2>/dev/null
+              # Mimic set -x output
+              echo "+ mysql -h ${MYSQL_HOST} -u root -e \"SET PASSWORD FOR ${DB_USER}@'10.244.%.%' = '\${DB_PASSWORD}'\""
+              mysql -h ${MYSQL_HOST} -u root -e "SET PASSWORD FOR ${DB_USER}@'10.244.%.%' = '${DB_PASSWORD}'"
+              { set -x; } 2>/dev/null
+              mysql -h ${MYSQL_HOST} -u root -e "CREATE DATABASE IF NOT EXISTS ${DATABASE_NAME}"
+              mysql -h ${MYSQL_HOST} -u root -e "GRANT ALL ON ${DATABASE_NAME}.* TO ${DB_USER}@'10.244.%.%'"
+          env:
+            - name: MYSQL_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secrets
+                  key: root_password
+            - name: MYSQL_HOST
+              value: mysql
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ${PASSWORD_SECRET_NAME}
+                  key: ${PASSWORD_SECRET_KEY}
