@@ -761,6 +761,11 @@ resources:
     parameters:
       - SLACK_BOT_ALERTING_CHANNEL
     tags: [dns, external-dns]
+  - name: a-record-updater
+    file: infra/external-dns/a-record-updater.yaml
+    paremeters:
+      - SLACK_BOT_ALERTING_CHANNEL
+    tags: [dns, external-dns]
   - name: cloudflared
     file: infra/cloudflared.yaml
     parameters:
