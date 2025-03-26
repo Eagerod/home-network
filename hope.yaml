@@ -354,27 +354,7 @@ resources:
         name: udp-services
       data:
         53: "default/pihole-udp:53"
-      ---
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        name: ingress-nginx-controller
-        namespace: ingress-nginx
-      data:
-        http-redirect-code: "302"
-        enable-real-ip: "true"
     tags: [network, ingress, ingress-internal]
-  - name: ingress-controller-configs-external
-    inline: |
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        name: ingress-nginx-controller-external
-        namespace: ingress-nginx
-      data:
-        http-redirect-code: "302"
-        enable-real-ip: "true"
-    tags: [network, ingress, ingress-external]
   - name: ingress-controller-service
     inline: |
       apiVersion: v1
