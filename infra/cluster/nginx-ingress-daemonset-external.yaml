@@ -215,7 +215,7 @@ spec:
       volumes:
       - name: webhook-cert
         secret:
-          secretName: ingress-nginx-admission
+          secretName: ingress-nginx-external-admission
 ---
 apiVersion: batch/v1
 kind: Job
@@ -244,7 +244,7 @@ spec:
         - create
         - --host=ingress-nginx-external-controller-admission,ingress-nginx-external-controller-admission.$(POD_NAMESPACE).svc
         - --namespace=$(POD_NAMESPACE)
-        - --secret-name=ingress-nginx-admission
+        - --secret-name=ingress-nginx-external-admission
         env:
         - name: POD_NAMESPACE
           valueFrom:
@@ -297,7 +297,7 @@ spec:
         - --webhook-name=ingress-nginx-external-admission
         - --namespace=$(POD_NAMESPACE)
         - --patch-mutating=false
-        - --secret-name=ingress-nginx-admission
+        - --secret-name=ingress-nginx-external-admission
         - --patch-failure-policy=Fail
         env:
         - name: POD_NAMESPACE
