@@ -388,6 +388,7 @@ resources:
         loadBalancerIP: ${LOAD_BALANCER_IP}
         selector:
           app.kubernetes.io/name: ingress-nginx
+          app.kubernetes.io/instance: ingress-nginx
       ---
       apiVersion: v1
       kind: Service
@@ -408,6 +409,7 @@ resources:
         loadBalancerIP: ${LOAD_BALANCER_IP}
         selector:
           app.kubernetes.io/name: ingress-nginx
+          app.kubernetes.io/instance: ingress-nginx
     tags: [network, ingress, ingress-internal]
     parameters:
       - *ingress_controller_service_ip
@@ -435,6 +437,7 @@ resources:
         loadBalancerIP: ${LOAD_BALANCER_IP}
         selector:
           app.kubernetes.io/name: ingress-nginx
+          app.kubernetes.io/instance: ingress-nginx-external
     tags: [network, ingress, ingress-external]
     parameters:
       - *ingress_controller_external_service_ip
