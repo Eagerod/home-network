@@ -636,6 +636,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/rabbitmq:4.0.7-management-alpine
     tags: [docker-cache, rmq]
+  - name: python-image-cache
+    build:
+      source: python:3.13-alpine
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/python:3.13-alpine
+    tags: [docker-cache, slackbot]
   # endregion
   - name: pihole
     file: pihole/pihole.yaml
