@@ -2,14 +2,15 @@ import logging
 import os
 
 from flask import Flask, request
-from slackclient import SlackClient
+from slack import WebClient
+from slack.errors import SlackApiError
 
 # Simple application that will listen on a port, and will forward on messages
 #   to the provided Slack account.
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-slack_client = SlackClient(os.environ['SLACK_API_KEY'])
+slack_client = WebClient(token=os.environ['SLACK_API_KEY'])
 default_channel = os.environ['DEFAULT_CHANNEL']
 
 
@@ -46,36 +47,13 @@ def receive_internal_message():
 
     channel = request.headers.get('X-SLACK-CHANNEL-ID') or default_channel
 
-    rv = slack_client.api_call(
-        'chat.postMessage',
-        channel=channel,
-        text=message_body,
-        unfurl_links=True
-    )
-
-    return finalize_error(rv)
-
-
-@app.route('/markdown', methods=['POST'])
-def receive_internal_markdown():
-    message_body = request.get_data()
-
-    if not message_body:
-        return 'No message content', 400
-
-    channel = request.headers.get('X-SLACK-CHANNEL-ID') or default_channel
-
-    rv = slack_client.api_call(
-        'chat.postMessage',
-        channel=channel,
-        blocks=[{
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": message_body.decode("utf-8")
-            }
-        }],
-        unfurl_links=True
-    )
-
-    return finalize_error(rv)
+    try:
+        rv = slack_client.chat_postMessage(
+            channel=channel,
+            text=message_body.decode('utf-8'),
+            unfurl_links=True,
+            unfurl_media=True
+        )
+        return finalize_error(rv)
+    except SlackApiError as e:
+        return finalize_error(e.response)
