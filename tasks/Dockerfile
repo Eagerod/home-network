@@ -1,10 +1,12 @@
-FROM registry.internal.aleemhaji.com/kubectl:1.21.0
+FROM registry.internal.aleemhaji.com/kubectl:1.32.1
 
 USER root
 
 RUN \
     apt-get update && \
-    apt-get install -y jq && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y \
+        curl \
+        jq && \
+    apt-get clean
 
 USER 1001
