@@ -14,6 +14,22 @@ data:
     ${INGRESS_IP} internal.aleemhaji.com heimdall
     ${INGRESS_IP} pi.hole pihole
 ---
+# Bootstrap configuration specifically to allow the cluster to start back up
+#   again after a pretty major failure.
+# Allows the pihole to start without the registry being available, and thus,
+#   allows the main pihole to restore network DNS to the rest fo the network.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pihole-bootstrap-config
+data:
+  resolv.conf:
+    nameserver 127.0.0.1
+  02-lan.conf: |
+    addn-hosts=/etc/pihole/lan.list
+  lan.list: |
+    ${INGRESS_IP} registry.internal.aleemhaji.com registry
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -77,11 +93,13 @@ spec:
   selector:
     matchLabels:
       app: pihole
+      type: default
   template:
     metadata:
       name: pihole
       labels:
         app: pihole
+        type: default
     spec:
       serviceAccountName: pihole
       imagePullSecrets:
@@ -175,6 +193,93 @@ spec:
         - name: config-root
           emptyDir: {}
 ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pihole-bootstrap-deployment
+  labels:
+    app: pihole-bootstrap
+spec:
+  revisionHistoryLimit: 0
+  replicas: 0
+  selector:
+    matchLabels:
+      app: pihole
+      type: bootstrap
+  template:
+    metadata:
+      name: pihole
+      labels:
+        app: pihole
+        type: bootstrap
+    spec:
+      serviceAccountName: pihole
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      # Since individual files don't reload the way that full directory mount
+      #   do, copy files over to where they belong.
+      # This prevents them from being read only, and lets me update the files
+      #   however I want without needing to restart the pod.
+      initContainers:
+        - name: pihole-config
+          image: busybox:1.35.0
+          volumeMounts:
+            - name: pihole-static-config
+              mountPath: pihole-static-config
+            - name: config-root
+              mountPath: config-root
+          command:
+            - sh
+            - -c
+            - |
+              cp pihole-static-config/02-lan.conf config-root/ && \
+              cp pihole-static-config/lan.list config-root/
+      containers:
+        - name: pihole
+          image: pihole/pihole:v5.8
+          ports:
+            - containerPort: 80
+              protocol: TCP
+            - containerPort: 53
+              protocol: TCP
+            - containerPort: 53
+              protocol: UDP
+          env:
+            - name: WEBPASSWORD
+              value: "123"
+            - name: PIHOLE_DNS_
+              value: "8.8.8.8;8.8.4.4"
+            - name: DNSSEC
+              value: "true"
+          volumeMounts:
+            - name: config-root
+              mountPath: /etc/dnsmasq.d/02-lan.conf
+              subPath: 02-lan.conf
+            - name: pihole-static-config
+              mountPath: /etc/resolv.conf
+              subPath: resolv.conf
+            - name: config-root
+              mountPath: /etc/pihole/lan.list
+              subPath: lan.list
+          startupProbe:
+            exec:
+              command:
+              - dig
+              - +norecurse
+              - +retry=0
+              - "@127.0.0.1"
+              - pi.hole
+            failureThreshold: 30
+            periodSeconds: 10
+      volumes:
+        - name: pihole-static-config
+          configMap:
+            name: pihole-static-config
+        - name: config-root
+          emptyDir: {}
+---
+# Intentionally targets both deployments.
+# Boostrap needs to be scaled down when the main system is up.
 apiVersion: v1
 kind: Service
 metadata:
