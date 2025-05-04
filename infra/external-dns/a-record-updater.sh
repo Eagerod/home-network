@@ -48,4 +48,4 @@ cf_payload="$(jq -nc --arg name "$ACTUAL_DOMAIN" --arg content "$external_ip" \
 response="$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records/${record_id}" \
 	-H "Authorization: Bearer ${CF_API_TOKEN}" \
 	-H "Content-Type: application/json" \
-	--data "$CF_PAYLOAD")"
+	--data "$cf_payload")"
