@@ -1,3 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: plex
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: freenas-iscsi
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -61,11 +72,8 @@ spec:
             timeoutSeconds: 3
       volumes:
         - name: plex-persistent-storage
-          iscsi:
-            targetPortal: 192.168.96.4
-            iqn: iqn.2019-05.com.aleemhaji.internal.ctl:plex
-            lun: 14
-            fsType: ext4
+          persistentVolumeClaim:
+            claimName: plex
 ---
 apiVersion: v1
 kind: Service
