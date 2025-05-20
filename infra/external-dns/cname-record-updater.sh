@@ -2,8 +2,6 @@
 #
 set -eufo pipefail
 
-ACTUAL_DOMAIN="aleemhaji.com"
-
 SLACK_URL="https://slackbot.internal.aleemhaji.com/message"
 
 # Cloudflare envs

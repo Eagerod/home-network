@@ -32,7 +32,7 @@ fi
 
 echo >&2 "Existing record found (ID: ${record_id}), updating it..."
 if ! external_ip="$(curl -fsS https://icanhazip.com)"; then
-	slack "Failed to find WAN IP from $hostname for A record update."
+	slack "Failed to find WAN IP from $(hostname) for A record update."
 	exit 2
 fi
 
