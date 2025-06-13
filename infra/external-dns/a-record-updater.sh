@@ -19,6 +19,9 @@ slack() {
     fi
 }
 
+# This process should always exit gracefully, so report failures.
+trap 'slack "A Record DNS updater is being unexpectedly terminated..."' SIGTERM
+
 echo >&2 "Fetching existing A record for ${ACTUAL_DOMAIN}..."
 response="$(curl -s -X GET \
     -H "Authorization: Bearer ${CF_API_TOKEN}" \

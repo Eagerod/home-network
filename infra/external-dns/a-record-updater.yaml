@@ -11,6 +11,7 @@ spec:
     spec:
       template:
         spec:
+          activeDeadlineSeconds: 300
           restartPolicy: OnFailure
           imagePullSecrets:
             - name: registry.internal.aleemhaji.com
