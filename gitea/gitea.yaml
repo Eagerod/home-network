@@ -19,7 +19,14 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: gitea
-          image: registry.internal.aleemhaji.com/gitea:1.22.3-rootless
+          image: registry.internal.aleemhaji.com/gitea:1.24.4-rootless
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "200m"
           ports:
             - containerPort: 3000
             - containerPort: 2222
