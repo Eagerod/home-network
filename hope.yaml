@@ -642,6 +642,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/python:3.13-alpine
     tags: [docker-cache, slackbot]
+  - name: garage-image-cache
+    build:
+      source: dxflrs/garage:v2.0.0
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/dxflrs/garage:v2.0.0
+    tags: [docker-cache, garage]
   # endregion
   - name: pihole
     file: pihole/pihole.yaml
@@ -1125,6 +1131,32 @@ resources:
   - name: blobstore
     file: blobstore/blobstore.yaml
     tags: [apps, blobstore]
+  - name: garage-config
+    inline: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: garage-config
+      binaryData:
+        garage.toml: ${GARAGE_CONFIG}
+      ---
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: garage-secrets
+      data:
+        rpc_secret: ${GARAGE_SECRET_BASE64}
+    parameters:
+      - GARAGE_SECRET_BASE64
+    fileParameters:
+      - GARAGE_CONFIG=garage/garage.toml
+    tags: [apps, garage]
+  - name: garage-01
+    file: garage/garage.yaml
+    parameters:
+      - NODE_INDEX=01
+      - LOAD_BALANCER_IP=192.168.200.210
+    tags: [garage]
   - name: syncthing
     file: syncthing/syncthing.yaml
     tags: [apps, syncthing]

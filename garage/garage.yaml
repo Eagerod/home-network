@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: garage-${NODE_INDEX}
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: garage
+      instance: "${NODE_INDEX}"
+  serviceName: garage-${NODE_INDEX}
+  template:
+    metadata:
+      labels:
+        app: garage
+        instance: "${NODE_INDEX}"
+    spec:
+      terminationGracePeriodSeconds: 120
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: garage
+          image: registry.internal.aleemhaji.com/dxflrs/garage:v2.0.0
+          ports:
+            - containerPort: 3900
+            - containerPort: 3901
+            - containerPort: 3902
+          volumeMounts:
+            - name: garage-storage
+              mountPath: /var/lib/garage/data
+            - name: garage-meta
+              mountPath: /var/lib/garage/meta
+            - name: garage-secret
+              mountPath: /etc/garage-secret
+              subPath: garage-secret
+              readOnly: true
+            - name: garage-config
+              mountPath: /etc/garage.toml
+              subPath: garage.toml
+              readOnly: true
+      volumes:
+        - name: garage-storage
+          iscsi:
+            targetPortal: 192.168.96.4
+            iqn: iqn.2019-05.com.aleemhaji.internal.ctl:garage-${NODE_INDEX}
+            lun: 0
+            fsType: ext4
+        - name: garage-meta
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/garage/meta-${NODE_INDEX}
+        - name: garage-secret
+          secret:
+            secretName: garage-secrets
+            defaultMode: 0600
+            items:
+            - key: rpc_secret
+              path: garage-secret
+        - name: garage-config
+          configMap:
+            name: garage-config
+            items:
+            - key: garage.toml
+              path: garage.toml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: garage-${NODE_INDEX}
+  labels:
+    app: garage
+    instance: "${NODE_INDEX}"
+spec:
+  type: LoadBalancer
+  loadBalancerIP: ${LOAD_BALANCER_IP}
+  ports:
+    - port: 3900
+      protocol: TCP
+      name: api
+    - port: 3901
+      protocol: TCP
+      name: rpc
+    - port: 3902
+      protocol: TCP
+      name: web
+  selector:
+    app: garage
+    instance: "${NODE_INDEX}"
