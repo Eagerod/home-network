@@ -1151,11 +1151,20 @@ resources:
     fileParameters:
       - GARAGE_CONFIG=garage/garage.toml
     tags: [apps, garage]
+  - name: garage-crd
+    file: garage/crd.yaml
+    tags: [apps, garage]
   - name: garage-01
     file: garage/garage.yaml
     parameters:
       - NODE_INDEX=01
       - LOAD_BALANCER_IP=192.168.200.210
+    tags: [garage]
+  - name: garage-02
+    file: garage/garage.yaml
+    parameters:
+      - NODE_INDEX=02
+      - LOAD_BALANCER_IP=192.168.200.211
     tags: [garage]
   - name: syncthing
     file: syncthing/syncthing.yaml

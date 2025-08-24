@@ -19,6 +19,7 @@ spec:
       terminationGracePeriodSeconds: 120
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
+      serviceAccountName: garage
       containers:
         - name: garage
           image: registry.internal.aleemhaji.com/dxflrs/garage:v2.0.0

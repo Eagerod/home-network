@@ -8,12 +8,8 @@ replication_factor = 2
 compression_level = 2
 
 rpc_bind_addr = "0.0.0.0:3901"
-rpc_secret_file = "/etc/garage-secret"
-
-[kubernetes_discovery]
-namespace = "default"
-service_name = "garage-managed"
-skip_crd = true
+rpc_public_addr = "192.168.1.244:3901"
+rpc_secret = "ddeb8f2e1246c2715b22c57e83b2ab76ca02bd8e092fa913b3034fb5b6d85b17"
 
 [s3_api]
 s3_region = "garage"
