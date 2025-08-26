@@ -71,7 +71,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: shell-monitor
-          image: registry.internal.aleemhaji.com/kubectl:1.21.0
+          image: registry.internal.aleemhaji.com/kubectl:1.32.1
           command:
             - /scripts/base/script.sh
           env:
