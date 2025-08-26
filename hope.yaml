@@ -1154,6 +1154,11 @@ resources:
   - name: garage-crd
     file: garage/crd.yaml
     tags: [apps, garage]
+  - name: garage-service
+    file: garage/service.yaml
+    parameters:
+      - LOAD_BALANCER_IP=192.168.200.209
+    tags: [garage]
   - name: garage-01
     file: garage/garage.yaml
     parameters:
