@@ -642,6 +642,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/python:3.13-alpine
     tags: [docker-cache, slackbot]
+  - name: cloudflared-image-cache
+    build:
+      source: cloudflare/cloudflared:2025.8.1
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/cloudflare/cloudflared:2025.8.1
+    tags: [docker-cache, cloudflared]
   - name: garage-image-cache
     build:
       source: dxflrs/garage:v2.0.0
