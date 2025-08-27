@@ -1,0 +1,87 @@
+# Because these exist in different pools, decided to store these as more
+#   independent volumes, rather than using the automated provisioner.
+# These volumes map to different disks on the storage infra, and are numbered
+#   according to those disk names.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: garage-01
+  labels:
+    app: garage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 500Gi
+  iscsi:
+    targetPortal: 192.168.96.4
+    iqn: "iqn.2019-05.com.aleemhaji.internal.ctl:garage-01"
+    lun: 0
+    fsType: ext4
+  # Force binding to the PVC templated from the StatefulSet
+  claimRef:
+    namespace: default
+    name: garage-storage-garage-0
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: garage-02
+  labels:
+    app: garage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 500Gi
+  iscsi:
+    targetPortal: 192.168.96.4
+    iqn: "iqn.2019-05.com.aleemhaji.internal.ctl:garage-02"
+    lun: 0
+    fsType: ext4
+  # Force binding to the PVC templated from the StatefulSet
+  claimRef:
+    namespace: default
+    name: garage-storage-garage-1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: garage-03
+  labels:
+    app: garage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 500Gi
+  iscsi:
+    targetPortal: 192.168.96.4
+    iqn: "iqn.2019-05.com.aleemhaji.internal.ctl:garage-03"
+    lun: 0
+    fsType: ext4
+  # Force binding to the PVC templated from the StatefulSet
+  claimRef:
+    namespace: default
+    name: garage-storage-garage-2
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: garage-04
+  labels:
+    app: garage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 500Gi
+  iscsi:
+    targetPortal: 192.168.96.4
+    iqn: "iqn.2019-05.com.aleemhaji.internal.ctl:garage-04"
+    lun: 0
+    fsType: ext4
+  # Force binding to the PVC templated from the StatefulSet
+  claimRef:
+    namespace: default
+    name: garage-storage-garage-3

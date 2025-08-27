@@ -1,20 +1,18 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: garage-${NODE_INDEX}
+  name: garage
 spec:
   revisionHistoryLimit: 0
-  replicas: 1
+  replicas: 4
   selector:
     matchLabels:
       app: garage
-      instance: "${NODE_INDEX}"
-  serviceName: garage-${NODE_INDEX}
+  serviceName: garage
   template:
     metadata:
       labels:
         app: garage
-        instance: "${NODE_INDEX}"
     spec:
       terminationGracePeriodSeconds: 120
       imagePullSecrets:
@@ -30,7 +28,7 @@ spec:
           volumeMounts:
             - name: garage-storage
               mountPath: /var/lib/garage/data
-            - name: garage-meta
+            - name: garage-metadata
               mountPath: /var/lib/garage/meta
             - name: garage-secret
               mountPath: /etc/garage-secret
@@ -41,16 +39,6 @@ spec:
               subPath: garage.toml
               readOnly: true
       volumes:
-        - name: garage-storage
-          iscsi:
-            targetPortal: 192.168.96.4
-            iqn: iqn.2019-05.com.aleemhaji.internal.ctl:garage-${NODE_INDEX}
-            lun: 0
-            fsType: ext4
-        - name: garage-meta
-          nfs:
-            server: 192.168.96.4
-            path: /mnt/main/apps/garage/meta-${NODE_INDEX}
         - name: garage-secret
           secret:
             secretName: garage-secrets
@@ -64,14 +52,32 @@ spec:
             items:
             - key: garage.toml
               path: garage.toml
+  volumeClaimTemplates:
+    - metadata:
+        name: garage-metadata
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: freenas-iscsi
+        resources:
+          requests:
+            storage: 10Gi
+    - metadata:
+        name: garage-storage
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 500Gi
+        selector:
+          matchLabels:
+            app: "garage"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: garage-${NODE_INDEX}
+  name: garage
   labels:
     app: garage
-    instance: "${NODE_INDEX}"
 spec:
   type: LoadBalancer
   loadBalancerIP: ${LOAD_BALANCER_IP}
@@ -87,4 +93,3 @@ spec:
       name: web
   selector:
     app: garage
-    instance: "${NODE_INDEX}"
