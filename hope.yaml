@@ -828,7 +828,7 @@ resources:
     file: barebones-nginx/internal-ingress.yaml
     parameters:
       - NAME=knowledge
-    tags: [apps, web, knowledge]
+    tags: [apps, web, logseq, knowledge]
   # endregion
   # region: NFS-Share + Port Forwarded Services
   # This block of services include resources that need access to shared
@@ -1162,6 +1162,21 @@ resources:
     parameters:
       - LOAD_BALANCER_IP=192.168.200.210
     tags: [garage]
+  - name: archive-ingress
+    file: garage/bucket-ingress-internal.yaml
+    parameters:
+      - NAME=archive
+    tags:: [garage]
+  - name: build-ingress
+    file: garage/bucket-ingress-internal.yaml
+    parameters:
+      - NAME=build
+    tags:: [garage]
+  - name: readme-internal-ingress
+    file: garage/bucket-ingress-internal.yaml
+    parameters:
+      - NAME=readme
+    tags:: [garage]
   - name: syncthing
     file: syncthing/syncthing.yaml
     tags: [apps, syncthing]

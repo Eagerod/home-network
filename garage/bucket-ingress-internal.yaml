@@ -1,6 +1,18 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  name: ${NAME}-redirect
+  annotations:
+    nginx.ingress.kubernetes.io/temporal-redirect: https://${NAME}.internal.aleemhaji.com
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ${NAME}
+    - host: ${NAME}.home
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
   name: ${NAME}-bucket
 spec:
   ingressClassName: nginx
