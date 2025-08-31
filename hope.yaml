@@ -871,16 +871,6 @@ resources:
     parameters:
       - NAME=knowledge
     tags: [apps, web, logseq, knowledge]
-  - name: readme-service
-    file: barebones-nginx/service.yaml
-    parameters:
-      - NAME=readme
-    tags: [apps, web, readme]
-  - name: readme-ingress
-    file: barebones-nginx/internal-ingress.yaml
-    parameters:
-      - NAME=readme
-    tags: [apps, web, readme]
   # endregion
   # region: NFS-Share + Port Forwarded Services
   # This block of services include resources that need access to shared
