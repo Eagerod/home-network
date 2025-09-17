@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-certificate-${CERT_NAME}
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: certbot-create
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: certbot-create
+          image: registry.internal.aleemhaji.com/certbot/certbot-custom:v3.2.0
+          imagePullPolicy: Always
+          stdin: true
+          tty: true
+          command:
+            - sh
+            - -cx
+            - |
+              certbot certonly -n --preferred-challenges dns-01 --manual --manual-auth-hook /scripts/dns-renew.sh -d "${CERTIFICATE_DOMAIN}"
+          env:
+            - name: CF_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflare-dns
+                  key: api_token
+            - name: CF_ZONE_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: cloudflare-dns
+                  key: zone_id
+          volumeMounts:
+            - name: certbot-storage
+              mountPath: /etc/letsencrypt
+            - name: certbot-scripts
+              mountPath: /scripts
+      volumes:
+        - name: certbot-storage
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/certificates
+        - name: certbot-scripts
+          configMap:
+            name: certbot-dns-script
+            defaultMode: 0755

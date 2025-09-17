@@ -675,6 +675,47 @@ resources:
   #   parallel clusters first without having any concern for services fighting
   #   over shares/volumes.
   # They should each have the stateless tag applied to them.
+  - name: external-dns-manager-image
+    build:
+      path: infra/external-dns
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/external-dns:latest
+    tags: [dns, external-dns]
+  - name: external-dns-manager-configs
+    inline: |
+      apiVersion: v1
+      binaryData:
+        entrypoint.sh: ${A_RECORD_MANAGER_SCRIPT}
+      kind: ConfigMap
+      metadata:
+        name: dns-manager-a-record-config
+      ---
+      apiVersion: v1
+      binaryData:
+        entrypoint.sh: ${CNAME_RECORD_MANAGER_SCRIPT}
+      kind: ConfigMap
+      metadata:
+        name: dns-manager-cname-record-config
+    fileParameters:
+      - A_RECORD_MANAGER_SCRIPT=./infra/external-dns/a-record-updater.sh
+      - CNAME_RECORD_MANAGER_SCRIPT=./infra/external-dns/cname-record-updater.sh
+    tags: [dns, external-dns]
+  - name: a-record-updater
+    file: infra/external-dns/a-record-updater.yaml
+    parameters:
+      - SLACK_BOT_ALERTING_CHANNEL
+    tags: [dns, external-dns]
+  - name: cname-record-updater
+    file: infra/external-dns/cname-record-updater.yaml
+    parameters:
+      - SLACK_BOT_ALERTING_CHANNEL
+    tags: [dns, external-dns]
+  - name: cloudflared
+    file: infra/cloudflared.yaml
+    parameters:
+      - CLOUDFLARED_SECRET_BASE64
+      - CLOUDFLARED_CERT_BASE64
+    tags: [cloudflared]
   - name: image-monitor-image
     build:
       path: image-monitor
@@ -1223,6 +1264,7 @@ resources:
         api_token: ${CLOUDFLARE_DNS_API_KEY_BASE64}
     parameters:
       - CLOUDFLARE_DNS_API_KEY_BASE64
+    tags: [certbot]
   - name: certbot-cloudflare-configs
     inline: |
       apiVersion: v1
@@ -1233,12 +1275,19 @@ resources:
         zone_id: ${CLOUDFLARE_ZONE_ID}
     parameters:
       - CLOUDFLARE_ZONE_ID
+    tags: [certbot]
   - name: certbot-cron
     file: certbot/certbot.yaml
     fileParameters:
       - DNS_RENEW_SCRIPT=certbot/certbot-dns-renew.sh
     tags: [crons, certbot]
-  # region: Scheduled rsync Jobs
+  - name: certbot-create-garage-wildcard
+    file: certbot/certbot-create.yaml
+    parameters:
+      - CERT_NAME=garage-wildcard
+      - CERTIFICATE_DOMAIN=*.garage.internal.aleemhaji.com
+    tags: [certbot]
+  # region: Scheduled rsync/backup Jobs
   # This block contains all the scheduled jobs that run rsync against the
   #   various directories things are written to.
   # The primary objective tends to be creating copies in a consolidated place

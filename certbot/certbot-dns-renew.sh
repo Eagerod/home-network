@@ -25,7 +25,7 @@ RESPONSE="$(curl -s -X GET \
     -H "Authorization: Bearer ${CF_API_TOKEN}" \
     "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records?type=TXT&name=${ACTUAL_DOMAIN}")"
 
-if RECORD_ID="$(jq -r '.result[0].id' <<< "$RESPONSE")"; then
+if RECORD_ID="$(jq -e -r '.result[0].id' <<< "$RESPONSE")"; then
     echo >&2 "Existing record found (ID: ${RECORD_ID}), updating it..."
     RESPONSE="$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records/${RECORD_ID}" \
         -H "Authorization: Bearer ${CF_API_TOKEN}" \
