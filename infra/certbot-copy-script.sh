@@ -7,6 +7,10 @@ INTERNAL_WILDCARD_SECRET_NAME=internal-certificate-files
 INTERNAL_WILDCARD_COMBINED_SECRET_NAME=internal-certificate-file
 INTERNAL_WILDCARD_ARCHIVE=/etc/letsencrypt/archive/internal.aleemhaji.com-0001
 
+INTERNAL_GARAGE_WILDCARD_SECRET_NAME=garage-internal-certificate-files
+INTERNAL_GARAGE_WILDCARD_COMBINED_SECRET_NAME=garage-internal-certificate-file
+INTERNAL_GARAGE_WILDCARD_ARCHIVE=/etc/letsencrypt/archive/garage.internal.aleemhaji.com-0001
+
 WILDCARD_SECRET_NAME=external-certificate-files
 WILDCARD_COMBINED_SECRET_NAME=external-certificate-file
 WILDCARD_ARCHIVE=/etc/letsencrypt/archive/aleemhaji.com-0001
@@ -24,10 +28,15 @@ replace_certificates() {
 	cert_name="$1"
 	cert_path="$2"
 
+	echo >&2 "Starting to replace certificate named: ${KUBERNETES_NAMESPACE}/$cert_name"
+
 	rsa_keyfile="$(mktemp).rsa.key"
 
 	latest_crt="$(find "$cert_path" -iname "fullchain*.pem" | sort -V | tail -1)"
 	latest_key="$(find "$cert_path" -iname "privkey*.pem" | sort -V | tail -1)"
+
+	echo >&2 "  Cert file is: $latest_crt"
+	echo >&2 "  Key file is:  $latest_key"
 
 	openssl rsa -in "$latest_key" -out "$rsa_keyfile"
 
@@ -52,10 +61,15 @@ replace_combined_certificate() {
 	cert_name="$1"
 	cert_path="$2"
 
+	echo >&2 "Starting to replace combined certificate named: ${KUBERNETES_NAMESPACE}/$cert_name"
+
 	combined_file="$(mktemp).pem"
 
 	latest_crt="$(find "$cert_path" -iname "fullchain*.pem" | sort -V | tail -1)"
 	latest_key="$(find "$cert_path" -iname "privkey*.pem" | sort -V | tail -1)"
+
+	echo >&2 "  Cert file is: $latest_crt"
+	echo >&2 "  Key file is:  $latest_key"
 
 	cat "$latest_crt" "$latest_key" > "$combined_file"
 
@@ -71,6 +85,9 @@ replace_combined_certificate() {
 
 replace_certificates "$INTERNAL_WILDCARD_SECRET_NAME" "$INTERNAL_WILDCARD_ARCHIVE"
 replace_combined_certificate "$INTERNAL_WILDCARD_COMBINED_SECRET_NAME" "$INTERNAL_WILDCARD_ARCHIVE"
+
+replace_certificates "$INTERNAL_GARAGE_WILDCARD_SECRET_NAME" "$INTERNAL_GARAGE_WILDCARD_ARCHIVE"
+replace_combined_certificate "$INTERNAL_GARAGE_WILDCARD_COMBINED_SECRET_NAME" "$INTERNAL_GARAGE_WILDCARD_ARCHIVE"
 
 if ${INCLUDE_EXTERNAL_CERTS}; then
 	replace_certificates "$WILDCARD_SECRET_NAME" "$WILDCARD_ARCHIVE"

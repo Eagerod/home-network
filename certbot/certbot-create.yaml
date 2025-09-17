@@ -22,7 +22,7 @@ spec:
             - sh
             - -cx
             - |
-              certbot certonly -n --preferred-challenges dns-01 --manual --manual-auth-hook /scripts/dns-renew.sh -d "${CERTIFICATE_DOMAIN}"
+              certbot certonly -n --preferred-challenges dns-01 --manual --key-type rsa --manual-auth-hook /scripts/dns-renew.sh -d "${CERTIFICATE_DOMAIN}"
           env:
             - name: CF_API_TOKEN
               valueFrom:
