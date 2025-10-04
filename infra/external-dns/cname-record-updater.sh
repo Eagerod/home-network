@@ -30,7 +30,12 @@ get_record() {
 		-H "Authorization: Bearer ${CF_API_TOKEN}" \
 		"https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records?type=CNAME&name=$1")"
 
-	sqlite3 "$dbfile" "INSERT INTO records VALUES ('$1', '$response');"
+	# Check to make sure the response is "complete".
+	# If incomplete, don't cache, and let the next loop cache the record.
+	if [ "$(jq -r '.result' <<< "$response")" != "[]" ]; then
+		sqlite3 "$dbfile" "INSERT INTO records VALUES ('$1', '$response');"
+	fi
+
 	echo "$response"
 }
 
