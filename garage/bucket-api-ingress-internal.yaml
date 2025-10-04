@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ${NAME}-bucket-api
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - ${NAME}.garage.internal.aleemhaji.com
+      secretName: garage-internal-certificate-files
+  rules:
+    - host: ${NAME}.garage.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: garage
+                port:
+                  number: 3900
