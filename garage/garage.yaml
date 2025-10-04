@@ -44,14 +44,14 @@ spec:
             secretName: garage-secrets
             defaultMode: 0600
             items:
-            - key: rpc_secret
-              path: garage-secret
+              - key: rpc_secret
+                path: garage-secret
         - name: garage-config
           configMap:
             name: garage-config
             items:
-            - key: garage.toml
-              path: garage.toml
+              - key: garage.toml
+                path: garage.toml
   volumeClaimTemplates:
     - metadata:
         name: garage-metadata
