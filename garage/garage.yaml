@@ -79,8 +79,6 @@ metadata:
   labels:
     app: garage
 spec:
-  type: LoadBalancer
-  loadBalancerIP: ${LOAD_BALANCER_IP}
   ports:
     - port: 3900
       protocol: TCP
