@@ -712,6 +712,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/damongolding/immich-kiosk:0.38.0
     tags: [docker-cache, immich]
+  - name: miniflux-image-cache
+    build:
+      source: miniflux/miniflux:2.2.11
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/miniflux/miniflux:2.2.11
+    tags: [docker-cache, api-proxy]
   # endregion
   - name: pihole
     file: pihole/pihole.yaml
@@ -1268,6 +1274,35 @@ resources:
   - name: syncthing
     file: syncthing/syncthing.yaml
     tags: [apps, syncthing]
+  - name: miniflux-database-init
+    file: postgres/postgres-db-create.yaml
+    parameters:
+      DATABASE_NAME=miniflux
+    tags: [apps, miniflux]
+  - name: miniflux-config
+    inline: |
+      apiVersion: v1
+      data:
+        admin_username: ${MINIFLUX_ADMIN_USERNAME}
+      kind: ConfigMap
+      metadata:
+        name: miniflux-config
+      ---
+      apiVersion: v1
+      data:
+        connection_string: ${MINIFLUX_CONNECTION_STRING_BASE64}
+        admin_password: ${MINIFLUX_ADMIN_PASSWORD_BASE64}
+      kind: Secret
+      metadata:
+        name: miniflux-secrets
+    parameters:
+      - MINIFLUX_CONNECTION_STRING_BASE64
+      - MINIFLUX_ADMIN_PASSWORD_BASE64
+      - MINIFLUX_ADMIN_USERNAME
+    tags: [apps, miniflux]
+  - name: miniflux
+    file: miniflux/miniflux.yaml
+    tags: [apps, miniflux]
   - name: drone-init
     file: drone/drone-init.yaml
     tags: [apps, drone]
