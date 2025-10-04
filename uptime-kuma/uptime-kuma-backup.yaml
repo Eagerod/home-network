@@ -63,8 +63,11 @@ spec:
                 - sh
                 - -xeufc
                 - |
+                  # Can't use kubectl cp because reasons -- should remember why
                   # kubectl cp /scripts/script.js uptime-kuma-0:/app/backup.js
                   cat /scripts/script.js | kubectl exec -i uptime-kuma-0 -- /bin/sh -c 'cat > /app/backup.js'
+
+                  # TODO: Don't just redirect to the destination file. The redirect truncs at first, and if the command fails; data loss.
                   kubectl exec uptime-kuma-0 -- sh -c "(cd /app && node ./backup.js /app/data/kuma.db monitor)" > /backup/monitor.sql
                   kubectl exec uptime-kuma-0 -- sh -c "(cd /app && node ./backup.js /app/data/kuma.db notification)" > /backup/notification.sql
                   kubectl exec uptime-kuma-0 -- sh -c "(cd /app && node ./backup.js /app/data/kuma.db monitor_notification)" > /backup/monitor_notification.sql
