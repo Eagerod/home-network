@@ -1218,6 +1218,16 @@ resources:
     parameters:
       - NAME=readme
     tags:: [garage]
+  - name: blob-internal-ingress
+    file: garage/bucket-ingress-internal.yaml
+    parameters:
+      - NAME=blob
+    tags:: [garage]
+  - name: blob-external-ingress
+    file: garage/bucket-ingress-external.yaml
+    parameters:
+      - NAME=blob
+    tags:: [garage]
   - name: syncthing
     file: syncthing/syncthing.yaml
     tags: [apps, syncthing]
