@@ -129,6 +129,13 @@
 		"^\\\\d+\\\\.\\\\d+-alpine$",
 		"^\\\\d+\\\\.\\\\d+\\\\.\\\\d+-alpine$"
 	],
+	"redis": [
+		"\\\\bbullseye",
+		"\\\\balpine",
+		"\\\\b-rc\\\\d*$",
+		"^\\\\d+$",
+		"^\\\\d+\\\\.\\\\d+$"
+	],
 	"syncthing/syncthing": [
 		"^rc$",
 		"^pcap$",

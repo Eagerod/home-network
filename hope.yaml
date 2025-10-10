@@ -564,6 +564,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/jellyfin/jellyfin:10.10.6
     tags: [docker-cache, jellyfin]
+  - name: redis-image-cache
+    build:
+      source: redis:5
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/redis:5
+    tags: [docker-cache, redis]
   - name: guacamole-image-cache
     build:
       source: guacamole/guacamole:1.5.5
@@ -815,6 +821,9 @@ resources:
   - name: slackbot
     file: slackbot/slackbot.yaml
     tags: [apps, slackbot, stateless]
+  - name: redis
+    file: redis/redis.yaml
+    tags: [apps, redis, stateless]
   - name: latex-image
     build:
       path: latex
