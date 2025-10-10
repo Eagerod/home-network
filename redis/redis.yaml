@@ -38,7 +38,7 @@ spec:
               mountPath: /config
       containers:
         - name: redis
-          image: registry.internal.aleemhaji.com/redis:5
+          image: registry.internal.aleemhaji.com/redis:8.2.2
           ports:
             - containerPort: 6379
           args:
@@ -50,16 +50,17 @@ spec:
         - name: config
           emptyDir: {}
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: redis
-  labels:
-    app: redis
-spec:
-  ports:
-    - port: 6379
-      protocol: TCP
-  type: NodePort
-  selector:
-    app: redis
+# Note -- this service is kind of useless
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: redis
+#   labels:
+#     app: redis
+# spec:
+#   ports:
+#     - port: 6379
+#       protocol: TCP
+#   type: NodePort
+#   selector:
+#     app: redis

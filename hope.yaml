@@ -566,9 +566,9 @@ resources:
     tags: [docker-cache, jellyfin]
   - name: redis-image-cache
     build:
-      source: redis:5
+      source: redis:8.2.2
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/redis:5
+      tag: registry.internal.aleemhaji.com/redis:8.2.2
     tags: [docker-cache, redis]
   - name: guacamole-image-cache
     build:
