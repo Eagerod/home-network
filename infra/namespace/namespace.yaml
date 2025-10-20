@@ -15,7 +15,7 @@ type: kubernetes.io/dockerconfigjson
 data:
   .dockerconfigjson: ${DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64}
 ---
-# endregoin
+# endregion
 # region: Certificate Management
 apiVersion: v1
 kind: ServiceAccount
@@ -217,12 +217,11 @@ roleRef:
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: job-monitor-script
+  name: job-monitor-scripts
   namespace: ${NAMESPACE}
-  labels:
-    app: jobs-monitor
 binaryData:
-  script.sh: ${JOBS_SHELL_MONITOR_SCRIPT}
+  cleaner.sh: ${JOBS_SHELL_CLEANER_SCRIPT}
+  monitor.sh: ${JOBS_SHELL_MONITOR_SCRIPT}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -247,9 +246,9 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: jobs-cleaner
-          image: registry.internal.aleemhaji.com/kubectl:1.21.0
+          image: registry.internal.aleemhaji.com/kubectl-ns:1.32.1
           command:
-            - /scripts/script.sh
+            - /scripts/cleaner.sh
             - "${NAMESPACE}"
             - "${JOB_RETENTION_WINDOW}"
           volumeMounts:
@@ -258,7 +257,42 @@ spec:
       volumes:
         - name: job-monitor-script
           configMap:
-            name: job-monitor-script
+            name: job-monitor-scripts
             defaultMode: 0755
 ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jobs-monitor
+  namespace: ${NAMESPACE}
+  labels:
+    app: jobs-monitor
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jobs-monitor
+  template:
+    metadata:
+      labels:
+        app: jobs-monitor
+    spec:
+      serviceAccountName: jobs-monitor
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: jobs-monitor
+          image: registry.internal.aleemhaji.com/kubectl-ns:1.32.1
+          command:
+            - /scripts/monitor.sh
+            - "${NAMESPACE}"
+          volumeMounts:
+            - name: job-monitor-script
+              mountPath: /scripts
+      volumes:
+        - name: job-monitor-script
+          configMap:
+            name: job-monitor-scripts
+            defaultMode: 0755
 # endregion

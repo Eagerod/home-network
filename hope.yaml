@@ -153,8 +153,14 @@ loglevel: *log_level
 pod_network_cidr: 10.244.0.0/16
 resources:
   # region: Namespaces
+  - name: namespace-image-build
+    build:
+      path: infra/namespace
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/kubectl-ns:1.32.1
+    tags: [namespaces]
   - name: default-namespace
-    file: infra/namespace.yaml
+    file: infra/namespace/namespace.yaml
     parameters:
       - NAMESPACE=default
       - DOCKER_REGISTRY_HOSTNAME
@@ -165,12 +171,13 @@ resources:
       - POD_KILLER_CONTAINER_RESTART_LIMIT=10
       - JOB_RETENTION_WINDOW=1 month
     fileParameters:
-      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
-      - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
-      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
+      - UPDATE_SECRETS_SCRIPT=infra/namespace/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/namespace/pod-killer-script.sh
+      - JOBS_SHELL_CLEANER_SCRIPT=infra/namespace/delete-manual-jobs-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/namespace/list-failed-jobs-script.sh
     tags: [namespaces]
   - name: dev-namespace
-    file: infra/namespace.yaml
+    file: infra/namespace/namespace.yaml
     parameters:
       - NAMESPACE=dev
       - DOCKER_REGISTRY_HOSTNAME
@@ -181,12 +188,13 @@ resources:
       - POD_KILLER_CONTAINER_RESTART_LIMIT=10
       - JOB_RETENTION_WINDOW=1 month
     fileParameters:
-      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
-      - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
-      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
+      - UPDATE_SECRETS_SCRIPT=infra/namespace/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/namespace/pod-killer-script.sh
+      - JOBS_SHELL_CLEANER_SCRIPT=infra/namespace/delete-manual-jobs-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/namespace/list-failed-jobs-script.sh
     tags: [namespaces, rotate-node]
   - name: monitoring-namespace
-    file: infra/namespace.yaml
+    file: infra/namespace/namespace.yaml
     parameters:
       - NAMESPACE=monitoring
       - DOCKER_REGISTRY_HOSTNAME
@@ -197,12 +205,13 @@ resources:
       - POD_KILLER_CONTAINER_RESTART_LIMIT=10
       - JOB_RETENTION_WINDOW=1 month
     fileParameters:
-      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
-      - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
-      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
+      - UPDATE_SECRETS_SCRIPT=infra/namespace/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/namespace/pod-killer-script.sh
+      - JOBS_SHELL_CLEANER_SCRIPT=infra/namespace/delete-manual-jobs-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/namespace/list-failed-jobs-script.sh
     tags: [namespaces, monitoring]
   - name: kube-system-namespace
-    file: infra/namespace.yaml
+    file: infra/namespace/namespace.yaml
     parameters:
       - NAMESPACE=kube-system
       - DOCKER_REGISTRY_HOSTNAME
@@ -213,12 +222,13 @@ resources:
       - POD_KILLER_CONTAINER_RESTART_LIMIT=10
       - JOB_RETENTION_WINDOW=1 month
     fileParameters:
-      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
-      - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
-      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
+      - UPDATE_SECRETS_SCRIPT=infra/namespace/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/namespace/pod-killer-script.sh
+      - JOBS_SHELL_CLEANER_SCRIPT=infra/namespace/delete-manual-jobs-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/namespace/list-failed-jobs-script.sh
     tags: [namespaces]
   - name: kubernetes-dashboard-namespace
-    file: infra/namespace.yaml
+    file: infra/namespace/namespace.yaml
     parameters:
       - NAMESPACE=kubernetes-dashboard
       - DOCKER_REGISTRY_HOSTNAME
@@ -229,12 +239,13 @@ resources:
       - POD_KILLER_CONTAINER_RESTART_LIMIT=10
       - JOB_RETENTION_WINDOW=1 month
     fileParameters:
-      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
-      - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
-      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
+      - UPDATE_SECRETS_SCRIPT=infra/namespace/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/namespace/pod-killer-script.sh
+      - JOBS_SHELL_CLEANER_SCRIPT=infra/namespace/delete-manual-jobs-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/namespace/list-failed-jobs-script.sh
     tags: [namespaces, dashboard]
   - name: tasks-namespace
-    file: infra/namespace.yaml
+    file: infra/namespace/namespace.yaml
     parameters:
       - NAMESPACE=tasks
       - DOCKER_REGISTRY_HOSTNAME
@@ -245,9 +256,10 @@ resources:
       - POD_KILLER_CONTAINER_RESTART_LIMIT=10
       - JOB_RETENTION_WINDOW=1 month
     fileParameters:
-      - UPDATE_SECRETS_SCRIPT=infra/certbot-copy-script.sh
-      - POD_KILLER_SCRIPT=infra/pod-killer-script.sh
-      - JOBS_SHELL_MONITOR_SCRIPT=infra/delete-manual-jobs-script.sh
+      - UPDATE_SECRETS_SCRIPT=infra/namespace/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/namespace/pod-killer-script.sh
+      - JOBS_SHELL_CLEANER_SCRIPT=infra/namespace/delete-manual-jobs-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/namespace/list-failed-jobs-script.sh
     tags: [namespaces, rmq, tasks]
   # endregion
   - name: node-setup
