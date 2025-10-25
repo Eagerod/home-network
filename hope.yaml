@@ -854,13 +854,8 @@ resources:
     fileParameters:
       - BACKUP_SCRIPT=uptime-kuma/backup.js
     tags: [apps, uptime-kuma]
-  - name: knowledge-service
-    file: barebones-nginx/service.yaml
-    parameters:
-      - NAME=knowledge
-    tags: [apps, web, knowledge]
   - name: knowledge-ingress
-    file: barebones-nginx/internal-ingress.yaml
+    file: garage/bucket-ingress-internal.yaml
     parameters:
       - NAME=knowledge
     tags: [apps, web, logseq, knowledge]
