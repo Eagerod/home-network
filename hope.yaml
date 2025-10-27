@@ -374,7 +374,6 @@ resources:
         53: "default/pihole-tcp:53"
         3306: "default/mysql:3306"
         5432: "default/postgres:5432"
-        27017: "default/mongodb:27017"
       ---
       apiVersion: v1
       kind: ConfigMap
@@ -520,18 +519,6 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/certbot/certbot:v3.2.0
     tags: [docker-cache, certbot]
-  - name: mongo-37-image-cache
-    build:
-      source: mongo:3.7
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/mongo:3.7
-    tags: [docker-cache, mongodb]
-  - name: mongo-36-image-cache
-    build:
-      source: mongo:3.6
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/mongo:3.6
-    tags: [docker-cache, mongodb, unifi]
   - name: busybox-image-cache
     build:
       source: busybox:1.37.0
@@ -995,20 +982,6 @@ resources:
   - name: mysql
     file: mysql/mysql.yaml
     tags: [apps, mysql]
-  - name: mongodb-backup
-    inline: |
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        name: mongodb-backup
-      binaryData:
-        mongodb-backup.sh: ${MONGODB_BACKUP_SCRIPT}
-    tags: [apps, mongodb, backups]
-    fileParameters:
-      - MONGODB_BACKUP_SCRIPT=mongodb/mongodb-backup.sh
-  - name: mongodb
-    file: mongodb/mongodb.yaml
-    tags: [apps, mongodb]
   - name: rabbitmq-config
     inline: |
       apiVersion: v1
@@ -1535,10 +1508,6 @@ jobs:
     file: mysql/tasks/mysql-drop.yaml
     parameters:
       - MYSQL_DATABASE_NAME
-  - name: mongodb-restore
-    file: mongodb/tasks/mongodb-restore.yaml
-    parameters:
-      - MONGODB_DATABASE_NAME
   - name: rotate-node
     file: jobs/rotate-node.yaml
     parameters:
