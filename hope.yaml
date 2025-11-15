@@ -624,11 +624,11 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/wireguard-go:0.0.20230223
     tags: [docker-cache, wireguard]
-  - name: unifi-controller-image-cache
+  - name: unifi-network-application-image-cache
     build:
-      source: linuxserver/unifi-controller:7.4.162
+      source: jacobalberty/unifi:v9.5.21
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/unifi-controller:7.4.162
+      tag: registry.internal.aleemhaji.com/jacobalberty/unifi:v9.5.21
     tags: [docker-cache, unifi]
   - name: uptime-kuma-image-cache
     build:
@@ -1037,12 +1037,6 @@ resources:
   # This could come in the form of network references to resources defined in
   #   the databases section above, or in the form of a database defined in its
   #   own pod that requires a special ISCSi device set up for it.
-  - name: unifi-controller-image
-    build:
-      path: unifi
-      pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/unifi-controller:7.4.162-custom
-    tags: [apps, unifi]
   - name: unifi-controller
     file: unifi/unifi.yaml
     parameters:
