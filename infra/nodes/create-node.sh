@@ -3,7 +3,7 @@
 # Ensure the given node is available within the cluster.
 # If it already exists, exits early.
 #
-set -xeufo pipefail
+set -euf
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SLACK="${SCRIPT_DIR}/slack.sh"

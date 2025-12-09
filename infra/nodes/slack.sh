@@ -2,7 +2,7 @@
 #
 # Send a message via. slackbot to the channel specified by 
 # $SLACK_BOT_ALERTING_CHANNEL, if provided
-set -eufo pipefail
+set -euf
 
 if [ $# -lt 1 ]; then
 	echo >&2 "usage: $0 <message>"

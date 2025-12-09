@@ -47,7 +47,7 @@ spec:
           image: registry.internal.aleemhaji.com/home-network:latest
           imagePullPolicy: Always
           command:
-            - /src/node-rotator/rotate-node.sh
+            - /src/infra/nodes/rotate-node.sh
             - ${ROTATE_NODE_NAME}
           env:
             - name: NODE_NAME

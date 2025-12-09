@@ -2,7 +2,7 @@
 #
 # Remove a node from the cluster.
 #
-set -eufo pipefail
+set -euf
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SLACK="${SCRIPT_DIR}/slack.sh"

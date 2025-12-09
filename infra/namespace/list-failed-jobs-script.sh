@@ -26,7 +26,8 @@ while true; do
 	failed_jobs="$(kubectl -n "$namespace" get jobs -o "jsonpath=$FAILED_JOB_JSONPATH")"
 
 	if [ -n "$failed_jobs" ]; then
-		fail_msg="$(printf 'Namespace "%s" has failed jobs:\n%s' "$namespace" "$(sed 's/^/  /' <<< "$failed_jobs")")"
+		fj_indent="$(while read -r line; do printf '  %s\n' "$line"; done <<< "$failed_jobs")"
+		fail_msg="$(printf 'Namespace "%s" has failed jobs:\n%s' "$namespace" "$fj_indent")"
 		echo >&2 "$fail_msg"
 		slack "$fail_msg"
 	fi

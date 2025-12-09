@@ -7,7 +7,7 @@
 # When run with a single argument, will destroy + recreate the named node,
 #   even if that node is a control-plane node.
 #
-set -xeufo pipefail
+set -eufo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SLACK="${SCRIPT_DIR}/slack.sh"
