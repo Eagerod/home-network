@@ -260,6 +260,23 @@ resources:
       - JOBS_SHELL_CLEANER_SCRIPT=infra/namespace/delete-manual-jobs-script.sh
       - JOBS_SHELL_MONITOR_SCRIPT=infra/namespace/list-failed-jobs-script.sh
     tags: [namespaces, rmq, tasks]
+  - name: immich-namespace
+    file: infra/namespace/namespace.yaml
+    parameters:
+      - NAMESPACE=immich
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - SLACK_BOT_ALERTING_CHANNEL
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+      - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/namespace/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/namespace/pod-killer-script.sh
+      - JOBS_SHELL_CLEANER_SCRIPT=infra/namespace/delete-manual-jobs-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/namespace/list-failed-jobs-script.sh
+    tags: [namespaces, immich]
   # endregion
   - name: node-setup
     file: infra/cluster/node-setup.yaml
@@ -659,6 +676,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/dxflrs/garage:v2.0.0
     tags: [docker-cache, garage]
+  - name: immich-postgres-image-cache
+    build:
+      source: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
+    tags: [docker-cache, immich]
   # endregion
   - name: pihole
     file: pihole/pihole.yaml
@@ -1241,6 +1264,11 @@ resources:
   - name: drone
     file: drone/drone.yaml
     tags: [apps, drone]
+  - name: immich
+    file: immich/immich.yaml
+    parameters:
+      - IMMICH_POSTGRES_ROOT_PASSWORD_BASE64
+    tags: [apps, immich]
   # endregion
   - name: certbot-image
     build:

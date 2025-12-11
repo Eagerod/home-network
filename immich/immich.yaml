@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-postgres
+  namespace: immich
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: freenas-iscsi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secrets
+  namespace: immich
+data:
+  root_password: ${IMMICH_POSTGRES_ROOT_PASSWORD_BASE64}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: immich
+  labels:
+    app: postgres
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  serviceName: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      # Don't run on any other node running another db.
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - mysql
+                        - mongodb
+                        - postgres
+                topologyKey: "kubernetes.io/hostname"
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      initContainers:
+        # Certificates need to have specific permissions for Postgres to accept
+        #   them, so set those in a temporary volume.
+        - name: cert-permissions
+          image: registry.internal.aleemhaji.com/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
+          command:
+            - sh
+            - -c
+            - |
+              cp /src/* /dst/
+              chown postgres:postgres /dst/*
+              chmod 600 /dst/*
+          volumeMounts:
+            - name: postgres-certs-source
+              mountPath: /src
+            - name: postgres-certs
+              mountPath: /dst
+      containers:
+        # TODO -- Watchdog container that kills for readonly filesystem
+        - name: postgres
+          image: registry.internal.aleemhaji.com/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
+          ports:
+            - containerPort: 5432
+          args:
+            - --ssl=on
+            - --ssl_cert_file=/etc/ssl/tls.crt
+            - --ssl_key_file=/etc/ssl/tls.rsa.key
+          env:
+            - name: PGDATA
+              value: /usr/local/pgsql/data
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: root_password
+          volumeMounts:
+            - name: postgres-persistent-storage
+              mountPath: /usr/local/pgsql
+            - name: postgres-certs
+              mountPath: /etc/ssl
+      volumes:
+        - name: postgres-persistent-storage
+          persistentVolumeClaim:
+            claimName: immich-postgres
+        - name: postgres-certs
+          emptyDir: {}
+        - name: postgres-certs-source
+          projected:
+            sources:
+              - secret:
+                  name: internal-certificate-files
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: immich
+  labels:
+    app: postgres
+spec:
+  ports:
+    - port: 5432
+      protocol: TCP
+  selector:
+    app: postgres
