@@ -119,3 +119,45 @@ spec:
       protocol: TCP
   selector:
     app: postgres
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: valkey
+  namespace: immich
+  labels:
+    app: valkey
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: valkey
+  serviceName: valkey
+  template:
+    metadata:
+      name: valkey
+      labels:
+        app: valkey
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: valkey
+          image: registry.internal.aleemhaji.com/valkey/valkey:8.1.5
+          ports:
+            - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: valkey
+  labels:
+    app: valkey
+spec:
+  ports:
+    - port: 6379
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: valkey

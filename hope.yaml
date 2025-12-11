@@ -682,6 +682,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
     tags: [docker-cache, immich]
+  - name: immich-valkey-image-cache
+    build:
+      source: valkey/valkey:8.1.5
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/valkey/valkey:8.1.5
+    tags: [docker-cache, immich]
   # endregion
   - name: pihole
     file: pihole/pihole.yaml
