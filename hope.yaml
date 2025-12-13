@@ -688,6 +688,18 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/valkey/valkey:8.1.5
     tags: [docker-cache, immich]
+  - name: immich-machine-learning-image-cache
+    build:
+      source: ghcr.io/immich-app/immich-machine-learning:v2.3.1
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/immich-app/immich-machine-learning:v2.3.1
+    tags: [docker-cache, immich]
+  - name: immich-server-image-cache
+    build:
+      source: ghcr.io/immich-app/immich-server:v2.3.1
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/immich-app/immich-server:v2.3.1
+    tags: [docker-cache, immich]
   # endregion
   - name: pihole
     file: pihole/pihole.yaml
@@ -1274,6 +1286,7 @@ resources:
     file: immich/immich.yaml
     parameters:
       - IMMICH_POSTGRES_ROOT_PASSWORD_BASE64
+      - IMMICH_DATABASE_URL_BASE64
     tags: [apps, immich]
   # endregion
   - name: certbot-image
