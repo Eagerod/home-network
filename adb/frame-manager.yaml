@@ -1,0 +1,85 @@
+# kubectl create job --from=cronjob/frame-turn-on "frame-turn-on-manual-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom  | head -c 5)"
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: frame-turn-on
+  namespace: immich
+spec:
+  schedule: "0 8 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  timeZone: America/Toronto
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
+          containers:
+            - name: adb
+              image: registry.internal.aleemhaji.com/adb:13.4
+              command:
+                - sh
+                - -eufc
+                - |
+                  adb connect 192.168.1.130:5555
+                  adb shell input keyevent KEYCODE_WAKEUP
+              volumeMounts:
+                - name: adb-secrets
+                  mountPath: /home/adb/.android/adbkey.pub
+                  subPath: adbkey.pub
+                  readOnly: true
+                - name: adb-secrets
+                  mountPath: /home/adb/.android/adbkey
+                  subPath: adbkey
+                  readOnly: true
+          volumes:
+            - name: adb-secrets
+              secret:
+                secretName: adb-secrets
+                defaultMode: 0644
+---
+# kubectl create job --from=cronjob/frame-turn-off "frame-turn-off-manual-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom  | head -c 5)"
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: frame-turn-off
+  namespace: immich
+spec:
+  schedule: "0 19 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  timeZone: America/Toronto
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
+          containers:
+            - name: adb
+              image: registry.internal.aleemhaji.com/adb:13.4
+              command:
+                - sh
+                - -eufc
+                - |
+                  adb connect 192.168.1.130:5555
+                  adb shell input keyevent KEYCODE_SLEEP
+              volumeMounts:
+                - name: adb-secrets
+                  mountPath: /home/adb/.android/adbkey.pub
+                  subPath: adbkey.pub
+                  readOnly: true
+                - name: adb-secrets
+                  mountPath: /home/adb/.android/adbkey
+                  subPath: adbkey
+                  readOnly: true
+          volumes:
+            - name: adb-secrets
+              secret:
+                secretName: adb-secrets
+                defaultMode: 0644

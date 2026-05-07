@@ -1,0 +1,123 @@
+# https://github.com/damongolding/immich-kiosk/blob/main/docker-compose.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immichkiosk
+  namespace: immich
+  labels:
+    app: immichkiosk
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: immichkiosk
+  template:
+    metadata:
+      labels:
+        app: immichkiosk
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: immichkiosk
+          image: registry.internal.aleemhaji.com/damongolding/immich-kiosk:0.38.0
+          ports:
+            - containerPort: 3000
+          env:
+            # https://github.com/damongolding/immich-kiosk/blob/main/docker-compose-env.yaml
+            - name: KIOSK_IMMICH_URL
+              value: https://immich.internal.aleemhaji.com
+            - name: KIOSK_IMMICH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: immickiosk-secrets
+                  key: api_key
+            - name: KIOSK_ALBUMS
+              value: dbc64ef3-d9b6-4ab8-b86f-674ac667b2be
+            - name: KIOSK_SHOW_PROGRESS_BAR
+              value: "false"
+            - name: KIOSK_DURATION
+              value: "30"
+            - name: KIOSK_SHOW_TIME
+              value: "false"
+            # - name: KIOSK_TIME_FORMAT
+            #   value: "24"
+            - name: KIOSK_SHOW_DATE
+              value: "false"
+            # - name: KIOSK_DATE_FORMAT
+            #   value: YYYY-MM-DD
+            - name: KIOSK_CLOCK_SOURCE
+              value: client
+            - name: KIOSK_LAYOUT
+              value: splitview
+            - name: KIOSK_TRANSITION
+              value: crossfade
+            - name: KIOSK_IMAGE_FIT
+              value: cover
+            - name: KIOSK_SHOW_IMAGE_DATE
+              value: "true"
+            - name: KIOSK_IMAGE_DATE_FORMAT
+              value: YYYY-MM-DD
+            - name: KIOSK_SHOW_IMAGE_LOCATION
+              value: "true"
+            - name: KIOSK_BEHIND_PROXY
+              value: "true"
+          volumeMounts:
+            - name: immichkiosk-storage
+              mountPath: /config
+      volumes:
+        - name: immichkiosk-storage
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/immichkiosk
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immichkiosk
+  namespace: immich
+  labels:
+    app: immichkiosk
+spec:
+  ports:
+    - port: 3000
+      protocol: TCP
+  selector:
+    app: immichkiosk
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: immichkiosk-redirect
+  namespace: immich
+  annotations:
+    nginx.ingress.kubernetes.io/temporal-redirect: https://immichkiosk.internal.aleemhaji.com
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: immichkiosk
+    - host: immichkiosk.home
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: immichkiosk
+  namespace: immich
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - immichkiosk.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: immichkiosk.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: immichkiosk
+                port:
+                  number: 3000

@@ -508,6 +508,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/ubuntu:20.04
     tags: [docker-cache, image-monitor]
+  - name: debian-13-4-image-cache
+    build:
+      source: debian:13.4
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/debian:13.4
+    tags: [docker-cache, backup]
   - name: certbot-image-cache
     build:
       source: certbot/certbot:v3.2.0
@@ -699,6 +705,12 @@ resources:
       source: ghcr.io/immich-app/immich-server:v2.3.1
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/immich-app/immich-server:v2.3.1
+    tags: [docker-cache, immich]
+  - name: immichkiosk-image-cache
+    build:
+      source: ghcr.io/damongolding/immich-kiosk:0.38.0
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/damongolding/immich-kiosk:0.38.0
     tags: [docker-cache, immich]
   # endregion
   - name: pihole
@@ -1287,6 +1299,37 @@ resources:
     parameters:
       - IMMICH_POSTGRES_ROOT_PASSWORD_BASE64
       - IMMICH_DATABASE_URL_BASE64
+    tags: [apps, immich]
+  - name: immichkiosk-config
+    inline: |
+      apiVersion: v1
+      data:
+        api_key: ${IMMICHKIOSK_API_KEY_BASE64}
+      kind: Secret
+      metadata:
+        name: immichkiosk-secrets
+        namespace: immich
+    parameters:
+      - IMMICHKIOSK_API_KEY_BASE64
+    tags: [apps, postgres]
+  - name: immichkiosk
+    file: immichkiosk/immichkiosk.yaml
+    tags: [apps, immich]
+  - name: adb-secrets
+    inline: |
+      apiVersion: v1
+      data:
+        adbkey: ${ADBKEY_BASE64}
+        adbkey.pub: ${ADBKEY_PUB_BASE64}
+      kind: Secret
+      metadata:
+        name: adb-secrets
+        namespace: immich
+    parameters:
+      - ADBKEY_BASE64
+      - ADBKEY_PUB_BASE64
+  - name: adb-frame-manager
+    file: adb/frame-manager.yaml
     tags: [apps, immich]
   # endregion
   - name: certbot-image
