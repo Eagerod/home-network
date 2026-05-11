@@ -38,6 +38,7 @@ metadata:
 binaryData:
   script.js: ${BACKUP_SCRIPT}
 ---
+# kubectl create job --from=cronjob/uptime-kuma-backup "uptime-kuma-backup-manual-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom  | head -c 5)"
 apiVersion: batch/v1
 kind: CronJob
 metadata:
