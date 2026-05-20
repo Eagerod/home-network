@@ -40,6 +40,10 @@ spec:
               value: HS256
             - name: GITEA_APP_INI
               value: /data/gitea/conf/app.ini
+            - name: GITEA__SERVER__SSH_PORT
+              value: "22"
+            - name: GITEA__SERVER__SSH_LISTEN_PORT
+              value: "2222"
       volumes:
         - name: gitea-persistent-storage
           nfs:
