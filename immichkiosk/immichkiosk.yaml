@@ -21,7 +21,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: immichkiosk
-          image: registry.internal.aleemhaji.com/damongolding/immich-kiosk:0.38.0
+          image: registry.internal.aleemhaji.com/damongolding/immich-kiosk:0.38.1
           ports:
             - containerPort: 3000
           env:
@@ -31,7 +31,7 @@ spec:
             - name: KIOSK_IMMICH_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: immickiosk-secrets
+                  name: immichkiosk-secrets
                   key: api_key
             - name: KIOSK_ALBUMS
               value: dbc64ef3-d9b6-4ab8-b86f-674ac667b2be
@@ -63,6 +63,8 @@ spec:
               value: "true"
             - name: KIOSK_BEHIND_PROXY
               value: "true"
+            - name: KIOSK_FONT_SIZE
+              value: "140"
           volumeMounts:
             - name: immichkiosk-storage
               mountPath: /config

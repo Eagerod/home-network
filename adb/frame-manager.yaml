@@ -1,4 +1,4 @@
-# kubectl create job --from=cronjob/frame-turn-on "frame-turn-on-manual-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom  | head -c 5)"
+# kubectl -n immich create job --from=cronjob/frame-turn-on "frame-turn-on-manual-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom  | head -c 5)"
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -19,7 +19,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: adb
-              image: registry.internal.aleemhaji.com/adb:13.4
+              image: registry.internal.aleemhaji.com/adb:13.5
               command:
                 - sh
                 - -eufc
@@ -41,7 +41,7 @@ spec:
                 secretName: adb-secrets
                 defaultMode: 0644
 ---
-# kubectl create job --from=cronjob/frame-turn-off "frame-turn-off-manual-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom  | head -c 5)"
+# kubectl -n immich create job --from=cronjob/frame-turn-off "frame-turn-off-manual-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom  | head -c 5)"
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -62,7 +62,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: adb
-              image: registry.internal.aleemhaji.com/adb:13.4
+              image: registry.internal.aleemhaji.com/adb:13.5
               command:
                 - sh
                 - -eufc

@@ -1315,6 +1315,12 @@ resources:
   - name: immichkiosk
     file: immichkiosk/immichkiosk.yaml
     tags: [apps, immich]
+  - name: adb-image
+    build:
+      path: adb
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/adb:13.5
+    tags: [apps, immich]
   - name: adb-secrets
     inline: |
       apiVersion: v1
@@ -1328,6 +1334,7 @@ resources:
     parameters:
       - ADBKEY_BASE64
       - ADBKEY_PUB_BASE64
+    tags: [apps, immich]
   - name: adb-frame-manager
     file: adb/frame-manager.yaml
     tags: [apps, immich]
