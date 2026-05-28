@@ -1,4 +1,4 @@
-FROM debian:12
+FROM registry.internal.aleemhaji.com/debian:13.5
 
 RUN \
     apt-get update && \
