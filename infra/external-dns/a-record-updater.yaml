@@ -16,7 +16,7 @@ spec:
           imagePullSecrets:
             - name: registry.internal.aleemhaji.com
           containers:
-            - name: rsync
+            - name: external-dns
               image: registry.internal.aleemhaji.com/external-dns:latest
               command:
                 - /scripts/entrypoint.sh
