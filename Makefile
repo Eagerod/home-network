@@ -152,7 +152,6 @@ router-dns-config: dns.vbash
 .INTERMEDIATE: pf.vbash
 pf.vbash:
 	sed \
-		-e 's/$${PLEX_IP}/'$(call SERVICE_LB_IP,plex)'/' \
 		-e 's/$${NGINX_IP}/'$(call SERVICE_LB_IP,nginx-external)'/' \
 		.scripts/router-port-forward.vbash > $@
 

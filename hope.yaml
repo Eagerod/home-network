@@ -6,7 +6,6 @@ _:
   - &metallb_address_range ADDRESS_RANGE=192.168.200.32-192.168.200.224
   - &ingress_controller_service_ip LOAD_BALANCER_IP=192.168.200.64
   - &ingress_controller_external_service_ip LOAD_BALANCER_IP=192.168.200.129
-  - &plex_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.69
   - &gitea_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.126
   - &wireguard_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.123
   - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.64
@@ -558,12 +557,6 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/heimdall:2.6.3
     tags: [docker-cache, heimdall]
-  - name: plex-image-cache
-    build:
-      source: plexinc/pms-docker:1.40.5.8921-836b34c27
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pms-docker:1.40.5.8921-836b34c27
-    tags: [docker-cache, plex]
   - name: jellyfin-image-cache
     build:
       source: jellyfin/jellyfin:10.10.6
@@ -891,11 +884,6 @@ resources:
   #   externally through.
   # These shouldn't have any database dependencies, but can have NFS and
   #   ingress.
-  - name: plex
-    file: plex/plex.yaml
-    parameters:
-      - *plex_load_balancer_service_ip
-    tags: [apps, plex]
   - name: jellyfin
     file: jellyfin/jellyfin.yaml
     tags: [apps, jellyfin]
