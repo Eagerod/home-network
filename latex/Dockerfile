@@ -1,4 +1,11 @@
-FROM debian:10
+FROM registry.internal.aleemhaji.com/debian:13.5
+
+# tlmgr needs curl to do its downloads.
+# Install it first, maybe another repo has a curl layer right after debian.
+RUN apt-get update && \
+    apt-get install -y \
+        curl && \
+    apt-get clean
 
 # A bunch of layers, just to keep them small.
 # Helps for low memory registries.
@@ -32,20 +39,16 @@ RUN \
         texlive-pstricks && \
     apt-get clean
 
-# tlmgr needs curl to do its downloads.
-RUN apt-get update && \
-    apt-get install -y curl && \
-    apt-get clean
-
 # RUN tlmgr option repository ftp://tug.org/historic/systems/texlive/2018/tlnet-final
 RUN \
     tlmgr init-usertree && \
-    tlmgr option repository ftp://ftp.math.utah.edu/pub/tex/historic/systems/texlive/2018/tlnet-final && \
+    tlmgr option repository ftp://ftp.math.utah.edu/pub/tex/historic/systems/texlive/2025/tlnet-final && \
     tlmgr update -v --all
 
 RUN apt-get update && \
     apt-get install -y \
-        python3-pip && \
+        python3-pip \
+        python3-venv && \
     apt-get clean
 
 RUN \
@@ -53,7 +56,7 @@ RUN \
     useradd -rm -u 1000 -g latex latex
 
 RUN \
-    curl -fsSL https://www.downloadfonts.io/wp-content/uploads/2018/12/calibri-font-sv.zip -o calibri.zip && \
+    curl -fsSL https://www.dafontfree.io/wp-content/uploads/download-manager-files/calibri-font-family.zip -o calibri.zip && \
     unzip calibri.zip -d Calibri && \
     find Calibri -type f -iname "*.zip" -exec unzip "{}" -d /usr/local/share/fonts/ \; && \
     rm -rf Calibri calibri.zip
@@ -69,10 +72,19 @@ WORKDIR /app
 
 COPY requirements.txt .
 
-RUN pip3 install -r requirements.txt
+RUN \
+    python3 -m venv .venv && \
+    . .venv/bin/activate && \
+    pip3 install -r requirements.txt
 
 COPY server.py .
 
-RUN python3 -m flake8 .
+RUN \
+    python3 -m venv .venv && \
+    . .venv/bin/activate && \
+    python3 -m flake8 server.py
 
-ENTRYPOINT ["python3", "-u", "server.py"]
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+
+ENV PYTHONUNBUFFERED=1
+ENTRYPOINT ["/docker-entrypoint.sh"]

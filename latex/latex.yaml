@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: latex
-          image: registry.internal.aleemhaji.com/latex-server:latest
+          image: registry.internal.aleemhaji.com/latex:13.5
           ports:
             - containerPort: 8080
 ---
