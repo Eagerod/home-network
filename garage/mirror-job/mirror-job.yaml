@@ -1,0 +1,51 @@
+# kubectl -n backup create job --from=cronjob/mc-mirror-<name> "mc-mirror-<name>-manual-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom  | head -c 5)"
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mc-mirror-${NAME}
+  namespace: backup
+spec:
+  schedule: "0 10 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
+          containers:
+            - name: mirror
+              image: registry.internal.aleemhaji.com/mirror-job:13.5
+              command:
+                - sh
+                - -eufc
+                - |
+                  mc alias set "$BUCKET_NAME" https://garage.internal.aleemhaji.com "$BUCKET_SECRET_KEY_ID" "$BUCKET_SECRET_KEY" --api "S3v4" --path "auto"
+                  mc mirror ${ADDITIONAL_MC_ARGS} "${SOURCE_PATH}" "${DEST_PATH}"
+              env:
+                - name: BUCKET_NAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GARAGE_SECRET_NAME}
+                      key: bucket_name
+                - name: BUCKET_SECRET_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GARAGE_SECRET_NAME}
+                      key: secret_key_id
+                - name: BUCKET_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GARAGE_SECRET_NAME}
+                      key: secret_key
+              volumeMounts:
+                - name: nfs-files
+                  mountPath: /nfs
+          volumes:
+            - name: nfs-files
+              nfs:
+                server: 192.168.96.4
+                path: ${NFS_PATH}

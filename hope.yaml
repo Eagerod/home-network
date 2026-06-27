@@ -1286,6 +1286,31 @@ resources:
       - DESTINATION_NFS_SHARE=/mnt/main/backup/apps
       - DEST_PATH=/bitwarden
     tags: [bitwarden, backups]
+  - name: archivist-backup-secret
+    inline: |
+      apiVersion: v1
+      metadata:
+        name: archivist-bucket-backup
+        namespace: backup
+      data:
+        bucket_name: ${GARAGE_ARCHIVIST_BUCKET_NAME_BASE64}
+        secret_key_id: ${GARAGE_ARCHIVIST_ACCESS_KEY_ID_BASE64}
+        secret_key: ${GARAGE_ARCHIVIST_SECRET_ACCESS_KEY_BASE64}
+      kind: Secret
+    parameters:
+      - GARAGE_ARCHIVIST_BUCKET_NAME_BASE64
+      - GARAGE_ARCHIVIST_ACCESS_KEY_ID_BASE64
+      - GARAGE_ARCHIVIST_SECRET_ACCESS_KEY_BASE64
+  - name: archivist-mirror
+    file: garage/mirror-job/mirror-job.yaml
+    parameters:
+      - NAME=archivist
+      - BUCKET_NAME=archive
+      - GARAGE_SECRET_NAME=archivist-bucket-backup
+      - SOURCE_PATH=archive/archive/archivist/
+      - DEST_PATH=/nfs/
+      - NFS_PATH=/mnt/main/backup/apps/archivist
+      - ADDITIONAL_MC_ARGS=--overwrite --remove
   # endregion
   - name: shell-monitor-base-default
     file: shell-monitor/shell-monitor-base.yaml
