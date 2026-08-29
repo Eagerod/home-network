@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: rabbitmq
-          image: registry.internal.aleemhaji.com/rabbitmq:4.0.7-management-alpine
+          image: registry.internal.aleemhaji.com/rabbitmq:4.3.5-management-alpine
           ports:
             - containerPort: 5672
             - containerPort: 15672
@@ -30,7 +30,7 @@ spec:
               printf 'cluster_formation.classic_config.nodes.1 = %s\ncluster_formation.classic_config.nodes.2 = %s\n' \
                 rabbit@rabbitmq-0.rabbitmq rabbit@rabbitmq-1.rabbitmq > "${RABBITMQ_CONFIG_FILE}"
               rabbitmq-plugins --offline enable rabbitmq_shovel rabbitmq_shovel_management
-              RABBITMQ_NODENAME=rabbit@$HOSTNAME.rabbitmq rabbitmq-server --erlang-cookie "${ERLANG_COOKIE}"
+              RABBITMQ_NODENAME=rabbit@$HOSTNAME.rabbitmq rabbitmq-server
           env:
             - name: RABBITMQ_DEFAULT_USER
               valueFrom:
@@ -42,7 +42,7 @@ spec:
                 secretKeyRef:
                   name: rabbitmq-secrets
                   key: password
-            - name: ERLANG_COOKIE
+            - name: RABBITMQ_ERLANG_COOKIE
               valueFrom:
                 secretKeyRef:
                   name: rabbitmq-secrets
