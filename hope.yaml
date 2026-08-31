@@ -567,13 +567,13 @@ resources:
     build:
       source: guacamole/guacamole:1.5.5
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/guacamole:1.5.5
+      tag: registry.internal.aleemhaji.com/guacamole/guacamole:1.5.5
     tags: [docker-cache, guacamole]
   - name: guacd-image-cache
     build:
       source: guacamole/guacd:1.5.5
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/guacd:1.5.5
+      tag: registry.internal.aleemhaji.com/guacamole/guacd:1.5.5
     tags: [docker-cache, guacamole]
   - name: gitea-image-cache
     build:

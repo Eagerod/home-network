@@ -20,9 +20,9 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: guacd
-          image: registry.internal.aleemhaji.com/guacd:1.5.5
+          image: registry.internal.aleemhaji.com/guacamole/guacd:1.6.0
         - name: guacamole
-          image: registry.internal.aleemhaji.com/guacamole:1.5.5
+          image: registry.internal.aleemhaji.com/guacamole/guacamole:1.6.0
           ports:
             - containerPort: 8080
           env:
@@ -90,7 +90,7 @@ spec:
       http:
         paths:
           - path: /(.*)
-            pathType: Prefix
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: guacamole
