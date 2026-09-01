@@ -18,4 +18,5 @@ RUN \
         -iname "*.yaml" -o -iname "*.yml" | \
     grep -vE "/src/infra/cluster/(metallb|calico|nginx-ingress-daemonset-external|nginx-ingress-daemonset-plus-tcp-udp-proxy)\.(yml|yaml)" | \
     grep -vE "/src/(metrics-server|kubernetes-dashboard)\.(yml|yaml)" | \
+    grep -vE "/src/garage/crd.yaml" | \
     xargs yamllint -d "{extends: default, rules: {document-start: disable, line-length: disable}}"
