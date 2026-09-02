@@ -723,10 +723,9 @@ resources:
     fileParameters:
       - A_RECORD_MANAGER_SCRIPT=./infra/external-dns/a-record-updater.sh
       - CNAME_RECORD_MANAGER_SCRIPT=./infra/external-dns/cname-record-updater.sh
-    tags: [dns, external-dns]
     parameters:
       - SLACK_BOT_ALERTING_CHANNEL
-    tags: [dns]
+    tags: [dns, external-dns]
   - name: cname-record-updater
     file: infra/external-dns/cname-record-updater.yaml
     parameters:
