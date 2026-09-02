@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: external-dns-a-record-updater
+spec:
+  schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
+          containers:
+            - name: rsync
+              image: registry.internal.aleemhaji.com/external-dns:latest
+              command:
+                - /scripts/entrypoint.sh
+              resources:
+                requests:
+                  memory: "128Mi"
+                  cpu: "50m"
+                limits:
+                  memory: "128Mi"
+                  cpu: "50m"
+              env:
+                - name: SLACK_BOT_ALERTING_CHANNEL
+                  value: ${SLACK_BOT_ALERTING_CHANNEL}
+                - name: CF_API_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: cloudflare-dns
+                      key: api_token
+                - name: CF_ZONE_ID
+                  valueFrom:
+                    configMapKeyRef:
+                      name: cloudflare-dns
+                      key: zone_id
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+          volumes:
+            - name: scripts
+              configMap:
+                name: dns-manager-a-record-config
+                defaultMode: 0755
