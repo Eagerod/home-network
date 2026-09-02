@@ -648,6 +648,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/dxflrs/garage:v2.0.0
     tags: [docker-cache, garage]
+  - name: cloudflared-image-cache
+    build:
+      source: cloudflare/cloudflared:2024.10.1
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/cloudflare/cloudflared:2024.10.1
+    tags: [docker-cache, cloudflared]
   # endregion
   - name: pihole
     file: pihole/pihole.yaml
@@ -870,6 +876,16 @@ resources:
     parameters:
       - NAME=knowledge
     tags: [apps, web, logseq, knowledge]
+  - name: readme-service
+    file: barebones-nginx/service.yaml
+    parameters:
+      - NAME=readme
+    tags: [apps, web, readme]
+  - name: readme-ingress
+    file: barebones-nginx/internal-ingress.yaml
+    parameters:
+      - NAME=readme
+    tags: [apps, web, readme]
   # endregion
   # region: NFS-Share + Port Forwarded Services
   # This block of services include resources that need access to shared
