@@ -99,13 +99,15 @@ trap 'rm -f "$dbfile"' EXIT
 
 sqlite3 "$dbfile" 'CREATE TABLE records (domain TEXT PRIMARY KEY, response TEXT);'
 
-kubectl get ingress --output-watch-events -A -w -o custom-columns="NAMESPACE:.object.metadata.namespace,NAME:.object.metadata.name,INGRESS_CLASS:.object.spec.ingressClassName,HOSTS:.object.spec.rules[*].host,EVENT:.type" | \
-  awk -Winteractive "{ if (\$3 == \"$INGRESS_CLASS\") print }" | \
-  awk -Winteractive "{ if (\$4 != \"$CNAME_TARGET\") print }" | \
-  awk -Winteractive '{ print $1, $2, $4, $5 }' | \
-  while read -r line; do
-	resource_update "$line"
-  done
+while true; do
+	kubectl get ingress --output-watch-events -A -w -o custom-columns="NAMESPACE:.object.metadata.namespace,NAME:.object.metadata.name,INGRESS_CLASS:.object.spec.ingressClassName,HOSTS:.object.spec.rules[*].host,EVENT:.type" | \
+		awk -Winteractive "{ if (\$3 == \"$INGRESS_CLASS\") print; fflush(); }" | \
+		awk -Winteractive "{ if (\$4 != \"$CNAME_TARGET\") print; fflush(); }" | \
+		awk -Winteractive '{ print $1, $2, $4, $5; fflush(); }' | \
+		while read -r line; do
+			resource_update "$line"
+		done
 
-echo "Watch exited, dumping records..."
-sqlite3 "$dbfile" 'SELECT * FROM records;'
+	echo >&2 "Watch exited, dumping records..."
+	sqlite3 >&2 "$dbfile" 'SELECT * FROM records;'
+done

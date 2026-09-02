@@ -706,8 +706,11 @@ resources:
       - A_RECORD_MANAGER_SCRIPT=./infra/external-dns/a-record-updater.sh
       - CNAME_RECORD_MANAGER_SCRIPT=./infra/external-dns/cname-record-updater.sh
     tags: [dns, external-dns]
-  - name: a-record-updater
-    file: infra/external-dns/a-record-updater.yaml
+    parameters:
+      - SLACK_BOT_ALERTING_CHANNEL
+    tags: [dns]
+  - name: cname-record-updater
+    file: infra/external-dns/cname-record-updater.yaml
     parameters:
       - SLACK_BOT_ALERTING_CHANNEL
     tags: [dns, external-dns]
@@ -789,20 +792,6 @@ resources:
   - name: slackbot
     file: slackbot/slackbot.yaml
     tags: [apps, slackbot, stateless]
-  - name: dns-update-secrets
-    inline: |
-      apiVersion: v1
-      data:
-        value: ${NAMESILO_API_KEY_BASE64}
-      kind: Secret
-      metadata:
-        name: namesilo-api-key
-    parameters:
-      - NAMESILO_API_KEY_BASE64
-    tags: [crons, dns, certbot, stateless]
-  - name: dns-manager
-    file: dns-operator.yaml
-    tags: [dns, stateless]
   - name: latex-image
     build:
       path: latex
