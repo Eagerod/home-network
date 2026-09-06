@@ -26,10 +26,10 @@ if [ $# -eq 1 ]; then
     vm_name="$1"
     slack "VM builder will build $vm_name"
 else
-    slack "VM builder not given a vm name to build. Exiting early"
+    slack "VM builder not given a vm name to build. Must be provided a vm name"
 	exit 1
 fi
 
 hope --config hope.yaml vm image "$vm_name"
 
-slack "Node rotator completed with vm $vm_name"
+slack "VM builder completed with vm $vm_name"

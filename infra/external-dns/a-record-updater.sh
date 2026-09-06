@@ -40,7 +40,7 @@ if ! external_ip="$(curl -fsS https://icanhazip.com)"; then
 fi
 
 if [ "$(jq -er '.result[0].content' <<< "$response")" = "$external_ip" ]; then
-	echo >&2 "A record already holds the expected value. Exiting early"
+	echo >&2 "A record already holds the expected value. Skipping A record update"
 	exit 0
 fi
 

@@ -22,7 +22,7 @@ if [ -z "$VM_MANAGEMENT_PASSWORD" ]; then
 fi
 
 if hope --config hope.yaml kubectl get node "$node_id" 2> /dev/null; then
-	echo "$node_id already in cluster. Exiting early"
+	echo "$node_id already in cluster. Skipping node creation"
 	exit 0
 fi
 

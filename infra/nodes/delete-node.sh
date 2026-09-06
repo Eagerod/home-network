@@ -23,7 +23,7 @@ fi
 
 hypervisor="$(hope --config hope.yaml node hypervisor "$node_id")"
 if ! hope --config hope.yaml vm list "$hypervisor" | grep "^$node_id\$"; then
-	"${SLACK}" "Node $node_id seems to not be present on the hypervisor. Exiting early"
+	"${SLACK}" "Node $node_id seems to not be present on the hypervisor. Skipping delete"
 	exit
 fi
 
