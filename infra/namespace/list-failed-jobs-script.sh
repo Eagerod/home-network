@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 #
-# List all failed jobs.
+# List all failed jobs in a namespace by giving the commands to delete them.
 set -euf
 
 SLACK_URL="https://slackbot.internal.aleemhaji.com/message"
 
 FAILED_JOB_JSONPATH='{range .items[?(@.status.failed>0)]}{.metadata.name}{"\n"}{end}'
+FAILED_JOB_FORMAT='kubectl -n %s delete job %s\n'
+FULL_MESSAGE_FORMAT='Namespace "%s" has failed jobs:\n```\n%s\n```'
 
 slack() {
 	curl -sS -X POST -H "X-SLACK-CHANNEL-ID: ${SLACK_BOT_ALERTING_CHANNEL}" -d "$@" "$SLACK_URL"
@@ -26,8 +28,8 @@ while true; do
 	failed_jobs="$(kubectl -n "$namespace" get jobs -o "jsonpath=$FAILED_JOB_JSONPATH")"
 
 	if [ -n "$failed_jobs" ]; then
-		fj_indent="$(while read -r line; do printf '  %s\n' "$line"; done <<< "$failed_jobs")"
-		fail_msg="$(printf 'Namespace "%s" has failed jobs:\n%s' "$namespace" "$fj_indent")"
+		fj_indent="$(while read -r line; do printf "$FAILED_JOB_FORMAT" "$namespace" "$line"; done <<< "$failed_jobs")"
+		fail_msg="$(printf "$FULL_MESSAGE_FORMAT" "$namespace" "$fj_indent")"
 		echo >&2 "$fail_msg"
 		slack "$fail_msg"
 	fi
