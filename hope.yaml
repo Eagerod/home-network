@@ -408,9 +408,6 @@ resources:
         - port: 5432
           name: postgres
           protocol: TCP
-        - port: 27017
-          name: mongodb
-          protocol: TCP
         type: LoadBalancer
         loadBalancerIP: ${LOAD_BALANCER_IP}
         selector:

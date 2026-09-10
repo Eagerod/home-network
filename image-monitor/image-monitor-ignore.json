@@ -89,17 +89,6 @@
 	"masipcat/wireguard-go": [
 		"\\\\b-amd64"
 	],
-	"mongo": [
-		"\\\\bwindowsservercore\\\\b",
-		"\\\\bnanoserver\\\\b",
-		"\\\\bfocal\\\\b",
-		"\\\\bbionic\\\\b",
-		"\\\\bxenial\\\\b",
-		"\\\\bjammy\\\\b",
-		"\\\\brc\\\\d*\\\\b",
-		"^\\\\d+$",
-		"^\\\\d+\\\\.\\\\d+$"
-	],
 	"mysql": [
 		"\\\\boracle",
 		"\\\\bdebian",
