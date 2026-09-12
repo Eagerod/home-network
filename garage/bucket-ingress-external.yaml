@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ${NAME}-bucket-external
+spec:
+  ingressClassName: nginx-external
+  tls:
+    - hosts:
+        - ${NAME}.aleemhaji.com
+      secretName: external-certificate-files
+  rules:
+    - host: ${NAME}.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: garage
+                port:
+                  number: 3902

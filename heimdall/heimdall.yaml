@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: heimdall-deployment
+  name: heimdall
   labels:
     app: heimdall
 spec:
@@ -19,7 +19,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: heimdall
-          image: registry.internal.aleemhaji.com/heimdall:version-2.2.2
+          image: registry.internal.aleemhaji.com/heimdall:2.6.3
           ports:
             - containerPort: 80
           env:
@@ -44,17 +44,15 @@ spec:
   ports:
     - port: 80
       protocol: TCP
-  type: NodePort
   selector:
     app: heimdall
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: heimdall-ingress
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
+  name: heimdall
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - internal.aleemhaji.com

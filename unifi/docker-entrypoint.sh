@@ -9,7 +9,7 @@ fi
 
 IS_DEFAULT=${IS_DEFAULT:-false}
 
-sed -i "s/system_ip=.*/system_ip=${UNIFI_SERVICE_IP}/g" /usr/lib/unifi/data/system.properties
-echo "is_default=${IS_DEFAULT}" >> /usr/lib/unifi/data/system.properties
+sed -i "s/system_ip=.*/system_ip=${UNIFI_SERVICE_IP}/g" /config/data/system.properties
+echo "is_default=${IS_DEFAULT}" >> /config/data/system.properties
 
 exec /init

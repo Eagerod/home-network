@@ -10,12 +10,6 @@ set port-forward hairpin-nat enable
 set port-forward wan-interface eth0
 set port-forward lan-interface eth1
 
-set port-forward rule 1 description 'PLEX'
-set port-forward rule 1 forward-to address ${PLEX_IP}
-set port-forward rule 1 forward-to port 32400
-set port-forward rule 1 original-port 32400
-set port-forward rule 1 protocol tcp
-
 set port-forward rule 2 description 'Web Server HTTP'
 set port-forward rule 2 forward-to address ${NGINX_IP}
 set port-forward rule 2 forward-to port 80

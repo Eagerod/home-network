@@ -1,3 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: freenas-iscsi
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -16,6 +27,21 @@ spec:
       labels:
         app: postgres
     spec:
+      # Don't run on any other node running another db.
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - mysql
+                        - mongodb
+                        - postgres
+                topologyKey: "kubernetes.io/hostname"
       imagePullSecrets:
         - name: registry.internal.aleemhaji.com
       initContainers:
@@ -59,11 +85,8 @@ spec:
                   key: root_password
       volumes:
         - name: postgres-persistent-storage
-          iscsi:
-            targetPortal: 192.168.96.4
-            iqn: iqn.2019-05.com.aleemhaji.internal.ctl:postgres
-            lun: 15
-            fsType: ext4
+          persistentVolumeClaim:
+            claimName: postgres
         - name: postgres-certs
           emptyDir: {}
         - name: postgres-certs-source
@@ -80,8 +103,7 @@ metadata:
     app: postgres
 spec:
   ports:
-  - port: 5432
-    protocol: TCP
-  type: NodePort
+    - port: 5432
+      protocol: TCP
   selector:
     app: postgres

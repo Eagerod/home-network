@@ -6,11 +6,14 @@ _:
   - &metallb_address_range ADDRESS_RANGE=192.168.200.32-192.168.200.224
   - &ingress_controller_service_ip LOAD_BALANCER_IP=192.168.200.64
   - &ingress_controller_external_service_ip LOAD_BALANCER_IP=192.168.200.129
-  - &plex_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.69
+  - &gitea_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.126
   - &wireguard_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.123
   - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.64
   - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
   - &unifi_controller_inform_url http://192.168.200.82:8080
+  - &devbox_service_ip LOAD_BALANCER_IP=192.168.200.224
+  - &vm_builder_service_ip LOAD_BALANCER_IP=192.168.200.222
+  - &pihole_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.217
   - &docker_hub_upstream_pull if-not-present
   - &local_upstream_pull always
 access_point_controller: *unifi_controller_inform_url
@@ -24,19 +27,38 @@ vms:
   output: /var/lib/packer/images
   images:
     - name: load-balancer
+      hypervisors: [beast1]
       parameters:
+        - ESXI_USERNAME=root
         - ESXI_ROOT_PASSWORD
         - SERVER_SSH_KEYS_DIR=/var/lib/packer/etc/ssh
         - ESXI_NETWORK=VM Network
         - VM_ROOT_PASSWORD
         - VM_MANAGEMENT_PASSWORD
-    - name: kubernetes-node
+        - LOAD_BALANCER_IP
+    - name: kubernetes-node-12.6.0-1.22.17
+      hypervisors: [beast1]
       parameters:
+        - ESXI_USERNAME=root
         - ESXI_ROOT_PASSWORD
         - SERVER_SSH_KEYS_DIR=/var/lib/packer/etc/ssh
         - ESXI_NETWORK=VM Network
         - VM_ROOT_PASSWORD
         - VM_MANAGEMENT_PASSWORD
+        - LOAD_BALANCER_IP
+    - name: kubernetes-node-12.6.0-1.23.17
+      hypervisors: [beast1]
+      parameters:
+        - ESXI_USERNAME=root
+        - ESXI_ROOT_PASSWORD
+        - SERVER_SSH_KEYS_DIR=/var/lib/packer/etc/ssh
+        - ESXI_NETWORK=VM Network
+        - VM_ROOT_PASSWORD
+        - VM_MANAGEMENT_PASSWORD
+        - LOAD_BALANCER_IP
+        - DEBIAN_VERSION=12.6.0
+        - DEBIAN_SHA512=712cf43c5c9d60dbd5190144373c18b910c89051193c47534a68b0cd137c99bd8274902f59b25aba3b6ba3e5bca51d7c433c06522f40adb93aacc5e21acf57eb
+        - KUBERNETES_VERSION=1.23.17
 load_balancer_host: api.internal.aleemhaji.com
 nodes:
   - name: beast1
@@ -56,60 +78,221 @@ nodes:
   - name: home-load-balancer
     role: load-balancer
     hypervisor: beast1
+    cpu: 1
+    memory: 256
     user: packer
   - name: home-master-01
     role: master
     hypervisor: beast1
+    cpu: 2
+    memory: 4096
     user: packer
   - name: home-master-02
     role: master
     hypervisor: beast1
+    cpu: 2
+    memory: 4096
     user: packer
   - name: home-master-03
     role: master
     hypervisor: beast1
+    cpu: 2
+    memory: 4096
     user: packer
   - name: home-node-01
     role: node
     hypervisor: beast1
+    cpu: 2
+    memory: 8192
     user: packer
   - name: home-node-02
     role: node
     hypervisor: beast1
+    cpu: 2
+    memory: 8192
     user: packer
   - name: home-node-03
     role: node
     hypervisor: beast1
+    cpu: 2
+    memory: 8192
     user: packer
   - name: home-node-04
     role: node
     hypervisor: beast1
+    cpu: 2
+    memory: 8192
     user: packer
   - name: home-node-05
     role: node
     hypervisor: beast1
+    cpu: 2
+    memory: 8192
     user: packer
   - name: home-node-06
     role: node
     hypervisor: beast1
+    cpu: 2
+    memory: 8192
     user: packer
   # Provide extra capacity while cycling other nodes.
   - name: home-node-temp
     role: node
     hypervisor: beast1
+    cpu: 2
+    memory: 8192
     user: packer
   - name: home-master-temp
     role: master
     hypervisor: beast1
+    cpu: 2
+    memory: 4096
     user: packer
 loglevel: *log_level
 pod_network_cidr: 10.244.0.0/16
 resources:
+  # region: Namespaces
+  - name: namespace-image-build
+    build:
+      path: infra/namespace
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/kubectl-ns:1.32.1
+    tags: [namespaces]
+  - name: default-namespace
+    file: infra/namespace/namespace.yaml
+    parameters:
+      - NAMESPACE=default
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - SLACK_BOT_ALERTING_CHANNEL
+      - INCLUDE_EXTERNAL_CERTS=true
+      - INCLUDE_BARE_DOMAIN=true
+      - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/namespace/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/namespace/pod-killer-script.sh
+      - JOBS_SHELL_CLEANER_SCRIPT=infra/namespace/delete-manual-jobs-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/namespace/list-failed-jobs-script.sh
+    tags: [namespaces]
+  - name: dev-namespace
+    file: infra/namespace/namespace.yaml
+    parameters:
+      - NAMESPACE=dev
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - SLACK_BOT_ALERTING_CHANNEL
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+      - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/namespace/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/namespace/pod-killer-script.sh
+      - JOBS_SHELL_CLEANER_SCRIPT=infra/namespace/delete-manual-jobs-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/namespace/list-failed-jobs-script.sh
+    tags: [namespaces, rotate-node]
+  - name: monitoring-namespace
+    file: infra/namespace/namespace.yaml
+    parameters:
+      - NAMESPACE=monitoring
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - SLACK_BOT_ALERTING_CHANNEL
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+      - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/namespace/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/namespace/pod-killer-script.sh
+      - JOBS_SHELL_CLEANER_SCRIPT=infra/namespace/delete-manual-jobs-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/namespace/list-failed-jobs-script.sh
+    tags: [namespaces, monitoring]
+  - name: kube-system-namespace
+    file: infra/namespace/namespace.yaml
+    parameters:
+      - NAMESPACE=kube-system
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - SLACK_BOT_ALERTING_CHANNEL
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+      - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/namespace/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/namespace/pod-killer-script.sh
+      - JOBS_SHELL_CLEANER_SCRIPT=infra/namespace/delete-manual-jobs-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/namespace/list-failed-jobs-script.sh
+    tags: [namespaces]
+  - name: kubernetes-dashboard-namespace
+    file: infra/namespace/namespace.yaml
+    parameters:
+      - NAMESPACE=kubernetes-dashboard
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - SLACK_BOT_ALERTING_CHANNEL
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+      - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/namespace/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/namespace/pod-killer-script.sh
+      - JOBS_SHELL_CLEANER_SCRIPT=infra/namespace/delete-manual-jobs-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/namespace/list-failed-jobs-script.sh
+    tags: [namespaces, dashboard]
+  - name: tasks-namespace
+    file: infra/namespace/namespace.yaml
+    parameters:
+      - NAMESPACE=tasks
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - SLACK_BOT_ALERTING_CHANNEL
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+      - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/namespace/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/namespace/pod-killer-script.sh
+      - JOBS_SHELL_CLEANER_SCRIPT=infra/namespace/delete-manual-jobs-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/namespace/list-failed-jobs-script.sh
+    tags: [namespaces, rmq, tasks]
+  - name: immich-namespace
+    file: infra/namespace/namespace.yaml
+    parameters:
+      - NAMESPACE=immich
+      - DOCKER_REGISTRY_HOSTNAME
+      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
+      - SLACK_BOT_ALERTING_CHANNEL
+      - INCLUDE_EXTERNAL_CERTS=false
+      - INCLUDE_BARE_DOMAIN=false
+      - POD_KILLER_CONTAINER_RESTART_LIMIT=10
+      - JOB_RETENTION_WINDOW=1 month
+    fileParameters:
+      - UPDATE_SECRETS_SCRIPT=infra/namespace/certbot-copy-script.sh
+      - POD_KILLER_SCRIPT=infra/namespace/pod-killer-script.sh
+      - JOBS_SHELL_CLEANER_SCRIPT=infra/namespace/delete-manual-jobs-script.sh
+      - JOBS_SHELL_MONITOR_SCRIPT=infra/namespace/list-failed-jobs-script.sh
+    tags: [namespaces, immich]
+  # endregion
+  - name: node-setup
+    file: infra/cluster/node-setup.yaml
   - name: calico
-    file: https://docs.projectcalico.org/archive/v3.18/manifests/calico.yaml
+    file: infra/cluster/calico.yaml
     tags: [network]
-  - name: dashboard
-    file: https://raw.githubusercontent.com/kubernetes/dashboard/v2.1.0/aio/deploy/recommended.yaml
+  - name: kubernetes-dashboard-helm
+    helm:
+      namespace: kubernetes-dashboard
+      repo: kubernetes-dashboard
+      name: kubernetes-dashboard
+      path: https://kubernetes.github.io/dashboard/
+      chart: kubernetes-dashboard/kubernetes-dashboard
+      version: "7.11.1"
+  - name: kubernetes-dashboard-ingress
+    file: infra/services/kubernetes-dashboard-ingress.yaml
     tags: [apps, dashboard]
   - name: metrics-server
     file: metrics-server.yaml
@@ -120,6 +303,15 @@ resources:
       metadata:
         name: aleem
         namespace: kube-system
+      ---
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: aleem
+        namespace: kube-system
+        annotations:
+          kubernetes.io/service-account.name: aleem
+      type: kubernetes.io/service-account-token
       ---
       apiVersion: rbac.authorization.k8s.io/v1
       kind: ClusterRoleBinding
@@ -134,26 +326,25 @@ resources:
         name: aleem
         namespace: kube-system
     tags: [users]
-  - name: load-balancer-namespace
-    file: https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/namespace.yaml
-    tags: [network, load-balancer]
   - name: load-balancer
-    file: metallb-ifnotpresent.yaml
+    file: infra/cluster/metallb.yaml
     tags: [network, load-balancer]
   - name: load-balancer-config
     inline: |
-      apiVersion: v1
-      kind: ConfigMap
+      apiVersion: metallb.io/v1beta1
+      kind: IPAddressPool
       metadata:
+        name: service-pool
         namespace: metallb-system
-        name: config
-      data:
-        config: |
-          address-pools:
-            - name: default
-              protocol: layer2
-              addresses:
-                - ${ADDRESS_RANGE}
+      spec:
+        addresses:
+        - ${ADDRESS_RANGE}
+      ---
+      apiVersion: metallb.io/v1beta1
+      kind: L2Advertisement
+      metadata:
+        name: service-advertisement
+        namespace: metallb-system
       ---
       apiVersion: v1
       data:
@@ -167,10 +358,10 @@ resources:
       - *metallb_address_range
     tags: [network, load-balancer]
   - name: ingress-controller
-    file: nginx-ingress-daemonset-plus-tcp-udp-proxy.yaml
+    file: infra/cluster/nginx-ingress-daemonset-plus-tcp-udp-proxy.yaml
     tags: [network, ingress, ingress-internal]
   - name: ingress-controller-external
-    file: nginx-ingress-daemonset-external.yaml
+    file: infra/cluster/nginx-ingress-daemonset-external.yaml
     tags: [network, ingress, ingress-external]
   - name: ingress-controller-configs
     inline: |
@@ -183,9 +374,6 @@ resources:
         53: "default/pihole-tcp:53"
         3306: "default/mysql:3306"
         5432: "default/postgres:5432"
-        6379: "default/redis:6379"
-        27017: "default/mongodb:27017"
-        51413: "default/osstransmission:51413"
       ---
       apiVersion: v1
       kind: ConfigMap
@@ -193,27 +381,7 @@ resources:
         name: udp-services
       data:
         53: "default/pihole-udp:53"
-      ---
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        name: ingress-nginx-controller
-        namespace: ingress-nginx
-      data:
-        http-redirect-code: "302"
-        enable-real-ip: "true"
     tags: [network, ingress, ingress-internal]
-  - name: ingress-controller-configs-external
-    inline: |
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        name: ingress-nginx-controller
-        namespace: ingress-nginx-external
-      data:
-        http-redirect-code: "302"
-        enable-real-ip: "true"
-    tags: [network, ingress, ingress-external]
   - name: ingress-controller-service
     inline: |
       apiVersion: v1
@@ -228,12 +396,6 @@ resources:
       spec:
         externalTrafficPolicy: Local
         ports:
-        - port: 22
-          name: gitea-ssh
-          protocol: TCP
-        - port: 53
-          name: dns
-          protocol: TCP
         - port: 80
           name: http
           protocol: TCP
@@ -246,19 +408,11 @@ resources:
         - port: 5432
           name: postgres
           protocol: TCP
-        - port: 6379
-          name: redis
-          protocol: TCP
-        - port: 27017
-          name: mongodb
-          protocol: TCP
-        - port: 51413
-          name: osstransmission
-          protocol: TCP
         type: LoadBalancer
         loadBalancerIP: ${LOAD_BALANCER_IP}
         selector:
           app.kubernetes.io/name: ingress-nginx
+          app.kubernetes.io/instance: ingress-nginx
       ---
       apiVersion: v1
       kind: Service
@@ -279,6 +433,7 @@ resources:
         loadBalancerIP: ${LOAD_BALANCER_IP}
         selector:
           app.kubernetes.io/name: ingress-nginx
+          app.kubernetes.io/instance: ingress-nginx
     tags: [network, ingress, ingress-internal]
     parameters:
       - *ingress_controller_service_ip
@@ -287,10 +442,10 @@ resources:
       apiVersion: v1
       kind: Service
       metadata:
-        name: nginx-ingress-tcp
+        name: nginx-ingress-external-tcp
         labels:
-          app: nginx-ingress
-        namespace: ingress-nginx-external
+          app: nginx-ingress-external
+        namespace: ingress-nginx
         annotations:
           metallb.universe.tf/allow-shared-ip: ingress-external
       spec:
@@ -306,94 +461,10 @@ resources:
         loadBalancerIP: ${LOAD_BALANCER_IP}
         selector:
           app.kubernetes.io/name: ingress-nginx
-      # ---
-      # apiVersion: v1
-      # kind: Service
-      # metadata:
-      #   name: nginx-ingress-udp
-      #   labels:
-      #     app: nginx-ingress
-      #   namespace: ingress-nginx-external
-      #   annotations:
-      #     metallb.universe.tf/allow-shared-ip: ingress-external
-      # spec:
-      #   externalTrafficPolicy: Local
-      #   ports:
-      #   type: LoadBalancer
-      #   loadBalancerIP: ${LOAD_BALANCER_IP}
-      #   selector:
-      #     app.kubernetes.io/name: ingress-nginx
+          app.kubernetes.io/instance: ingress-nginx-external
     tags: [network, ingress, ingress-external]
     parameters:
       - *ingress_controller_external_service_ip
-  - name: kubernetes-dashboard-ingress
-    inline: |
-      apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      metadata:
-        namespace: kubernetes-dashboard
-        name: dashboard-ingress-redirect
-        annotations:
-          kubernetes.io/ingress.class: "nginx"
-          nginx.ingress.kubernetes.io/temporal-redirect: https://dashboard.internal.aleemhaji.com
-      spec:
-        rules:
-          - host: dashboard
-          - host: dashboard.home
-      ---
-      apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      metadata:
-        namespace: kubernetes-dashboard
-        name: dashboard-ingress
-        annotations:
-          kubernetes.io/ingress.class: "nginx"
-          nginx.ingress.kubernetes.io/backend-protocol: "https"
-      spec:
-        tls:
-          - hosts:
-              - dashboard.internal.aleemhaji.com
-            secretName: internal-certificate-files
-        rules:
-          - host: dashboard.internal.aleemhaji.com
-            http:
-              paths:
-                - path: /
-                  pathType: Prefix
-                  backend:
-                    service:
-                      name: kubernetes-dashboard
-                      port:
-                        number: 443
-    tags: [apps, dashboard]
-  - name: cluster-registry-secrets-default
-    file: registry/registry-secrets.yaml
-    parameters:
-      - NAMESPACE=default
-      - DOCKER_REGISTRY_HOSTNAME
-      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
-    tags: [apps, registry]
-  - name: cluster-registry-secrets-dev
-    file: registry/registry-secrets.yaml
-    parameters:
-      - NAMESPACE=dev
-      - DOCKER_REGISTRY_HOSTNAME
-      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
-    tags: [apps, registry]
-  - name: cluster-registry-secrets-monitoring
-    file: registry/registry-secrets.yaml
-    parameters:
-      - NAMESPACE=monitoring
-      - DOCKER_REGISTRY_HOSTNAME
-      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
-    tags: [apps, registry]
-  - name: cluster-registry-secrets-kube-system
-    file: registry/registry-secrets.yaml
-    parameters:
-      - NAMESPACE=kube-system
-      - DOCKER_REGISTRY_HOSTNAME
-      - DOCKER_CONFIG_JSON_FILE_CONTENTS_BASE64
-    tags: [apps, registry]
   - name: docker-registry-htpasswd-secrets
     inline: |
       apiVersion: v1
@@ -409,11 +480,6 @@ resources:
   - name: docker-registry
     file: registry/registry.yaml
     tags: [apps, registry]
-  - name: pihole
-    file: pihole/pihole.yaml
-    parameters:
-      - *pihole_ingress_controller_ip
-    tags: [apps, pihole]
   # region: Docker Image Caching
   # At this point, the registry has been pushed, and all the appropriate
   #   ingress configurations should be set to allow for images to be cached.
@@ -437,37 +503,31 @@ resources:
       source: ubuntu:20.04
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/ubuntu:20.04
-    tags: [docker-cache, transmission]
+    tags: [docker-cache, image-monitor]
+  - name: debian-13-4-image-cache
+    build:
+      source: debian:13.4
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/debian:13.4
+    tags: [docker-cache, backup]
   - name: certbot-image-cache
     build:
-      source: certbot/certbot:v1.25.0
+      source: certbot/certbot:v3.2.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/certbot:v1.25.0
+      tag: registry.internal.aleemhaji.com/certbot/certbot:v3.2.0
     tags: [docker-cache, certbot]
-  - name: mongo-37-image-cache
-    build:
-      source: mongo:3.7
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/mongo:3.7
-    tags: [docker-cache, mongodb]
-  - name: mongo-36-image-cache
-    build:
-      source: mongo:3.6
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/mongo:3.6
-    tags: [docker-cache, mongodb, unifi]
   - name: busybox-image-cache
     build:
-      source: busybox:1.35.0
+      source: busybox:1.37.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/busybox:1.35.0
-    tags: [docker-cache, mysql, redis, pihole]
-  - name: mysql-57-image-cache
+      tag: registry.internal.aleemhaji.com/busybox:1.37.0
+    tags: [docker-cache, mysql, pihole]
+  - name: mysql-image-cache
     build:
-      source: mysql:5.7.37
+      source: mysql:8.0.23
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/mysql:5.7.37
-    tags: [docker-cache, mysql]
+      tag: registry.internal.aleemhaji.com/mysql:8.0.23
+    tags: [docker-cache, mysql, firefly, guacamole, node-red, playground]
   - name: pihole-image-cache
     build:
       source: pihole/pihole:v5.8
@@ -476,123 +536,192 @@ resources:
     tags: [docker-cache, pihole]
   - name: browser-image-cache
     build:
-      source: klausmeyer/docker-registry-browser:1.3.5
+      source: klausmeyer/docker-registry-browser:1.7.5
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/docker-registry-browser:1.3.5
+      tag: registry.internal.aleemhaji.com/docker-registry-browser:1.7.5
     tags: [docker-cache, browser]
-  - name: curl-cache
-    build:
-      source: curlimages/curl:7.80.0
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/curl:7.80.0
-    tags: [docker-cache, remindmebot, webcomics]
   - name: postgres-image-cache
     build:
       source: postgres:9
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/postgres:9
     tags: [docker-cache, postgres]
-  # This image has been pulled from dockerhub, so it has to be pulled from the
-  #   local registry, and then re-tagged with the original tag for now.
   - name: firefly-image-cache
     build:
-      source: fireflyiii/core:version-5.5.13
+      source: fireflyiii/core:version-6.2.10
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/firefly-iii:5.5.13
+      tag: registry.internal.aleemhaji.com/fireflyiii-core:version-6.2.10
+    tags: [docker-cache, firefly]
+  - name: firefly-data-importer-image-cache
+    build:
+      source: fireflyiii/data-importer:version-1.6.1
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/fireflyiii-data-importer:version-1.6.1
     tags: [docker-cache, firefly]
   - name: heimdall-image-cache
     build:
-      source: linuxserver/heimdall:version-2.2.2
+      source: linuxserver/heimdall:2.6.3
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/heimdall:version-2.2.2
+      tag: registry.internal.aleemhaji.com/heimdall:2.6.3
     tags: [docker-cache, heimdall]
-  - name: plex-image-cache
+  - name: jellyfin-image-cache
     build:
-      source: plexinc/pms-docker:1.25.7.5604-980a13e02
+      source: jellyfin/jellyfin:10.10.6
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/pms-docker:1.25.7.5604-980a13e02
-    tags: [docker-cache, plex]
-  - name: redis-image-cache
-    build:
-      source: redis:5
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/redis:5
-    tags: [docker-cache, redis]
+      tag: registry.internal.aleemhaji.com/jellyfin/jellyfin:10.10.6
+    tags: [docker-cache, jellyfin]
   - name: guacamole-image-cache
     build:
-      source: guacamole/guacamole:1.4.0
+      source: guacamole/guacamole:1.5.5
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/guacamole:1.4.0
+      tag: registry.internal.aleemhaji.com/guacamole/guacamole:1.5.5
     tags: [docker-cache, guacamole]
   - name: guacd-image-cache
     build:
-      source: guacamole/guacd:1.4.0
+      source: guacamole/guacd:1.5.5
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/guacd:1.4.0
+      tag: registry.internal.aleemhaji.com/guacamole/guacd:1.5.5
     tags: [docker-cache, guacamole]
   - name: gitea-image-cache
     build:
-      source: gitea/gitea:1.14.2
+      source: gitea/gitea:1.24.4-rootless
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/gitea:1.14.2
+      tag: registry.internal.aleemhaji.com/gitea:1.24.4-rootless
     tags: [docker-cache, gitea]
   - name: kubectl-image-cache
     build:
-      source: bitnami/kubectl:1.21.0
+      source: bitnami/kubectl:1.32.1
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/kubectl:1.21.0
-    tags: [docker-cache, kubectl]
+      tag: registry.internal.aleemhaji.com/kubectl:1.32.1
+    tags: [docker-cache, kubectl, uptime-kuma]
   - name: bitwarden-image-cache
     build:
-      source: vaultwarden/server:1.24.0
+      source: vaultwarden/server:1.33.2
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.24.0
-    tags: [docker-cache, bitwarden]
+      tag: registry.internal.aleemhaji.com/vaultwarden/server:1.33.2
+    tags: [docker-cache, bitwarden, vaultwarden]
   - name: syncthing-image-cache
     build:
-      source: syncthing/syncthing:1.19.2
+      source: syncthing/syncthing:1.29.3
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/syncthing:1.19.2
+      tag: registry.internal.aleemhaji.com/syncthing:1.29.3
     tags: [docker-cache, syncthing]
-  - name: diun-image-cache
-    build:
-      source: crazymax/diun:4.21.0
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/diun:4.21.0
-    tags: [docker-cache, diun]
-  - name: bookstack-image-cache
-    build:
-      source: ghcr.io/linuxserver/bookstack:21.12.5
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/bookstack:21.12.5
-    tags: [docker-cache, bookstack]
   - name: drone-image-cache
     build:
-      source: drone/drone:2.0.4
+      source: drone/drone:2.26.0
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/drone/drone:2.0.4
+      tag: registry.internal.aleemhaji.com/drone/drone:2.26.0
     tags: [docker-cache, drone]
   - name: drone-agent-image-cache
     build:
-      source: drone/drone-runner-kube:1.0.0-rc.1
+      source: drone/drone-runner-kube:1.0.0-rc.5
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.1
+      tag: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.5
     tags: [docker-cache, drone]
   - name: wireguard-image-cache
     build:
-      source: masipcat/wireguard-go:0.0.20220316
+      source: masipcat/wireguard-go:0.0.20230223
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/wireguard-go:0.0.20220316
+      tag: registry.internal.aleemhaji.com/wireguard-go:0.0.20230223
     tags: [docker-cache, wireguard]
+  - name: unifi-network-application-image-cache
+    build:
+      source: jacobalberty/unifi:v9.5.21
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/jacobalberty/unifi:v9.5.21
+    tags: [docker-cache, unifi]
+  - name: uptime-kuma-image-cache
+    build:
+      source: louislam/uptime-kuma:1.23.16-alpine
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/louislam/uptime-kuma:1.23.16-alpine
+    tags: [docker-cache, uptime-kuma]
+  - name: nginx-image-cache
+    build:
+      source: nginx:1.27.1-alpine
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/nginx:1.27.1-alpine
+    tags: [docker-cache, knowledge]
+  - name: rabbitmq-image-cache
+    build:
+      source: rabbitmq:4.0.7-management-alpine
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/rabbitmq:4.0.7-management-alpine
+    tags: [docker-cache, rmq]
+  - name: python-image-cache
+    build:
+      source: python:3.13-alpine
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/python:3.13-alpine
+    tags: [docker-cache, slackbot]
+  - name: cloudflared-image-cache
+    build:
+      source: cloudflare/cloudflared:2025.8.1
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/cloudflare/cloudflared:2025.8.1
+    tags: [docker-cache, cloudflared]
+  - name: garage-image-cache
+    build:
+      source: dxflrs/garage:v2.0.0
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/dxflrs/garage:v2.0.0
+    tags: [docker-cache, garage]
+  - name: immich-postgres-image-cache
+    build:
+      source: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
+    tags: [docker-cache, immich]
+  - name: immich-valkey-image-cache
+    build:
+      source: valkey/valkey:8.1.5
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/valkey/valkey:8.1.5
+    tags: [docker-cache, immich]
+  - name: immich-machine-learning-image-cache
+    build:
+      source: ghcr.io/immich-app/immich-machine-learning:v2.3.1
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/immich-app/immich-machine-learning:v2.3.1
+    tags: [docker-cache, immich]
+  - name: immich-server-image-cache
+    build:
+      source: ghcr.io/immich-app/immich-server:v2.3.1
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/immich-app/immich-server:v2.3.1
+    tags: [docker-cache, immich]
+  - name: immichkiosk-image-cache
+    build:
+      source: ghcr.io/damongolding/immich-kiosk:0.38.0
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/damongolding/immich-kiosk:0.38.0
+    tags: [docker-cache, immich]
+  - name: miniflux-image-cache
+    build:
+      source: miniflux/miniflux:2.2.11
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/miniflux/miniflux:2.2.11
+    tags: [docker-cache, api-proxy]
   # endregion
+  - name: pihole
+    file: pihole/pihole.yaml
+    parameters:
+      - *pihole_ingress_controller_ip
+      - *pihole_load_balancer_service_ip
+    tags: [apps, pihole]
   # https://github.com/prometheus-operator/kube-prometheus#quickstart
   - name: prometheus
     file: opsbox.yaml
     parameters:
       - JOB_NAME=deploy-prometheus
-      - SCRIPT=cd /tmp; curl -fsSL https://github.com/prometheus-operator/kube-prometheus/archive/v0.7.0.tar.gz | tar xvz; cd kube-prometheus-0.7.0; kubectl create -f manifests/setup; until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done; kubectl create -f manifests;
+      - SCRIPT=cd /tmp; curl -fsSL https://github.com/prometheus-operator/kube-prometheus/archive/v0.10.0.tar.gz | tar xvz; cd kube-prometheus-0.10.0; kubectl create -f manifests/setup; until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done; kubectl create -f manifests;
+    tags: [monitoring]
+  - name: prometheus-wait
+    job: kube-system/ops-deploy-prometheus
+    tags: [monitoring]
   - name: grafana
     file: grafana/grafana.yaml
+    tags: [monitoring]
   # region: Stateless Services
   # The set of services in this block are services that don't rely on storing
   #   any state on disk.
@@ -600,6 +729,78 @@ resources:
   #   parallel clusters first without having any concern for services fighting
   #   over shares/volumes.
   # They should each have the stateless tag applied to them.
+  - name: external-dns-manager-image
+    build:
+      path: infra/external-dns
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/external-dns:latest
+    tags: [dns, external-dns]
+  - name: external-dns-manager-configs
+    inline: |
+      apiVersion: v1
+      binaryData:
+        entrypoint.sh: ${A_RECORD_MANAGER_SCRIPT}
+      kind: ConfigMap
+      metadata:
+        name: dns-manager-a-record-config
+      ---
+      apiVersion: v1
+      binaryData:
+        entrypoint.sh: ${CNAME_RECORD_MANAGER_SCRIPT}
+      kind: ConfigMap
+      metadata:
+        name: dns-manager-cname-record-config
+    fileParameters:
+      - A_RECORD_MANAGER_SCRIPT=./infra/external-dns/a-record-updater.sh
+      - CNAME_RECORD_MANAGER_SCRIPT=./infra/external-dns/cname-record-updater.sh
+    parameters:
+      - SLACK_BOT_ALERTING_CHANNEL
+    tags: [dns, external-dns]
+  - name: cname-record-updater
+    file: infra/external-dns/cname-record-updater.yaml
+    parameters:
+      - SLACK_BOT_ALERTING_CHANNEL
+    tags: [dns, external-dns]
+  - name: cloudflared
+    file: infra/cloudflared.yaml
+    parameters:
+      - CLOUDFLARED_SECRET_BASE64
+      - CLOUDFLARED_CERT_BASE64
+    tags: [cloudflared]
+  - name: image-monitor-image
+    build:
+      path: image-monitor
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/image-monitor:latest
+    tags: [apps, stateless, image-monitor]
+  - name: image-monitor-config
+    inline: |
+      apiVersion: v1
+      binaryData:
+        image-monitor.sh: ${IMAGE_MONITOR_SCRIPT}
+        image-monitor-ignore.json: ${IMAGE_MONITOR_IGNORE_JSON}
+      kind: ConfigMap
+      metadata:
+        name: image-monitor-config
+    fileParameters:
+      - IMAGE_MONITOR_SCRIPT=./image-monitor/image-monitor.sh
+      - IMAGE_MONITOR_IGNORE_JSON=./image-monitor/image-monitor-ignore.json
+    tags: [crons, image-monitor, stateless]
+  - name: image-monitor
+    file: image-monitor/image-monitor.yaml
+    parameters:
+      - SLACK_BOT_ALERTING_CHANNEL
+    tags: [crons, image-monitor, stateless]
+  - name: browser-secrets
+    inline: |
+      apiVersion: v1
+      data:
+        key_base: ${DOCKER_REGISTRY_BROWSER_SECRET_KEY_BASE_BASE64}
+      kind: Secret
+      metadata:
+        name: registry-browser-secrets
+    parameters:
+      - DOCKER_REGISTRY_BROWSER_SECRET_KEY_BASE_BASE64
   - name: browser
     file: browser/browser.yaml
     tags: [apps, browser, stateless]
@@ -633,23 +834,15 @@ resources:
   - name: slackbot
     file: slackbot/slackbot.yaml
     tags: [apps, slackbot, stateless]
-  - name: redis
-    file: redis/redis.yaml
-    tags: [apps, redis, stateless]
-  - name: dns-update-secrets
-    inline: |
-      apiVersion: v1
-      data:
-        value: ${NAMESILO_API_KEY_BASE64}
-      kind: Secret
-      metadata:
-        name: namesilo-api-key
-    parameters:
-      - NAMESILO_API_KEY_BASE64
-    tags: [crons, dns, certbot, stateless]
-  - name: dns-update-cron
-    file: crons/dns-cron.yaml
-    tags: [crons, dns, stateless]
+  - name: latex-image
+    build:
+      path: latex
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/latex-server:latest
+    tags: [apps, latex, stateless]
+  - name: latex-server
+    file: latex/latex.yaml
+    tags: [apps, latex, stateless]
   # endregion
   # region: NFS-Share Only Services
   # These services are grouped because they have a pretty small number of
@@ -679,6 +872,8 @@ resources:
     tags: [crons, tedbot]
   - name: gitea
     file: gitea/gitea.yaml
+    parameters:
+      - *gitea_load_balancer_service_ip
     tags: [apps, gitea]
   - name: bitwarden-config
     inline: |
@@ -690,10 +885,23 @@ resources:
         name: bitwarden-secrets
     parameters:
       - BITWARDEN_ADMIN_TOKEN_BASE64
-    tags: [apps, bitwarden]
+    tags: [apps, bitwarden, vaultwarden]
   - name: bitwarden
     file: bitwarden/bitwarden.yaml
-    tags: [apps, bitwarden]
+    tags: [apps, bitwarden, vaultwarden]
+  - name: uptime-kuma
+    file: uptime-kuma/uptime-kuma.yaml
+    tags: [apps, uptime-kuma]
+  - name: uptime-kuma-backup
+    file: uptime-kuma/uptime-kuma-backup.yaml
+    fileParameters:
+      - BACKUP_SCRIPT=uptime-kuma/backup.js
+    tags: [apps, uptime-kuma]
+  - name: knowledge-ingress
+    file: garage/bucket-ingress-internal.yaml
+    parameters:
+      - NAME=knowledge
+    tags: [apps, web, logseq, knowledge]
   # endregion
   # region: NFS-Share + Port Forwarded Services
   # This block of services include resources that need access to shared
@@ -703,20 +911,9 @@ resources:
   #   externally through.
   # These shouldn't have any database dependencies, but can have NFS and
   #   ingress.
-  - name: transmission-image
-    build:
-      path: transmission
-      pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/transmission:2004
-    tags: [apps, transmission]
-  - name: osstransmission
-    file: transmission/transmission.yaml
-    tags: [apps, transmission]
-  - name: plex
-    file: plex/plex.yaml
-    parameters:
-      - *plex_load_balancer_service_ip
-    tags: [apps, plex]
+  - name: jellyfin
+    file: jellyfin/jellyfin.yaml
+    tags: [apps, jellyfin]
   - name: wireguard
     file: wireguard/wireguard.yaml
     parameters:
@@ -726,6 +923,12 @@ resources:
       - WIREGUARD_SERVER_PRIVATE_KEY
       - WIREGUARD_PEER_1_PUBLIC_KEY
       - WIREGUARD_PEER_1_IP=172.27.224.32/32
+      - WIREGUARD_PEER_2_PUBLIC_KEY
+      - WIREGUARD_PEER_2_IP=172.27.224.33/32
+      - WIREGUARD_PEER_3_PUBLIC_KEY
+      - WIREGUARD_PEER_3_IP=172.27.224.34/32
+      - WIREGUARD_PEER_4_PUBLIC_KEY
+      - WIREGUARD_PEER_4_IP=172.27.224.35/32
     tags: [apps, wireguard]
   # endregion
   # region: Databases
@@ -776,20 +979,57 @@ resources:
   - name: mysql
     file: mysql/mysql.yaml
     tags: [apps, mysql]
-  - name: mongodb-backup
+  - name: rabbitmq-config
     inline: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: rabbitmq-secrets
+        namespace: tasks
+      data:
+        username: ${RMQ_USERNAME_BASE64}
+        password: ${RMQ_PASSWORD_BASE64}
+        .erlang-cookie: ${RMQ_PASSWORD_BASE64}
+        connection_string: ${RMQ_CONNECTION_STRING_BASE64}
+        management_connection_string: ${RMQ_MANAGEMENT_CONNECTION_STRING_BASE64}
+      ---
       apiVersion: v1
       kind: ConfigMap
       metadata:
-        name: mongodb-backup
+        name: rmq-bridge-autoscaler-script
+        namespace: tasks
       binaryData:
-        mongodb-backup.sh: ${MONGODB_BACKUP_SCRIPT}
-    tags: [apps, mongodb, backups]
+        autoscaler.sh: ${AUTOSCALER_SCRIPT}
+    parameters:
+      - RMQ_USERNAME_BASE64
+      - RMQ_PASSWORD_BASE64
+      - RMQ_ERLANG_COOKIE_BASE64
+      - RMQ_CONNECTION_STRING_BASE64
+      - RMQ_MANAGEMENT_CONNECTION_STRING_BASE64
     fileParameters:
-      - MONGODB_BACKUP_SCRIPT=mongodb/mongodb-backup.sh
-  - name: mongodb
-    file: mongodb/mongodb.yaml
-    tags: [apps, mongodb]
+      - AUTOSCALER_SCRIPT=tasks/autoscaler.sh
+    tags: [apps, rmq]
+  - name: rabbitmq
+    file: tasks/rabbitmq.yaml
+    tags: [apps, rmq]
+  - name: rabbitmq-http-bridge-init
+    file: tasks/rmq-http-bridge-init.yaml
+    tags: [apps, rmq]
+  - name: rabbitmq-http-bridge-init-wait
+    job: tasks/rabbitmq-delay-infrastructure-init
+    tags: [apps, rmq]
+  - name: rabbitmq-http-bridge
+    file: tasks/rmq-http-bridge.yaml
+    tags: [apps, rmq]
+  - name: rabbitmq-http-bridge-autoscaler-image
+    build:
+      path: tasks
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/rmq-bridge-autoscaler:1.21.0
+    tags: [apps, rmq]
+  - name: rabbitmq-http-bridge-autoscaler
+    file: tasks/rmq-http-bridge-autoscaler.yaml
+    tags: [apps, rmq]
   # endregion
   # region: Database-Dependent Services
   # This section contains the listing of services that rely on some form of
@@ -797,12 +1037,6 @@ resources:
   # This could come in the form of network references to resources defined in
   #   the databases section above, or in the form of a database defined in its
   #   own pod that requires a special ISCSi device set up for it.
-  - name: unifi-controller-image
-    build:
-      path: unifi
-      pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/unifi-controller:7.0.23-ls145
-    tags: [apps, unifi]
   - name: unifi-controller
     file: unifi/unifi.yaml
     parameters:
@@ -822,6 +1056,7 @@ resources:
       data:
         mysql_password: ${FIREFLY_MYSQL_PASSWORD_BASE64}
         app_key: ${FIREFLY_APP_KEY_BASE64}
+        importer_pat: ${FIREFLY_DATA_IMPORTER_KEY_BASE64}
       kind: Secret
       metadata:
         name: firefly-secrets
@@ -830,15 +1065,29 @@ resources:
       - FIREFLY_MYSQL_DATABASE
       - FIREFLY_MYSQL_PASSWORD_BASE64
       - FIREFLY_APP_KEY_BASE64
+      - FIREFLY_DATA_IMPORTER_KEY_BASE64
+    tags: [apps, firefly]
+  - name: firefly-data-init-job-create
+    file: mysql/mysql-create-database.yaml
+    parameters:
+      - DATABASE_NAME=firefly
+      - DB_USER=firefly
+      - PASSWORD_SECRET_NAME=firefly-secrets
+      - PASSWORD_SECRET_KEY=mysql_password
+  - name: firefly-data-init-job-wait
+    job: default/firefly-mysql-init
     tags: [apps, firefly]
   - name: firefly-init-job-create
     file: firefly/firefly-init.yaml
     tags: [apps, firefly]
-  - name: firefly-init-job
-    job: firefly-mysql-init
+  - name: firefly-init-job-wait
+    job: default/firefly-app-init
     tags: [apps, firefly]
   - name: firefly
     file: firefly/firefly.yaml
+    tags: [apps, firefly]
+  - name: firefly-data-importer
+    file: firefly/firefly-data-importer.yaml
     tags: [apps, firefly]
   - name: guacamole-config
     inline: |
@@ -861,11 +1110,22 @@ resources:
       - GUACAMOLE_MYSQL_DATABASE
       - GUACAMOLE_MYSQL_PASSWORD_BASE64
     tags: [apps, guacamole]
+  - name: guacamole-data-init-job-create
+    file: mysql/mysql-create-database.yaml
+    parameters:
+      - DATABASE_NAME=guacamole
+      - DB_USER=guacamole
+      - PASSWORD_SECRET_NAME=guacamole-secrets
+      - PASSWORD_SECRET_KEY=mysql_password
+    tags: [apps, guacamole]
+  - name: guacamole-data-init-job-wait
+    job: default/guacamole-mysql-init
+    tags: [apps, guacamole]
   - name: guacamole-init-job-create
     file: guacamole/guacamole-init.yaml
     tags: [apps, guacamole]
-  - name: guacamole-init-job
-    job: guacamole-mysql-init
+  - name: guacamole-init-job-wait
+    job: default/guacamole-app-init
     tags: [apps, guacamole]
   - name: guacamole
     file: guacamole/guacamole.yaml
@@ -898,44 +1158,19 @@ resources:
       tag: registry.internal.aleemhaji.com/node-red:latest
     tags: [apps, node-red]
   - name: node-red-init-job-create
-    file: node-red/node-red-init.yaml
+    file: mysql/mysql-create-database.yaml
+    parameters:
+      - DATABASE_NAME=nodered
+      - DB_USER=nodered
+      - PASSWORD_SECRET_NAME=node-red-secrets
+      - PASSWORD_SECRET_KEY=mysql_password
     tags: [apps, node-red]
-  - name: node-red-init-job
-    job: node-red-mysql-init
+  - name: node-red-init-job-wait
+    job: default/nodered-mysql-init
     tags: [apps, node-red]
   - name: node-red
     file: node-red/node-red.yaml
     tags: [apps, node-red]
-  - name: remindmebot-config
-    inline: |
-      apiVersion: v1
-      data:
-        bot_username: ${REMINDMEBOT_USERNAME}
-      kind: ConfigMap
-      metadata:
-        name: remindmebot-config
-      ---
-      apiVersion: v1
-      data:
-        bot_api_key: ${REMINDMEBOT_API_KEY_BASE64}
-        database: ${REMINDMEBOT_DATABASE_BASE64}
-      kind: Secret
-      metadata:
-        name: remindmebot-secrets
-    parameters:
-      - REMINDMEBOT_USERNAME
-      - REMINDMEBOT_API_KEY_BASE64
-      - REMINDMEBOT_DATABASE_BASE64
-    tags: [apps, remindmebot]
-  - name: remindmebot-init-job-start
-    file: remindmebot/remindmebot-init.yaml
-    tags: [apps, remindmebot]
-  - name: remindmebot-init-job
-    job: remindmebot-init
-    tags: [apps, remindmebot]
-  - name: remindmebot
-    file: remindmebot/remindmebot.yaml
-    tags: [apps, remindmebot]
   - name: blobstore-config
     inline: |
       apiVersion: v1
@@ -950,85 +1185,94 @@ resources:
   - name: blobstore
     file: blobstore/blobstore.yaml
     tags: [apps, blobstore]
-  - name: webcomics-config
+  - name: garage-config
     inline: |
       apiVersion: v1
-      data:
-        database: ${WEBCOMICS_DATABASE_BASE64}
+      kind: ConfigMap
+      metadata:
+        name: garage-config
+      binaryData:
+        garage.toml: ${GARAGE_CONFIG}
+      ---
+      apiVersion: v1
       kind: Secret
       metadata:
-        name: webcomics-secrets
+        name: garage-secrets
+      data:
+        rpc_secret: ${GARAGE_SECRET_BASE64}
     parameters:
-      - WEBCOMICS_DATABASE_BASE64
-    tags: [apps, webcomics]
-  - name: webcomics
-    file: webcomics/webcomics.yaml
-    tags: [apps, webcomics]
+      - GARAGE_SECRET_BASE64
+    fileParameters:
+      - GARAGE_CONFIG=garage/garage.toml
+    tags: [apps, garage]
+  - name: garage-crd
+    file: garage/crd.yaml
+    tags: [apps, garage]
+  - name: garage-volumes
+    file: garage/volumes.yaml
+    tags: [garage]
+  - name: garage
+    file: garage/garage.yaml
+    parameters:
+      - LOAD_BALANCER_IP=192.168.200.210
+    tags: [garage]
+  - name: archive-ingress
+    file: garage/bucket-ingress-internal.yaml
+    parameters:
+      - NAME=archive
+    tags:: [garage]
+  - name: build-ingress
+    file: garage/bucket-ingress-internal.yaml
+    parameters:
+      - NAME=build
+    tags:: [garage]
+  - name: readme-internal-ingress
+    file: garage/bucket-ingress-internal.yaml
+    parameters:
+      - NAME=readme
+    tags:: [garage]
+  - name: blob-internal-ingress
+    file: garage/bucket-ingress-internal.yaml
+    parameters:
+      - NAME=blob
+    tags:: [garage]
+  - name: blob-external-ingress
+    file: garage/bucket-ingress-external.yaml
+    parameters:
+      - NAME=blob
+    tags:: [garage]
   - name: syncthing
     file: syncthing/syncthing.yaml
     tags: [apps, syncthing]
-  - name: diun-config
-    inline: |
-      apiVersion: v1
-      data:
-        webhook_url: ${DIUN_WEBHOOK_URL_BASE64}
-      kind: Secret
-      metadata:
-        name: diun-secrets
+  - name: miniflux-database-init
+    file: postgres/postgres-db-create.yaml
     parameters:
-      - DIUN_WEBHOOK_URL_BASE64
-    tags: [apps, diun]
-  - name: diun
-    file: diun/diun.yaml
-    tags: [apps, diun]
-  - name: bookstack-config
+      DATABASE_NAME=miniflux
+    tags: [apps, miniflux]
+  - name: miniflux-config
     inline: |
       apiVersion: v1
       data:
-        mysql_user: ${BOOKSTACK_MYSQL_USER}
-        mysql_database: ${BOOKSTACK_MYSQL_DATABASE}
+        admin_username: ${MINIFLUX_ADMIN_USERNAME}
       kind: ConfigMap
       metadata:
-        name: bookstack-config
+        name: miniflux-config
       ---
       apiVersion: v1
       data:
-        mysql_password: ${BOOKSTACK_MYSQL_PASSWORD_BASE64}
+        connection_string: ${MINIFLUX_CONNECTION_STRING_BASE64}
+        admin_password: ${MINIFLUX_ADMIN_PASSWORD_BASE64}
       kind: Secret
       metadata:
-        name: bookstack-secrets
+        name: miniflux-secrets
     parameters:
-      - BOOKSTACK_MYSQL_USER
-      - BOOKSTACK_MYSQL_DATABASE
-      - BOOKSTACK_MYSQL_PASSWORD_BASE64
-    tags: [apps, bookstack]
-  - name: bookstack-init-job-create
-    file: bookstack/bookstack-init.yaml
-    tags: [apps, bookstack]
-  - name: bookstack-init-job
-    job: bookstack-mysql-init
-    tags: [apps, bookstack]
-  - name: bookstack
-    file: bookstack/bookstack.yaml
-    tags: [apps, bookstack]
-  - name: bookstack-notifier-secrets
-    inline: |
-      apiVersion: v1
-      data:
-        token_id: ${BOOKSTACK_TOKEN_ID_BASE64}
-        token_secret: ${BOOKSTACK_TOKEN_SECRET_BASE64}
-      kind: Secret
-      metadata:
-        name: bookstack-notifier-secrets
-    parameters:
-      - BOOKSTACK_TOKEN_ID_BASE64
-      - BOOKSTACK_TOKEN_SECRET_BASE64
-    tags: [apps, bookstack]
-  - name: bookstack-notifier
-    file: bookstack/bookstack-notifier.yaml
-    fileParameters:
-      - BOOKSTACK_NOTIFIER_SCRIPT=bookstack/bookstack-notifier.sh
-    tags: [apps, bookstack]
+      - MINIFLUX_CONNECTION_STRING_BASE64
+      - MINIFLUX_ADMIN_PASSWORD_BASE64
+      - MINIFLUX_ADMIN_USERNAME
+    tags: [apps, miniflux]
+  - name: miniflux
+    file: miniflux/miniflux.yaml
+    tags: [apps, miniflux]
   - name: drone-init
     file: drone/drone-init.yaml
     tags: [apps, drone]
@@ -1055,117 +1299,128 @@ resources:
   - name: drone
     file: drone/drone.yaml
     tags: [apps, drone]
+  - name: immich
+    file: immich/immich.yaml
+    parameters:
+      - IMMICH_POSTGRES_ROOT_PASSWORD_BASE64
+      - IMMICH_DATABASE_URL_BASE64
+    tags: [apps, immich]
+  - name: immichkiosk-config
+    inline: |
+      apiVersion: v1
+      data:
+        api_key: ${IMMICHKIOSK_API_KEY_BASE64}
+      kind: Secret
+      metadata:
+        name: immichkiosk-secrets
+        namespace: immich
+    parameters:
+      - IMMICHKIOSK_API_KEY_BASE64
+    tags: [apps, postgres]
+  - name: immichkiosk
+    file: immichkiosk/immichkiosk.yaml
+    tags: [apps, immich]
+  - name: adb-image
+    build:
+      path: adb
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/adb:13.5
+    tags: [apps, immich]
+  - name: adb-secrets
+    inline: |
+      apiVersion: v1
+      data:
+        adbkey: ${ADBKEY_BASE64}
+        adbkey.pub: ${ADBKEY_PUB_BASE64}
+      kind: Secret
+      metadata:
+        name: adb-secrets
+        namespace: immich
+    parameters:
+      - ADBKEY_BASE64
+      - ADBKEY_PUB_BASE64
+    tags: [apps, immich]
+  - name: adb-frame-manager
+    file: adb/frame-manager.yaml
+    tags: [apps, immich]
   # endregion
-  - name: pod-killer
-    file: pod-killer/pod-killer.yaml
-    parameters:
-      - POD_KILLER_NAMESPACE=default
-      - SLACK_BOT_ALERTING_CHANNEL
-    fileParameters:
-      - POD_KILLER_SCRIPT=pod-killer/pod-killer.sh
-  - name: certbot-update-kubernetes-dashboard
-    file: certbot/certbot-generic-cron.yaml
-    parameters:
-      - KUBERNETES_NAMESPACE=kubernetes-dashboard
-      - INCLUDE_EXTERNAL_CERTS=false
-      - INCLUDE_BARE_DOMAIN=false
-    fileParameters:
-      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
+  - name: certbot-image
+    build:
+      path: certbot
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/certbot/certbot-custom:v3.2.0
     tags: [crons, certbot]
-  - name: certbot-update-monitoring
-    file: certbot/certbot-generic-cron.yaml
+  - name: certbot-cloudflare-secrets
+    inline: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: cloudflare-dns
+      data:
+        api_token: ${CLOUDFLARE_DNS_API_KEY_BASE64}
     parameters:
-      - KUBERNETES_NAMESPACE=monitoring
-      - INCLUDE_EXTERNAL_CERTS=false
-      - INCLUDE_BARE_DOMAIN=false
-    fileParameters:
-      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
-    tags: [crons, certbot]
-  - name: certbot-update-default
-    file: certbot/certbot-generic-cron.yaml
+      - CLOUDFLARE_DNS_API_KEY_BASE64
+    tags: [certbot]
+  - name: certbot-cloudflare-configs
+    inline: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: cloudflare-dns
+      data:
+        zone_id: ${CLOUDFLARE_ZONE_ID}
     parameters:
-      - KUBERNETES_NAMESPACE=default
-      - INCLUDE_EXTERNAL_CERTS=true
-      - INCLUDE_BARE_DOMAIN=true
-    fileParameters:
-      - UPDATE_SECRETS_SCRIPT=certbot/certbot-copy-script.sh
-    tags: [crons, certbot]
+      - CLOUDFLARE_ZONE_ID
+    tags: [certbot]
   - name: certbot-cron
     file: certbot/certbot.yaml
     fileParameters:
       - DNS_RENEW_SCRIPT=certbot/certbot-dns-renew.sh
     tags: [crons, certbot]
-  # region: Scheduled rsync Jobs
-  # This block contains all the scheduled jobs that run rsync against the
-  #   various directories things are written to.
-  # The primary objective tends to be creating copies in a consolidated place
-  #   where a syncthing shared folder can back up the contents to a remote
-  #   device.
-  - name: rsync-image
-    build:
-      path: crons
-      pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/rsync:latest
-    tags: [backups]
-  - name: bookstack-backups
-    file: crons/rsync-cron.yaml
+  - name: certbot-create-garage-wildcard
+    file: certbot/certbot-create.yaml
     parameters:
-      - CRONJOB_NAME=bookstack
-      - RSYNC_OPTIONS=-avhuDH --delete --exclude=.sync --exclude=log
-      - SOURCE_NFS_SERVER=192.168.96.4
-      - SOURCE_NFS_SHARE=/mnt/main/apps/bookstack
-      - SOURCE_PATH=/
-      - DESTINATION_NFS_SERVER=192.168.96.4
-      - DESTINATION_NFS_SHARE=/mnt/main/backup/apps
-      - DEST_PATH=/bookstack
-    tags: [bookstack, backups]
-  - name: node-red-backups
-    file: crons/rsync-cron.yaml
+      - CERT_NAME=garage-wildcard
+      - CERTIFICATE_DOMAIN=*.garage.internal.aleemhaji.com
+    tags: [certbot]
+  # region: Scheduled backup Jobs
+  - name: archivist-backup-secret
+    inline: |
+      apiVersion: v1
+      metadata:
+        name: archivist-bucket-backup
+        namespace: backup
+      data:
+        bucket_name: ${GARAGE_ARCHIVIST_BUCKET_NAME_BASE64}
+        secret_key_id: ${GARAGE_ARCHIVIST_ACCESS_KEY_ID_BASE64}
+        secret_key: ${GARAGE_ARCHIVIST_SECRET_ACCESS_KEY_BASE64}
+      kind: Secret
     parameters:
-      - CRONJOB_NAME=node-red
-      - RSYNC_OPTIONS=-avhuDH --delete --exclude=.sync
-      - SOURCE_NFS_SERVER=192.168.96.4
-      - SOURCE_NFS_SHARE=/mnt/main/apps/node-red
-      - SOURCE_PATH=/flows.json
-      - DESTINATION_NFS_SERVER=192.168.96.4
-      - DESTINATION_NFS_SHARE=/mnt/main/backup
-      - DEST_PATH=/node-red/
-    tags: [nodered, backups]
-  - name: gitea-backups
-    file: crons/rsync-cron.yaml
+      - GARAGE_ARCHIVIST_BUCKET_NAME_BASE64
+      - GARAGE_ARCHIVIST_ACCESS_KEY_ID_BASE64
+      - GARAGE_ARCHIVIST_SECRET_ACCESS_KEY_BASE64
+  - name: archivist-mirror
+    file: garage/mirror-job/mirror-job.yaml
     parameters:
-      - CRONJOB_NAME=gitea
-      - RSYNC_OPTIONS=-avhuDH --delete --exclude=.sync --exclude=gitea/log
-      - SOURCE_NFS_SERVER=192.168.96.4
-      - SOURCE_NFS_SHARE=/mnt/main/apps/gitea
-      - SOURCE_PATH=/
-      - DESTINATION_NFS_SERVER=192.168.96.4
-      - DESTINATION_NFS_SHARE=/mnt/main/backup
-      - DEST_PATH=/gitea
-    tags: [gitea, backups]
-  - name: bitwarden-backups
-    file: crons/rsync-cron.yaml
-    parameters:
-      - CRONJOB_NAME=bitwarden
-      - RSYNC_OPTIONS=-avhuDH --delete --exclude=.sync
-      - SOURCE_NFS_SERVER=192.168.96.4
-      - SOURCE_NFS_SHARE=/mnt/main/apps/bitwarden
-      - SOURCE_PATH=/
-      - DESTINATION_NFS_SERVER=192.168.96.4
-      - DESTINATION_NFS_SHARE=/mnt/main/backup/apps
-      - DEST_PATH=/bitwarden
-    tags: [bitwarden, backups]
+      - NAME=archivist
+      - BUCKET_NAME=archive
+      - GARAGE_SECRET_NAME=archivist-bucket-backup
+      - SOURCE_PATH=archive/archive/archivist/
+      - DEST_PATH=/nfs/
+      - NFS_PATH=/mnt/main/backup/apps/archivist
+      - ADDITIONAL_MC_ARGS=--overwrite --remove
   # endregion
   - name: shell-monitor-base-default
     file: shell-monitor/shell-monitor-base.yaml
     parameters:
       - SHELL_MONITOR_NAMESPACE=default
-      - SLACK_BOT_ALERTING_CHANNEL
     fileParameters:
       - SHELL_MONITOR_SCRIPT=shell-monitor/shell-monitor-script.sh
     tags: [shell-monitor]
   - name: events-shell-monitor
     file: shell-monitor/events-shell-monitor.yaml
+    parameters:
+      - SLACK_BOT_ALERTING_CHANNEL
     fileParameters:
       - EVENTS_SHELL_MONITOR_SCRIPT=shell-monitor/events-shell-monitor.sh
     tags: [shell-monitor]
@@ -1173,20 +1428,67 @@ resources:
     file: shell-monitor/delete-manual-jobs-monitor.yaml
     parameters:
       - KUBE_NAMESPACE=default
+      - SLACK_BOT_ALERTING_CHANNEL
     fileParameters:
       - JOBS_SHELL_MONITOR_SCRIPT=shell-monitor/delete-manual-jobs-monitor.sh
     tags: [shell-monitor]
-  - name: dev-namespace
+  - name: home-network-image
+    build:
+      path: .
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/home-network:latest
+    tags: [rotate-node, build-vm]
+  - name: vm-builder-static-resources
+    file: jobs/build-vm-static.yaml
+    parameters:
+      - *vm_builder_service_ip
+    tags: [build-vm]
+  - name: dev-ssh-key
     inline: |
       apiVersion: v1
-      kind: Namespace
+      data:
+        id_rsa: "${DEV_SSH_KEY_BASE64}"
+        id_rsa.pub: "${DEV_SSH_PUBLIC_KEY_BASE64}"
+        known_hosts: "${DEV_KNOWN_HOSTS_BASE64}"
+      kind: Secret
       metadata:
-        name: dev
+        name: dev-ssh-key
+        namespace: "${SSH_KEY_NAMESPACE}"
+    parameters:
+      - SSH_KEY_NAMESPACE=dev
+      - DEV_SSH_KEY_BASE64
+      - DEV_SSH_PUBLIC_KEY_BASE64
+      - DEV_KNOWN_HOSTS_BASE64
+    tags: [rotate-node]
+  - name: devbox
+    file: devbox.yaml
+    parameters:
+      - *devbox_service_ip
     tags: [rotate-node]
   - name: rotate-node-tagger
     file: node-rotator/rotate-node-tagger.yaml
     fileParameters:
       - ROTATE_NODE_TAGGER_SCRIPT=node-rotator/rotate-node-tagger.sh
+    tags: [rotate-node]
+  - name: rotate-node-secrets
+    inline: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: rotate-node-secrets
+        namespace: dev
+      data:
+        esxi_root_password: ${ESXI_ROOT_PASSWORD_BASE64}
+        vm_root_password: ${VM_ROOT_PASSWORD_BASE64}
+        vm_management_password: ${VM_MANAGEMENT_PASSWORD_BASE64}
+    parameters:
+      - ESXI_ROOT_PASSWORD_BASE64
+      - VM_ROOT_PASSWORD_BASE64
+      - VM_MANAGEMENT_PASSWORD_BASE64
+  - name: rotate-node
+    file: node-rotator/rotate-node.yaml
+    parameters:
+      - SLACK_BOT_ALERTING_CHANNEL
     tags: [rotate-node]
 jobs:
   - name: mysql-restore
@@ -1197,7 +1499,15 @@ jobs:
     file: mysql/tasks/mysql-drop.yaml
     parameters:
       - MYSQL_DATABASE_NAME
-  - name: mongodb-restore
-    file: mongodb/tasks/mongodb-restore.yaml
+  - name: rotate-node
+    file: jobs/rotate-node.yaml
     parameters:
-      - MONGODB_DATABASE_NAME
+      - ROTATE_NODE_NAME
+      - VM_IMAGE_NAME
+      - SLACK_BOT_ALERTING_CHANNEL
+  - name: build-vm
+    file: jobs/build-vm.yaml
+    parameters:
+      - VM_NAME
+      - SLACK_BOT_ALERTING_CHANNEL
+      - *vm_builder_service_ip

@@ -35,6 +35,18 @@ strip_trailing_newline() {
 	printf "%s" "$(cat -)"
 }
 
+# If the container this script is running in is missing required programs,
+#   error out in whatever way makes sense given which programs are missing.
+if ! type curl; then
+	# In this case, can't even post to Slack, so log and exit with error.
+	# Let the crash loop notify that something is wrong.
+	echo >&2 "Curl not installed."
+	exit 1
+elif ! type jq; then
+	slack "Monitor for $RESOURCE_PATH running in invalid container; must have jq installed."
+	sleep infinity
+fi
+
 # Check to see if the ConfigMap already exists.
 # If not, create it.
 set +e

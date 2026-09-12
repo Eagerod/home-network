@@ -1,2 +1,3 @@
 .kube
 .env.new
+VMware-ovftool-*

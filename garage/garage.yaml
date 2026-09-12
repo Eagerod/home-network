@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: garage
+spec:
+  revisionHistoryLimit: 0
+  replicas: 4
+  selector:
+    matchLabels:
+      app: garage
+  serviceName: garage
+  template:
+    metadata:
+      labels:
+        app: garage
+    spec:
+      terminationGracePeriodSeconds: 120
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      serviceAccountName: garage
+      containers:
+        - name: garage
+          image: registry.internal.aleemhaji.com/dxflrs/garage:v2.0.0
+          ports:
+            - containerPort: 3900
+            - containerPort: 3901
+            - containerPort: 3902
+          volumeMounts:
+            - name: garage-storage
+              mountPath: /var/lib/garage/data
+            - name: garage-metadata
+              mountPath: /var/lib/garage/meta
+            - name: garage-secret
+              mountPath: /etc/garage-secret
+              subPath: garage-secret
+              readOnly: true
+            - name: garage-config
+              mountPath: /etc/garage.toml
+              subPath: garage.toml
+              readOnly: true
+      volumes:
+        - name: garage-secret
+          secret:
+            secretName: garage-secrets
+            defaultMode: 0600
+            items:
+              - key: rpc_secret
+                path: garage-secret
+        - name: garage-config
+          configMap:
+            name: garage-config
+            items:
+              - key: garage.toml
+                path: garage.toml
+  volumeClaimTemplates:
+    - metadata:
+        name: garage-metadata
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: freenas-iscsi
+        resources:
+          requests:
+            storage: 10Gi
+    - metadata:
+        name: garage-storage
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 500Gi
+        selector:
+          matchLabels:
+            app: "garage"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: garage
+  labels:
+    app: garage
+spec:
+  ports:
+    - port: 3900
+      protocol: TCP
+      name: api
+    - port: 3901
+      protocol: TCP
+      name: rpc
+    - port: 3902
+      protocol: TCP
+      name: web
+  selector:
+    app: garage
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: garage
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "Access-Control-Allow-Origin: *";
+      more_set_headers "Access-Control-Max-Age: 3600";
+      more_set_headers "Access-Control-Expose-Headers: Content-Length";
+      more_set_headers "Access-Control-Allow-Headers: Range";
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - garage.internal.aleemhaji.com
+      secretName: internal-certificate-files
+  rules:
+    - host: garage.internal.aleemhaji.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: garage
+                port:
+                  number: 3900

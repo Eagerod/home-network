@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cname-manager
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cname-manager
+rules:
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cname-manager
+subjects:
+  - kind: ServiceAccount
+    name: cname-manager
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: cname-manager
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cname-manager
+  labels:
+    app: cname-manager
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cname-manager
+  template:
+    metadata:
+      labels:
+        app: cname-manager
+    spec:
+      serviceAccountName: cname-manager
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: cname-manager
+          image: registry.internal.aleemhaji.com/external-dns:latest
+          command:
+            - /scripts/entrypoint.sh
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "100m"
+          env:
+            - name: SLACK_BOT_ALERTING_CHANNEL
+              value: ${SLACK_BOT_ALERTING_CHANNEL}
+            - name: INGRESS_CLASS
+              value: nginx-external
+            - name: CNAME_TARGET
+              value: aleemhaji.com
+            - name: CF_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflare-dns
+                  key: api_token
+            - name: CF_ZONE_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: cloudflare-dns
+                  key: zone_id
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: dns-manager-cname-record-config
+            defaultMode: 0755

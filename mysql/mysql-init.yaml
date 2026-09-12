@@ -20,7 +20,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: dummy
-          image: registry.internal.aleemhaji.com/busybox:1.35.0
+          image: registry.internal.aleemhaji.com/busybox:1.37.0
           command:
             - echo
             - This job will eventually have to be suped up a bit.

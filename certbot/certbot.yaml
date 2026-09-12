@@ -8,7 +8,6 @@ spec:
   ports:
     - port: 80
       protocol: TCP
-  type: NodePort
   selector:
     app: certbot
 ---
@@ -20,7 +19,8 @@ binaryData:
   dns-renew.sh: ${DNS_RENEW_SCRIPT}
 ---
 # EFF recommends running `certbot renew` a couple times per day.
-apiVersion: batch/v1beta1
+# kubectl create job --from=cronjob/certbot "certbot-manual-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom  | head -c 5)"
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: certbot
@@ -42,7 +42,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: certbot-renew
-              image: registry.internal.aleemhaji.com/certbot:v1.25.0
+              image: registry.internal.aleemhaji.com/certbot/certbot-custom:v3.2.0
               command:
                 - sh
                 - -c
@@ -56,11 +56,16 @@ spec:
                 - name: certbot-scripts
                   mountPath: /scripts
               env:
-                - name: NAMESILO_API_KEY 
+                - name: CF_API_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: namesilo-api-key
-                      key: value
+                      name: cloudflare-dns
+                      key: api_token
+                - name: CF_ZONE_ID
+                  valueFrom:
+                    configMapKeyRef:
+                      name: cloudflare-dns
+                      key: zone_id
               ports:
                 - containerPort: 80
           volumes:
@@ -76,10 +81,9 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: bare-ingress-external
-  annotations:
-    kubernetes.io/ingress.class: "nginx-external"
+  name: bare-external
 spec:
+  ingressClassName: nginx-external
   tls:
     - hosts:
         - aleemhaji.com
@@ -88,7 +92,7 @@ spec:
     - host: aleemhaji.com
       http:
         paths:
-          - path: /
+          - path: /.well-known/acme-challenge
             pathType: Prefix
             backend:
               service:
@@ -99,10 +103,9 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: bare-internal-ingress-external
-  annotations:
-    kubernetes.io/ingress.class: "nginx-external"
+  name: internal-external  # lol
 spec:
+  ingressClassName: nginx-external
   tls:
     - hosts:
         - internal.aleemhaji.com
@@ -110,7 +113,7 @@ spec:
     - host: internal.aleemhaji.com
       http:
         paths:
-          - path: /
+          - path: /.well-known/acme-challenge
             pathType: Prefix
             backend:
               service:

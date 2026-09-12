@@ -19,6 +19,15 @@ stringData:
     [Peer]
     PublicKey = ${WIREGUARD_PEER_1_PUBLIC_KEY}
     AllowedIPs = ${WIREGUARD_PEER_1_IP}
+    [Peer]
+    PublicKey = ${WIREGUARD_PEER_2_PUBLIC_KEY}
+    AllowedIPs = ${WIREGUARD_PEER_2_IP}
+    [Peer]
+    PublicKey = ${WIREGUARD_PEER_3_PUBLIC_KEY}
+    AllowedIPs = ${WIREGUARD_PEER_3_IP}
+    [Peer]
+    PublicKey = ${WIREGUARD_PEER_4_PUBLIC_KEY}
+    AllowedIPs = ${WIREGUARD_PEER_4_IP}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -41,7 +50,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       initContainers:
         - name: init
-          image: registry.internal.aleemhaji.com/busybox:1.35.0
+          image: registry.internal.aleemhaji.com/busybox:1.37.0
           command:
             - sh
             - -c
@@ -53,7 +62,7 @@ spec:
                 - NET_ADMIN
       containers:
         - name: wireguard
-          image: registry.internal.aleemhaji.com/wireguard-go:0.0.20220316
+          image: registry.internal.aleemhaji.com/wireguard-go:0.0.20230223
           imagePullPolicy: Always
           securityContext:
             privileged: true

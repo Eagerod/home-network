@@ -1,0 +1,103 @@
+{
+    "builders": [
+        {
+            "type": "vmware-iso",
+            "vm_name": "kubernetes-node-${DEBIAN_VERSION}-${KUBERNETES_VERSION}",
+            "output_directory": "${OUTPUT_DIR}",
+
+            "iso_url": "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-${DEBIAN_VERSION}-amd64-netinst.iso",
+            "iso_checksum": "sha512:${DEBIAN_SHA512}",
+
+            "ssh_username": "packer",
+            "ssh_password": "${VM_MANAGEMENT_PASSWORD}",
+            "ssh_timeout": "1h",
+
+            "shutdown_command": "sudo /sbin/shutdown now",
+
+            "boot_wait": "5s",
+
+            "disk_size": "50000",
+            "memory": 2048,
+
+            "http_directory": "http",
+            "http_port_min": 8067,
+            "http_port_max": 8067,
+
+            "boot_command": [
+                "<esc><wait>",
+                "auto preseed/url=http://${LOAD_BALANCER_IP}:8067/preseed.cfg",
+                "<wait><enter>"
+            ],
+
+            "vnc_disable_password": true,
+
+            "remote_type": "esx5",
+            "remote_host": "${ESXI_HOST}",
+            "remote_username": "${ESXI_USERNAME}",
+            "remote_password": "${ESXI_ROOT_PASSWORD}",
+            "remote_datastore": "${ESXI_DATASTORE}",
+
+            "vmx_data": {
+                "ethernet0.present": "TRUE",
+                "ethernet0.startConnected": "TRUE",
+                "ethernet0.addressType": "generated",
+                "ethernet0.networkName": "${ESXI_NETWORK}",
+
+                "disk.EnableUUID": "TRUE"
+            }
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "sudo apt-get update",
+                "sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common vim nfs-common open-iscsi",
+                "curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg",
+                "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list",
+                "sudo apt-get update",
+                "sudo apt-get install -y docker-ce docker-ce-cli containerd.io"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "curl -fsSL -o kube-setup.sh http://${LOAD_BALANCER_IP}:8067/kube-setup.sh",
+                "chmod +x kube-setup.sh",
+                "sudo RELEASE=v${KUBERNETES_VERSION} ./kube-setup.sh",
+                "sudo rm kube-setup.sh",
+                "sudo kubeadm config images pull"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "mkdir -p /tmp/ssh-certs-temp"
+            ]
+        },
+        {
+            "type": "file",
+            "source": "${SERVER_SSH_KEYS_DIR}/",
+            "destination": "/tmp/ssh-certs-temp"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "sudo rm -f /etc/ssh/ssh_host_*_key",
+                "sudo rm -f /etc/ssh/ssh_host_*.pub",
+                "sudo mv /tmp/ssh-certs-temp/* /etc/ssh/",
+                "sudo chown -R root:root /etc/ssh",
+                "sudo chmod 600 /etc/ssh/ssh_host_*_key",
+                "sudo chmod 644 /etc/ssh/ssh_host_*.pub",
+                "rm -rf /tmp/ssh-certs-temp"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "printf 'net.ipv6.conf.all.disable_ipv6 = 1\nnet.ipv6.conf.default.disable_ipv6 = 1\nnet.ipv6.conf.lo.disable_ipv6 = 1' | sudo tee /etc/sysctl.d/80-disable-ipv6.conf",
+                "sudo chmod 777 /etc/sysctl.d/80-disable-ipv6.conf"
+            ]
+        }
+    ]
+}

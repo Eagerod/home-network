@@ -12,7 +12,6 @@ rules:
   - apiGroups: [""]
     resources: ["nodes"]
     verbs: ["patch", "get", "list"]
-apiVersion: rbac.authorization.k8s.io/v1
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -61,7 +60,7 @@ spec:
           containers:
             - name: rotate-node
               image: registry.internal.aleemhaji.com/kubectl:1.21.0
-              command: 
+              command:
                 - /scripts/script.sh
               volumeMounts:
                 - name: rotate-node-tagger-scripts

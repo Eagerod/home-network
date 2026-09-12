@@ -3,7 +3,6 @@
         "daemonset",
         "grafana",
         "pihole",
-        "plex",
         "unifi"
     ]
 }

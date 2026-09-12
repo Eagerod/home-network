@@ -1,0 +1,150 @@
+{
+	"bitnami/kubectl": [
+		"-debian-",
+		"^\\\\d+$",
+		"^\\\\d+\\\\.\\\\d+$"
+	],
+	"busybox": [
+		"\\\\buclibc\\\\b",
+		"\\\\bglibc\\\\b",
+		"\\\\bmusl\\\\b",
+		"\\\\bunstable\\\\b",
+		"\\\\bstable\\\\b"
+	],
+	"certbot/certbot": [
+		"^amd64-"
+	],
+	"drone/drone": [
+		"\\\\blinux-amd64",
+		"^\\\\d+$",
+		"^\\\\d+\\\\.\\\\d+$",
+		"\\\\bdebug\\\\b"
+	],
+	"drone/drone-runner-kube": [
+		"\\\\blinux\\\\b"
+	],
+	"fireflyiii/core": [
+		"^develop$",
+		"\\\\bdev$",
+		"\\\\balpha\\\\b",
+		"^version-\\\\d+$",
+		"^version-\\\\d+\\\\.\\\\d+$"
+	],
+	"fireflyiii/data-importer": [
+		"^develop$"
+	],
+	"gitea/gitea": [
+		"^\\\\d+$",
+		"^\\\\d+\\\\.\\\\d+$",
+		"^\\\\d+-rootless$",
+		"^\\\\d+\\\\.\\\\d+-rootless$",
+		"\\\\bdev\\\\b",
+		"\\\\blatest\\\\b",
+		"\\\\brc\\\\d+\\\\b",
+		"\\\\blinux-amd64\\\\b",
+		"\\\\bnightly\\\\b"
+	],
+	"guacamole/guacamole": [
+		"\\\\b-RC\\\\d+"
+	],
+	"guacamole/guacd": [
+		"\\\\b-RC\\\\d+"
+	],
+	"jellyfin/jellyfin": [
+		"\\\\bunstable",
+		"\\\\b-amd64\\\\b",
+		"^\\\\d{10}$",
+		"\\\\d{8}-\\\\d{6}$"
+	],
+	"klausmeyer/docker-registry-browser": [
+		"^master$"
+	],
+	"linuxserver/heimdall": [
+		"^version-",
+		"^amd64-",
+		"^js-",
+		"^js$",
+		"^development-",
+		"-development$",
+		"\\\\b-ls\\\\d+$"
+	],
+	"linuxserver/unifi-controller": [
+		"^amd64-\\\\b",
+		"\\\\bversion-\\\\b",
+		"\\\\b-latest\\\\b",
+		"\\\\b-ls\\\\d+$"
+	],
+	"louislam/uptime-kuma": [
+		"^\\\\d+$",
+		"^\\\\d+-alpine$",
+		"^alpine$",
+		"\\\\b-debian$",
+		"^base\\\\b",
+		"^base2\\\\b",
+		"\\\\bbeta\\\\b",
+		"\\\\btest\\\\b",
+		"nightly",
+		"^debian$"
+	],
+	"masipcat/wireguard-go": [
+		"\\\\b-amd64"
+	],
+	"mysql": [
+		"\\\\boracle",
+		"\\\\bdebian",
+		"^\\\\d+$",
+		"^\\\\d+\\\\.\\\\d+$"
+	],
+	"nginx": [
+		"^stable-",
+		"^mainline-",
+		"-perl$",
+		"-otel$",
+		"^alpine$",
+		"-slim$",
+		"^\\\\d+$",
+		"^\\\\d+-",
+		"-bookworm$"
+	],
+	"pihole/pihole": [
+		"beta"
+	],
+	"postgres": [
+		"\\\\bbullseye",
+		"\\\\balpine",
+		"\\\\bstretch",
+		"rc\\\\d+\\\\b",
+		"beta"
+	],
+	"python": [
+		"\\\\bbookworm\\\\b",
+		"\\\\bbullseye\\\\b",
+		"\\\\brc\\\\b",
+		"\\\\bslim\\\\b",
+		"\\\\bwindowsservercore\\\\b"
+	],
+	"rabbitmq": [
+		"^alpine$",
+		"\\\\bbeta\\\\b",
+		"\\\\brc\\\\b",
+		"^\\\\d+$",
+		"^\\\\d+\\\\.\\\\d+$",
+		"^\\\\d+\\\\.\\\\d+\\\\.\\\\d+$",
+		"^\\\\d+-alpine$",
+		"^\\\\d+\\\\.\\\\d+-alpine$",
+		"^\\\\d+\\\\.\\\\d+\\\\.\\\\d+-alpine$"
+	],
+	"syncthing/syncthing": [
+		"^rc$",
+		"^pcap$",
+		"^\\\\d+$",
+		"^\\\\d+\\\\.\\\\d+$"
+	],
+	"ubuntu": [
+		"^[a-z]+$",
+		"^[a-z]+-\\\\d+$"
+	],
+	"vaultwarden/server": [
+		"\\\\balpine$"
+	]
+}

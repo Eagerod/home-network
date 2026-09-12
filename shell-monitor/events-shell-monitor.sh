@@ -13,6 +13,10 @@ jq_script='.items[] |
 		.involvedObject.namespace == "kube-system"
 		and (.involvedObject.name | test("^calico-kube-controllers"))
 		and (.message == "Readiness probe failed: ") | not) |
+	select(
+		.involvedObject.namespace == "metallb-system"
+		and (.involvedObject.name | test("^speaker"))
+		and ((.message | startswith("Readiness probe failed: ")) or (.message | startswith("Liveness probe failed: "))) | not) |
 	"\(.metadata.creationTimestamp) (\(.count)) \(.source.host)/\(.involvedObject.namespace)/\(.involvedObject.name)\n  \(.message)"'
 
 echo ""

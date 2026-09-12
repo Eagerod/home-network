@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gitea-deployment
+  name: gitea
   labels:
     app: gitea
 spec:
@@ -19,15 +19,31 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: gitea
-          image: registry.internal.aleemhaji.com/gitea:1.14.2
+          image: registry.internal.aleemhaji.com/gitea:1.24.4-rootless
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "200m"
           ports:
             - containerPort: 3000
-            - containerPort: 22
+            - containerPort: 2222
           volumeMounts:
             - name: gitea-persistent-storage
               mountPath: /data
             - name: ssl-cert
               mountPath: /etc/ssl/certs/
+          env:
+            - name: GITEA__OAUTH2__JWT_SIGNING_ALGORITHM
+              value: HS256
+            - name: GITEA_APP_INI
+              value: /data/gitea/conf/app.ini
+            - name: GITEA__SERVER__SSH_PORT
+              value: "22"
+            - name: GITEA__SERVER__SSH_LISTEN_PORT
+              value: "2222"
       volumes:
         - name: gitea-persistent-storage
           nfs:
@@ -46,49 +62,16 @@ metadata:
   labels:
     app: gitea
 spec:
+  type: LoadBalancer
+  loadBalancerIP: ${LOAD_BALANCER_IP}
   ports:
-    - port: 3000
+    - port: 443
       protocol: TCP
       name: web
+      targetPort: 3000
     - port: 22
       protocol: TCP
       name: ssh
-  type: NodePort
+      targetPort: 2222
   selector:
     app: gitea
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: gitea-ingress-redirect
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/temporal-redirect: https://gitea.internal.aleemhaji.com
-spec:
-  rules:
-    - host: gitea
-    - host: gitea.home
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: gitea-ingress
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-spec:
-  tls:
-    - hosts:
-        - gitea.internal.aleemhaji.com
-      secretName: internal-certificate-files
-  rules:
-    - host: gitea.internal.aleemhaji.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: gitea
-                port:
-                  number: 3000

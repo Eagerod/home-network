@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: node-red-deployment
+  name: node-red
   labels:
     app: node-red
 spec:
@@ -15,7 +15,7 @@ spec:
       labels:
         app: node-red
     spec:
-      imagePullSecrets: 
+      imagePullSecrets:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: node-red
@@ -64,18 +64,17 @@ spec:
   ports:
     - port: 1880
       protocol: TCP
-  type: NodePort
   selector:
     app: node-red
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: node-red-ingress-redirect
+  name: node-red-redirect
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/temporal-redirect: https://nodered.internal.aleemhaji.com
 spec:
+  ingressClassName: nginx
   rules:
     - host: nodered
     - host: nodered.home
@@ -83,10 +82,9 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: node-red-ingress
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
+  name: node-red
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - nodered.internal.aleemhaji.com
