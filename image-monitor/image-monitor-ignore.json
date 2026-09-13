@@ -1,9 +1,4 @@
 {
-	"bitnami/kubectl": [
-		"-debian-",
-		"^\\\\d+$",
-		"^\\\\d+\\\\.\\\\d+$"
-	],
 	"busybox": [
 		"\\\\buclibc\\\\b",
 		"\\\\bglibc\\\\b",

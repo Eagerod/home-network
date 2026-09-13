@@ -1,11 +1,9 @@
-FROM registry.internal.aleemhaji.com/kubectl:1.32.1
+FROM registry.internal.aleemhaji.com/kubectl:1.33.13
 
 USER root
 
 RUN apt-get update && \
     apt-get install -y \
-        curl \
-        jq \
         sqlite3 && \
     apt-get clean
 
