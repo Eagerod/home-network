@@ -79,7 +79,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: certbot-copy
-              image: registry.internal.aleemhaji.com/kubectl:1.21.0
+              image: registry.internal.aleemhaji.com/kubectl:1.32.1
               command:
                 - sh
                 - /scripts/update-secrets.sh
@@ -169,7 +169,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: pod-killer
-          image: registry.internal.aleemhaji.com/kubectl:1.21.0
+          image: registry.internal.aleemhaji.com/kubectl-curl:1.32.1
           command:
             - /scripts/script.sh
             - "${NAMESPACE}"
@@ -246,7 +246,7 @@ spec:
         - name: registry.internal.aleemhaji.com
       containers:
         - name: jobs-cleaner
-          image: registry.internal.aleemhaji.com/kubectl-ns:1.32.1
+          image: registry.internal.aleemhaji.com/kubectl-curl:1.32.1
           command:
             - /scripts/cleaner.sh
             - "${NAMESPACE}"

@@ -839,6 +839,12 @@ resources:
   - name: slackbot
     file: slackbot/slackbot.yaml
     tags: [apps, slackbot, stateless]
+  - name: kubectl-curl-image
+    build:
+      path: infra/kubectl-image
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/kubectl-curl:1.32.1
+    tags: [apps, latex, stateless]
   - name: latex-image
     build:
       path: latex
