@@ -1,10 +1,11 @@
-FROM registry.internal.aleemhaji.com/debian:13.5
+FROM registry.internal.aleemhaji.com/debian:13.6
 
 RUN \
     apt-get update && \
     apt-get install -y \
         curl \
-        jq && \
+        jq \
+        sqlite3 && \
 	apt-get clean
 
 ARG KUBECTL_VERSION=v1.33.13
