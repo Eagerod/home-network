@@ -723,12 +723,6 @@ resources:
   #   parallel clusters first without having any concern for services fighting
   #   over shares/volumes.
   # They should each have the stateless tag applied to them.
-  - name: external-dns-manager-image
-    build:
-      path: infra/external-dns
-      pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/external-dns:latest
-    tags: [dns, external-dns]
   - name: external-dns-manager-configs
     inline: |
       apiVersion: v1
