@@ -1444,7 +1444,7 @@ resources:
       tag: registry.internal.aleemhaji.com/home-network:latest
     tags: [rotate-node, build-vm]
   - name: vm-builder-static-resources
-    file: jobs/build-vm-static.yaml
+    file: infra/vm-builder/build-vm-static.yaml
     parameters:
       - *vm_builder_service_ip
     tags: [build-vm]
@@ -1471,9 +1471,9 @@ resources:
       - *devbox_service_ip
     tags: [rotate-node]
   - name: rotate-node-tagger
-    file: node-rotator/rotate-node-tagger.yaml
+    file: infra/node-rotator/rotate-node-tagger.yaml
     fileParameters:
-      - ROTATE_NODE_TAGGER_SCRIPT=node-rotator/rotate-node-tagger.sh
+      - ROTATE_NODE_TAGGER_SCRIPT=infra/node-rotator/rotate-node-tagger.sh
     tags: [rotate-node]
   - name: rotate-node-secrets
     inline: |
@@ -1491,7 +1491,7 @@ resources:
       - VM_ROOT_PASSWORD_BASE64
       - VM_MANAGEMENT_PASSWORD_BASE64
   - name: rotate-node
-    file: node-rotator/rotate-node.yaml
+    file: infra/node-rotator/rotate-node.yaml
     parameters:
       - SLACK_BOT_ALERTING_CHANNEL
     tags: [rotate-node]
@@ -1505,13 +1505,13 @@ jobs:
     parameters:
       - MYSQL_DATABASE_NAME
   - name: rotate-node
-    file: jobs/rotate-node.yaml
+    file: infra/node-rotator/rotate-node-job.yaml
     parameters:
       - ROTATE_NODE_NAME
       - VM_IMAGE_NAME
       - SLACK_BOT_ALERTING_CHANNEL
   - name: build-vm
-    file: jobs/build-vm.yaml
+    file: infra/vm-builder/build-vm.yaml
     parameters:
       - VM_NAME
       - SLACK_BOT_ALERTING_CHANNEL

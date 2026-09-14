@@ -22,7 +22,7 @@ spec:
           image: registry.internal.aleemhaji.com/home-network:latest
           imagePullPolicy: Always
           command:
-            - /src/vm-builder/builder.sh
+            - /src/infra/vm-builder/builder.sh
             - ${VM_NAME}
           ports:
             - containerPort: 8067
