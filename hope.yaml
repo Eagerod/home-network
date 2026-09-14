@@ -1444,7 +1444,7 @@ resources:
       tag: registry.internal.aleemhaji.com/home-network:latest
     tags: [rotate-node, build-vm]
   - name: vm-builder-static-resources
-    file: jobs/build-vm-static.yaml
+    file: infra/vm-builder/build-vm-static.yaml
     parameters:
       - *vm_builder_service_ip
     tags: [build-vm]
@@ -1511,7 +1511,7 @@ jobs:
       - VM_IMAGE_NAME
       - SLACK_BOT_ALERTING_CHANNEL
   - name: build-vm
-    file: jobs/build-vm.yaml
+    file: infra/vm-builder/build-vm.yaml
     parameters:
       - VM_NAME
       - SLACK_BOT_ALERTING_CHANNEL
