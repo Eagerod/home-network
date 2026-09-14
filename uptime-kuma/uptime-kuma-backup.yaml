@@ -38,7 +38,7 @@ metadata:
 binaryData:
   script.js: ${BACKUP_SCRIPT}
 ---
-# kubectl create job --from=cronjob/uptime-kuma-backup "uptime-kuma-backup-manual-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom  | head -c 5)"
+# kubectl create -n default job --from=cronjob/uptime-kuma-backup "uptime-kuma-backup-manual-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom  | head -c 5)"
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -58,7 +58,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: backup
-              image: registry.internal.aleemhaji.com/kubectl:1.21.0
+              image: registry.internal.aleemhaji.com/kubectl:1.33.13
               # Have to copy into /app to make sure node_modules are picked up.
               command:
                 - sh

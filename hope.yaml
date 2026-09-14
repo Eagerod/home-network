@@ -152,11 +152,11 @@ loglevel: *log_level
 pod_network_cidr: 10.244.0.0/16
 resources:
   # region: Namespaces
-  - name: namespace-image-build
+  - name: kubectl-image-build
     build:
-      path: infra/namespace
+      path: infra/kubectl
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/kubectl-ns:1.32.1
+      tag: registry.internal.aleemhaji.com/kubectl:1.33.13
     tags: [namespaces]
   - name: default-namespace
     file: infra/namespace/namespace.yaml
@@ -588,12 +588,6 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/gitea:1.24.4-rootless
     tags: [docker-cache, gitea]
-  - name: kubectl-image-cache
-    build:
-      source: bitnami/kubectl:1.32.1
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/kubectl:1.32.1
-    tags: [docker-cache, kubectl, uptime-kuma]
   - name: bitwarden-image-cache
     build:
       source: vaultwarden/server:1.33.2
@@ -729,12 +723,6 @@ resources:
   #   parallel clusters first without having any concern for services fighting
   #   over shares/volumes.
   # They should each have the stateless tag applied to them.
-  - name: external-dns-manager-image
-    build:
-      path: infra/external-dns
-      pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/external-dns:latest
-    tags: [dns, external-dns]
   - name: external-dns-manager-configs
     inline: |
       apiVersion: v1
@@ -1030,7 +1018,7 @@ resources:
     build:
       path: tasks
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/rmq-bridge-autoscaler:1.21.0
+      tag: registry.internal.aleemhaji.com/rmq-bridge-autoscaler:1.32.1
     tags: [apps, rmq]
   - name: rabbitmq-http-bridge-autoscaler
     file: tasks/rmq-http-bridge-autoscaler.yaml
