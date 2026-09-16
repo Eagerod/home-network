@@ -1,8 +1,30 @@
 # Home network configuration templates
 
-**Note:** In the interest of brevity, where not otherwise explicitly stated, this readme should be read as though it strictly focuses on running on Linux.
-
 This repo holds configurations for my home network.
-It includes docker images, or host-modifying make commands that will allow any machine to be turned into a home network host without needing to configure much else.
 
-*Note:* There's still a lot of "much else", but every time something new is done, the hope if that the gap of "much else" closes.
+# Booting a fresh cluster
+
+```
+hope vm create beast1 load-balancer api
+hope vm start beast1 api
+hope vm ip beast1 api
+sshpass -p "$VM_MANAGEMENT_PASSWORD" hope node ssh api
+hope node hostname api api
+hope node init --force api
+
+hope vm create beast1 kubernetes-node-12.6.0-1.23.17 home-master-01
+hope vm start beast1 home-master-01
+hope vm ip beast1 home-master-01
+sshpass -p "$VM_MANAGEMENT_PASSWORD" hope node ssh home-master-01
+hope node hostname home-master-01 home-master-01
+hope node init --force home-master-01
+
+hope vm create beast1 kubernetes-node-12.6.0-1.23.17 home-node-01
+hope vm start beast1 home-node-01
+hope vm ip beast1 home-node-01
+sshpass -p "$VM_MANAGEMENT_PASSWORD" hope node ssh home-node-01
+hope node hostname home-node-01 home-node-01
+hope node init --force home-node-01
+
+...
+```
