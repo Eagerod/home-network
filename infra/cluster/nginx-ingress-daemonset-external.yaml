@@ -11,12 +11,30 @@
 #   the Services externalTrafficPolicy)
 #
 # General process:
-# This really only needs to include a few resources from the ingress-nginx
-#   manifests.
-# All of the roles and role bindings are reused, but everything else has an
-#   ingress-nginx-external instance version of itself
+# ingress_controller_version=v1.15.1 && \
+# curl -fsSL https://raw.githubusercontent.com/kubernetes/ingress-nginx/refs/tags/controller-${ingress_controller_version}/deploy/static/provider/baremetal/deploy.yaml | \
+#   sed 's/kind: Deployment/kind: DaemonSet/' | \
+#   sed 's/\(^  name: .*\)/\1-external/' | \
+#   sed 's_\(app.kubernetes.io/instance: .*\)_\1-external_' | \
+#   sed 's_\(--controller-class=k8s.io/ingress-nginx\)_\1-external_' | \
+#   sed 's_\(--ingress-class=nginx\)_\1-external_' | \
+#   sed 's?\(--configmap=\$(POD_NAMESPACE)/ingress-nginx-controller\)?\1-external?' | \
+#   sed 's?\(ingress-nginx-controller-admission\)\(.$(POD_NAMESPACE).svc\)?\1-external\2?' | \
+#   sed 's_\(--host=ingress-nginx-controller-admission\)_\1-external_' | \
+#   sed 's_\(secretName: ingress-nginx-admission\)_\1-external_' | \
+#   sed 's_\(--secret-name=ingress-nginx-admission\)_\1-external_' | \
+#   sed 's_\(      name: ingress-nginx-admission-patch\)_\1-external_' | \
+#   sed 's_\(      name: ingress-nginx-controller-admission\)_\1-external_' | \
+#   sed 's_\(      name: ingress-nginx-admission-create\)_\1-external_' | \
+#   sed 's_\(--webhook-name=ingress-nginx-admission\)_\1-external_' | \
+#   sed 's_\(controller: k8s.io/ingress-nginx\)_\1-external_' | \
+#   pbcopy
 #
----
+# Remove the Namespace, ServiceAccounts, Roles, ClusterRoles, RoleBindings,
+# ClusterRoleBindings
+# Add the data back to ConfigMap/nginx-ingress-controller
+# Add the tcp + udp service configmap names to the controller container args.
+#
 apiVersion: v1
 data:
   enable-real-ip: "true"
@@ -28,7 +46,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx-external
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.12.1
+    app.kubernetes.io/version: 1.15.1
   name: ingress-nginx-controller-external
   namespace: ingress-nginx
 ---
@@ -40,7 +58,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx-external
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.12.1
+    app.kubernetes.io/version: 1.15.1
   name: ingress-nginx-controller-external
   namespace: ingress-nginx
 spec:
@@ -58,17 +76,11 @@ spec:
     port: 443
     protocol: TCP
     targetPort: https
-  - appProtocol: http
-    name: prometheus
-    port: 10254
-    protocol: TCP
-    targetPort: prometheus
   selector:
     app.kubernetes.io/component: controller
     app.kubernetes.io/instance: ingress-nginx-external
     app.kubernetes.io/name: ingress-nginx
   type: NodePort
----
 ---
 apiVersion: v1
 kind: Service
@@ -78,8 +90,8 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx-external
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.12.1
-  name: ingress-nginx-external-controller-admission
+    app.kubernetes.io/version: 1.15.1
+  name: ingress-nginx-controller-admission-external
   namespace: ingress-nginx
 spec:
   ports:
@@ -101,7 +113,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx-external
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.12.1
+    app.kubernetes.io/version: 1.15.1
   name: ingress-nginx-controller-external
   namespace: ingress-nginx
 spec:
@@ -114,16 +126,14 @@ spec:
       app.kubernetes.io/name: ingress-nginx
   template:
     metadata:
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "10254"
       labels:
         app.kubernetes.io/component: controller
         app.kubernetes.io/instance: ingress-nginx-external
         app.kubernetes.io/name: ingress-nginx
         app.kubernetes.io/part-of: ingress-nginx
-        app.kubernetes.io/version: 1.12.1
+        app.kubernetes.io/version: 1.15.1
     spec:
+      automountServiceAccountToken: true
       containers:
       - args:
         - /nginx-ingress-controller
@@ -145,7 +155,7 @@ spec:
               fieldPath: metadata.namespace
         - name: LD_PRELOAD
           value: /usr/local/lib/libmimalloc.so
-        image: registry.k8s.io/ingress-nginx/controller:v1.12.1@sha256:d2fbc4ec70d8aa2050dd91a91506e998765e86c96f32cffb56c503c9c34eed5b
+        image: registry.k8s.io/ingress-nginx/controller:v1.15.1@sha256:594ceea76b01c592858f803f9ff4d2cb40542cae2060410b2c95f75907d659e1
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
@@ -172,9 +182,6 @@ spec:
           protocol: TCP
         - containerPort: 8443
           name: webhook
-          protocol: TCP
-        - containerPort: 10254
-          name: prometheus
           protocol: TCP
         readinessProbe:
           failureThreshold: 3
@@ -215,7 +222,7 @@ spec:
       volumes:
       - name: webhook-cert
         secret:
-          secretName: ingress-nginx-external-admission
+          secretName: ingress-nginx-admission-external
 ---
 apiVersion: batch/v1
 kind: Job
@@ -225,8 +232,8 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx-external
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.12.1
-  name: ingress-nginx-external-admission-create
+    app.kubernetes.io/version: 1.15.1
+  name: ingress-nginx-admission-create-external
   namespace: ingress-nginx
 spec:
   template:
@@ -236,21 +243,22 @@ spec:
         app.kubernetes.io/instance: ingress-nginx-external
         app.kubernetes.io/name: ingress-nginx
         app.kubernetes.io/part-of: ingress-nginx
-        app.kubernetes.io/version: 1.12.1
-      name: ingress-nginx-external-admission-create
+        app.kubernetes.io/version: 1.15.1
+      name: ingress-nginx-admission-create-external
     spec:
+      automountServiceAccountToken: true
       containers:
       - args:
         - create
-        - --host=ingress-nginx-external-controller-admission,ingress-nginx-external-controller-admission.$(POD_NAMESPACE).svc
+        - --host=ingress-nginx-controller-admission-external,ingress-nginx-controller-admission-external.$(POD_NAMESPACE).svc
         - --namespace=$(POD_NAMESPACE)
-        - --secret-name=ingress-nginx-external-admission
+        - --secret-name=ingress-nginx-admission-external
         env:
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: registry.k8s.io/ingress-nginx/kube-webhook-certgen:v1.5.2@sha256:e8825994b7a2c7497375a9b945f386506ca6a3eda80b89b74ef2db743f66a5ea
+        image: registry.k8s.io/ingress-nginx/kube-webhook-certgen:v1.6.9@sha256:01038e7de14b78d702d2849c3aad72fd25903c4765af63cf16aa3398f5d5f2dd
         imagePullPolicy: IfNotPresent
         name: create
         securityContext:
@@ -268,43 +276,45 @@ spec:
         kubernetes.io/os: linux
       restartPolicy: OnFailure
       serviceAccountName: ingress-nginx-admission
+  ttlSecondsAfterFinished: 0
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
   labels:
     app.kubernetes.io/component: admission-webhook
-    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/instance: ingress-nginx-external
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.12.1
-  name: ingress-nginx-external-admission-patch
+    app.kubernetes.io/version: 1.15.1
+  name: ingress-nginx-admission-patch-external
   namespace: ingress-nginx
 spec:
   template:
     metadata:
       labels:
         app.kubernetes.io/component: admission-webhook
-        app.kubernetes.io/instance: ingress-nginx
+        app.kubernetes.io/instance: ingress-nginx-external
         app.kubernetes.io/name: ingress-nginx
         app.kubernetes.io/part-of: ingress-nginx
-        app.kubernetes.io/version: 1.12.1
-      name: ingress-nginx-external-admission-patch
+        app.kubernetes.io/version: 1.15.1
+      name: ingress-nginx-admission-patch-external
     spec:
+      automountServiceAccountToken: true
       containers:
       - args:
         - patch
-        - --webhook-name=ingress-nginx-external-admission
+        - --webhook-name=ingress-nginx-admission-external
         - --namespace=$(POD_NAMESPACE)
         - --patch-mutating=false
-        - --secret-name=ingress-nginx-external-admission
+        - --secret-name=ingress-nginx-admission-external
         - --patch-failure-policy=Fail
         env:
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: registry.k8s.io/ingress-nginx/kube-webhook-certgen:v1.5.2@sha256:e8825994b7a2c7497375a9b945f386506ca6a3eda80b89b74ef2db743f66a5ea
+        image: registry.k8s.io/ingress-nginx/kube-webhook-certgen:v1.6.9@sha256:01038e7de14b78d702d2849c3aad72fd25903c4765af63cf16aa3398f5d5f2dd
         imagePullPolicy: IfNotPresent
         name: patch
         securityContext:
@@ -322,6 +332,7 @@ spec:
         kubernetes.io/os: linux
       restartPolicy: OnFailure
       serviceAccountName: ingress-nginx-admission
+  ttlSecondsAfterFinished: 0
 ---
 apiVersion: networking.k8s.io/v1
 kind: IngressClass
@@ -331,7 +342,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx-external
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.12.1
+    app.kubernetes.io/version: 1.15.1
   name: nginx-external
 spec:
   controller: k8s.io/ingress-nginx-external
@@ -344,20 +355,20 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx-external
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
-    app.kubernetes.io/version: 1.12.1
-  name: ingress-nginx-external-admission
+    app.kubernetes.io/version: 1.15.1
+  name: ingress-nginx-admission-external
 webhooks:
 - admissionReviewVersions:
   - v1
   clientConfig:
     service:
-      name: ingress-nginx-external-controller-admission
+      name: ingress-nginx-controller-admission-external
       namespace: ingress-nginx
       path: /networking/v1/ingresses
       port: 443
   failurePolicy: Fail
   matchPolicy: Equivalent
-  name: validate.nginx-external.ingress.kubernetes.io
+  name: validate.nginx.ingress.kubernetes.io-external
   rules:
   - apiGroups:
     - networking.k8s.io
