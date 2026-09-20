@@ -98,11 +98,10 @@ metadata:
   name: garage
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      more_set_headers "Access-Control-Allow-Origin: *";
-      more_set_headers "Access-Control-Max-Age: 3600";
-      more_set_headers "Access-Control-Expose-Headers: Content-Length";
-      more_set_headers "Access-Control-Allow-Headers: Range";
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-max-age: "3600"
+    nginx.ingress.kubernetes.io/cors-expose-headers: "Content-Length"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Range"
 spec:
   ingressClassName: nginx
   tls:
