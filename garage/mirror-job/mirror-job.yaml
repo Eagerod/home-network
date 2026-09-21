@@ -18,7 +18,7 @@ spec:
             - name: registry.internal.aleemhaji.com
           containers:
             - name: mirror
-              image: registry.internal.aleemhaji.com/mirror-job:13.5
+              image: registry.internal.aleemhaji.com/mirror-job:13.6
               command:
                 - sh
                 - -eufc

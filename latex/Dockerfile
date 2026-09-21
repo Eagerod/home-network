@@ -1,4 +1,4 @@
-FROM registry.internal.aleemhaji.com/debian:13.5
+FROM registry.internal.aleemhaji.com/debian:13.6
 
 # tlmgr needs curl to do its downloads.
 # Install it first, maybe another repo has a curl layer right after debian.

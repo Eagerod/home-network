@@ -492,24 +492,18 @@ resources:
   #   being built from same base image any time the same tag appears, rather
   #   it being based on what base image the build host had at the time.
   # Similar issues are possible, but are a little more controlled.
-  - name: ubuntu-1604-image-cache
+  - name: ubuntu-2604-image-cache
     build:
-      source: ubuntu:16.04
+      source: ubuntu:26.04
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/ubuntu:16.04
-    tags: [docker-cache, crons]
-  - name: ubuntu-2004-image-cache
-    build:
-      source: ubuntu:20.04
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/ubuntu:20.04
+      tag: registry.internal.aleemhaji.com/ubuntu:26.04
     tags: [docker-cache, image-monitor]
-  - name: debian-13-4-image-cache
+  - name: debian-13-6-image-cache
     build:
-      source: debian:13.4
+      source: debian:13.6
       pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/debian:13.4
-    tags: [docker-cache, backup]
+      tag: registry.internal.aleemhaji.com/debian:13.6
+    tags: [docker-cache, backup, immich, latex]
   - name: certbot-image-cache
     build:
       source: certbot/certbot:v3.2.0
@@ -831,7 +825,7 @@ resources:
     build:
       path: latex
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/latex-server:latest
+      tag: registry.internal.aleemhaji.com/latex-server:13.6
     tags: [apps, latex, stateless]
   - name: latex-server
     file: latex/latex.yaml
@@ -1234,6 +1228,12 @@ resources:
     parameters:
       - NAME=blob
     tags:: [garage]
+  - name: garage-mirror-job-image
+    build:
+      path: garage/mirror-job
+      pull: *local_upstream_pull
+      tag: registry.internal.aleemhaji.com/mirror-job:13.6
+    tags: [garage, backup, mc-mirror]
   - name: syncthing
     file: syncthing/syncthing.yaml
     tags: [apps, syncthing]
@@ -1317,8 +1317,8 @@ resources:
     build:
       path: adb
       pull: *local_upstream_pull
-      tag: registry.internal.aleemhaji.com/adb:13.5
-    tags: [apps, immich]
+      tag: registry.internal.aleemhaji.com/adb:13.6
+    tags: [apps, immich, adb]
   - name: adb-secrets
     inline: |
       apiVersion: v1
@@ -1332,10 +1332,10 @@ resources:
     parameters:
       - ADBKEY_BASE64
       - ADBKEY_PUB_BASE64
-    tags: [apps, immich]
+    tags: [apps, immich, adb]
   - name: adb-frame-manager
     file: adb/frame-manager.yaml
-    tags: [apps, immich]
+    tags: [apps, immich, adb]
   # endregion
   - name: certbot-image
     build:
@@ -1402,7 +1402,8 @@ resources:
       - DEST_PATH=/nfs/
       - NFS_PATH=/mnt/main/backup/apps/archivist
       - ADDITIONAL_MC_ARGS=--overwrite --remove
-  # endregion
+    tags: [backup, mc-mirror]
+# endregion
   - name: shell-monitor-base-default
     file: shell-monitor/shell-monitor-base.yaml
     parameters:
