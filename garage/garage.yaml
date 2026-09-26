@@ -98,6 +98,7 @@ metadata:
   name: garage
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/cors-allow-origin: "*"
     nginx.ingress.kubernetes.io/cors-max-age: "3600"
     nginx.ingress.kubernetes.io/cors-expose-headers: "Content-Length"
