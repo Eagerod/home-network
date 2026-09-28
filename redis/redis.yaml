@@ -27,12 +27,19 @@ spec:
             - -c
             - |
               set -ex
-              ord=$(hostname | sed s/redis-//)
-              if [ $ord -ne 0 ]; then
-                echo "slaveof redis-0.redis 6379" >> /config/redis.conf
+              CONFIG_DIR="/config/redis-$POD_ORDINAL"
+              mkdir -p "$CONFIG_DIR"
+
+              if [ "$POD_ORDINAL" -ne 0 ]; then
+                echo "slaveof redis-0.redis 6379" >> "$CONFIG_DIR/redis.conf"
               else
-                echo "cluster-enabled yes" >> /config/redis.conf
+                echo "cluster-enabled yes" >> "$CONFIG_DIR/redis.conf"
               fi
+          env:
+            - name: POD_ORDINAL
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['apps.kubernetes.io/pod-index']
           volumeMounts:
             - name: config
               mountPath: /config
@@ -41,26 +48,23 @@ spec:
           image: registry.internal.aleemhaji.com/redis:8.2.2
           ports:
             - containerPort: 6379
-          args:
-            - /config/redis.conf
+          command:
+            - sh
+            - -eufc
+            - |
+              CONFIG_DIR="/config/redis-$POD_ORDINAL"
+
+              redis-server "$CONFIG_DIR/redis.conf"
+          env:
+            - name: POD_ORDINAL
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['apps.kubernetes.io/pod-index']
           volumeMounts:
             - name: config
               mountPath: /config
       volumes:
         - name: config
-          emptyDir: {}
----
-# Note -- this service is kind of useless
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: redis
-#   labels:
-#     app: redis
-# spec:
-#   ports:
-#     - port: 6379
-#       protocol: TCP
-#   type: NodePort
-#   selector:
-#     app: redis
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/redis
