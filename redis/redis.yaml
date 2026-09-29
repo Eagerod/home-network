@@ -28,12 +28,20 @@ spec:
             - |
               set -ex
               CONFIG_DIR="/config/redis-$POD_ORDINAL"
+              CONFIG_FILE="$CONFIG_DIR/redis.conf"
+              CLUSTER_CONFIG_FILE="$CONFIG_DIR/cluster.conf"
               mkdir -p "$CONFIG_DIR"
 
-              if [ "$POD_ORDINAL" -ne 0 ]; then
-                echo "slaveof redis-0.redis 6379" >> "$CONFIG_DIR/redis.conf"
-              else
-                echo "cluster-enabled yes" >> "$CONFIG_DIR/redis.conf"
+              touch "$CLUSTER_CONFIG_FILE"
+
+              if [ ! -f "$CONFIG_FILE" ]; then
+                if [ "$POD_ORDINAL" -ne 0 ]; then
+                  echo "slaveof redis-0.redis 6379" > "$CONFIG_FILE"
+                else
+                  echo "cluster-enabled yes" > "$CONFIG_FILE"
+                fi
+
+                echo "cluster-config-file $CLUSTER_CONFIG_FILE" >> "$CONFIG_FILE"
               fi
           env:
             - name: POD_ORDINAL
@@ -53,8 +61,11 @@ spec:
             - -eufc
             - |
               CONFIG_DIR="/config/redis-$POD_ORDINAL"
+              CONFIG_FILE="$CONFIG_DIR/redis.conf"
 
-              redis-server "$CONFIG_DIR/redis.conf"
+              cat "$CONFIG_FILE"
+
+              redis-server "$CONFIG_FILE"
           env:
             - name: POD_ORDINAL
               valueFrom:
