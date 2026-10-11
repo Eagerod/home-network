@@ -6,7 +6,6 @@ _:
   - &metallb_address_range ADDRESS_RANGE=192.168.200.32-192.168.200.224
   - &ingress_controller_service_ip LOAD_BALANCER_IP=192.168.200.64
   - &ingress_controller_external_service_ip LOAD_BALANCER_IP=192.168.200.129
-  - &gitea_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.126
   - &forgejo_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.127
   - &wireguard_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.123
   - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.64
@@ -371,7 +370,7 @@ resources:
       metadata:
         name: tcp-services
       data:
-        22: "default/gitea:22"
+        22: "default/forgejo:22"
         53: "default/pihole-tcp:53"
         3306: "default/mysql:3306"
         5432: "default/postgres:5432"
@@ -583,12 +582,6 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/guacamole/guacd:1.5.5
     tags: [docker-cache, guacamole]
-  - name: gitea-image-cache
-    build:
-      source: gitea/gitea:1.24.4-rootless
-      pull: *docker_hub_upstream_pull
-      tag: registry.internal.aleemhaji.com/gitea:1.24.4-rootless
-    tags: [docker-cache, gitea]
   - name: forgejo-image-cache
     build:
       source: codeberg.org/forgejo/forgejo:16.0.5-rootless
@@ -867,11 +860,6 @@ resources:
   - name: tedbot
     file: tedbot/tedbot.yaml
     tags: [crons, tedbot]
-  - name: gitea
-    file: gitea/gitea.yaml
-    parameters:
-      - *gitea_load_balancer_service_ip
-    tags: [apps, gitea]
   - name: forgejo
     file: forgejo/forgejo.yaml
     parameters:
