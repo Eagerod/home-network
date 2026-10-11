@@ -7,6 +7,7 @@ _:
   - &ingress_controller_service_ip LOAD_BALANCER_IP=192.168.200.64
   - &ingress_controller_external_service_ip LOAD_BALANCER_IP=192.168.200.129
   - &gitea_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.126
+  - &forgejo_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.127
   - &wireguard_load_balancer_service_ip LOAD_BALANCER_IP=192.168.200.123
   - &pihole_ingress_controller_ip INGRESS_IP=192.168.200.64
   - &unifi_controller_service_ip LOAD_BALANCER_IP=192.168.200.82
@@ -588,6 +589,12 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/gitea:1.24.4-rootless
     tags: [docker-cache, gitea]
+  - name: forgejo-image-cache
+    build:
+      source: codeberg.org/forgejo/forgejo:16.0.5-rootless
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/forgejo/forgejo:16.0.5-rootless
+    tags: [docker-cache, forgejo]
   - name: bitwarden-image-cache
     build:
       source: vaultwarden/server:1.33.2
@@ -865,6 +872,11 @@ resources:
     parameters:
       - *gitea_load_balancer_service_ip
     tags: [apps, gitea]
+  - name: forgejo
+    file: forgejo/forgejo.yaml
+    parameters:
+      - *forgejo_load_balancer_service_ip
+    tags: [apps, forgejo]
   - name: bitwarden-config
     inline: |
       apiVersion: v1
