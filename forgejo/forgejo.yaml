@@ -44,16 +44,18 @@ spec:
               value: /etc/forgejo/tls/tls.crt
             - name: FORGEJO__SERVER__KEY_FILE
               value: /etc/forgejo/tls/tls.key
+            - name: FORGEJO__SERVER__SSH_PORT
+              value: "22"
+            - name: FORGEJO__SERVER__SSH_LISTEN_PORT
+              value: "2222"
             - name: FORGEJO__CACHE__ADAPTER
               value: redis
             - name: FORGEJO__CACHE__HOST
               value: redis://@redis-0.redis.default.svc.cluster.local:6379/0?pool_size=10&idle_timeout=300s
             - name: FORGEJO__CACHE__ITEM_TTL
               value: "72h"
-            - name: FORGEJO__SERVER__SSH_PORT
-              value: "22"
-            - name: FORGEJO__SERVER__SSH_LISTEN_PORT
-              value: "2222"
+            - name: FORGEJO__ACTIONS__ENABLED
+              value: "false"
       volumes:
         - name: forgejo-persistent-storage
           nfs:
