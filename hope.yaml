@@ -612,6 +612,18 @@ resources:
       pull: *docker_hub_upstream_pull
       tag: registry.internal.aleemhaji.com/drone/drone-runner-kube:1.0.0-rc.5
     tags: [docker-cache, drone]
+  - name: woodpecker-server-image-cache
+    build:
+      source: woodpeckerci/woodpecker-server:v3.19.0
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/woodpeckerci/woodpecker-server:v3.19.0
+    tags: [docker-cache, woodpecker]
+  - name: woodpecker-agent-image-cache
+    build:
+      source: woodpeckerci/woodpecker-agent:v3.19.0
+      pull: *docker_hub_upstream_pull
+      tag: registry.internal.aleemhaji.com/woodpeckerci/woodpecker-agent:v3.19.0
+    tags: [docker-cache, woodpecker]
   - name: wireguard-image-cache
     build:
       source: masipcat/wireguard-go:0.0.20230223
@@ -1295,6 +1307,34 @@ resources:
   - name: drone
     file: drone/drone.yaml
     tags: [apps, drone]
+  - name: woodpecker-database-init
+    file: postgres/postgres-db-create.yaml
+    parameters:
+      DATABASE_NAME=woodpecker
+    tags: [apps, woodpecker]
+  - name: woodpecker-init-job
+    job: postgres-create-woodpecker
+    tags: [apps, woodpecker]
+  - name: woodpecker-config
+    inline: |
+      apiVersion: v1
+      data:
+        connection_string: ${WOODPECKER_CONNECTION_STRING_BASE64}
+        agent_secret: ${WOODPECKER_AGENT_SECRET_BASE64}
+        forgejo_client_id: ${WOODPECKER_FORGEJO_CLIENT_ID_BASE64}
+        forgejo_client_secret: ${WOODPECKER_FORGEJO_CLIENT_SECRET_BASE64}
+      kind: Secret
+      metadata:
+        name: woodpecker-secrets
+    parameters:
+      - WOODPECKER_CONNECTION_STRING_BASE64
+      - WOODPECKER_AGENT_SECRET_BASE64
+      - WOODPECKER_FORGEJO_CLIENT_ID_BASE64
+      - WOODPECKER_FORGEJO_CLIENT_SECRET_BASE64
+    tags: [apps, woodpecker]
+  - name: woodpecker
+    file: woodpecker/woodpecker.yaml
+    tags: [apps, woodpecker]
   - name: immich
     file: immich/immich.yaml
     parameters:
