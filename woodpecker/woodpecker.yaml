@@ -3,11 +3,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: woodpecker-agent
+  namespace: dev
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: woodpecker-agent
+  namespace: dev
 rules:
   - apiGroups: [""]
     resources:
@@ -30,6 +32,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: woodpecker-agent
+  namespace: dev
 subjects:
   - kind: ServiceAccount
     name: woodpecker-agent
@@ -42,6 +45,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: woodpecker-server
+  namespace: dev
   labels:
     app: woodpecker
     module: server
@@ -104,6 +108,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: woodpecker-agent
+  namespace: dev
   labels:
     app: woodpecker
     module: agent
@@ -137,7 +142,7 @@ spec:
             - name: WOODPECKER_BACKEND
               value: kubernetes
             - name: WOODPECKER_BACKEND_K8S_NAMESPACE
-              value: default
+              value: dev
             - name: WOODPECKER_BACKEND_K8S_STORAGE_CLASS
               value: local-path
             - name: WOODPECKER_BACKEND_K8S_STORAGE_RWX
@@ -149,6 +154,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: woodpecker-server
+  namespace: dev
   labels:
     app: woodpecker
     module: server
@@ -170,6 +176,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: woodpecker-redirect
+  namespace: dev
   annotations:
     nginx.ingress.kubernetes.io/temporal-redirect: https://woodpecker.internal.aleemhaji.com
 spec:
@@ -182,6 +189,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: woodpecker
+  namespace: dev
 spec:
   ingressClassName: nginx
   tls:

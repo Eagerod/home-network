@@ -1291,6 +1291,7 @@ resources:
       kind: Secret
       metadata:
         name: woodpecker-secrets
+        namespace: dev
     parameters:
       - WOODPECKER_CONNECTION_STRING_BASE64
       - WOODPECKER_AGENT_SECRET_BASE64
