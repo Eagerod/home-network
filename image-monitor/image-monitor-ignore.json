@@ -9,15 +9,6 @@
 	"certbot/certbot": [
 		"^amd64-"
 	],
-	"drone/drone": [
-		"\\\\blinux-amd64",
-		"^\\\\d+$",
-		"^\\\\d+\\\\.\\\\d+$",
-		"\\\\bdebug\\\\b"
-	],
-	"drone/drone-runner-kube": [
-		"\\\\blinux\\\\b"
-	],
 	"fireflyiii/core": [
 		"^develop$",
 		"\\\\bdev$",
