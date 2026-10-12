@@ -99,8 +99,6 @@ spec:
                 secretKeyRef:
                   name: woodpecker-secrets
                   key: agent_secret
-            - name: WOODPECKER_BACKEND_K8S_STORAGE_CLASS
-              value: local-path
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -140,6 +138,12 @@ spec:
               value: kubernetes
             - name: WOODPECKER_BACKEND_K8S_NAMESPACE
               value: default
+            - name: WOODPECKER_BACKEND_K8S_STORAGE_CLASS
+              value: local-path
+            - name: WOODPECKER_BACKEND_K8S_STORAGE_RWX
+              value: "false"
+            - name: WOODPECKER_BACKEND_K8S_VOLUME_SIZE
+              value: "1G"
 ---
 apiVersion: v1
 kind: Service

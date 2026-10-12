@@ -465,6 +465,9 @@ resources:
     tags: [network, ingress, ingress-external]
     parameters:
       - *ingress_controller_external_service_ip
+  - name: local-path-provisioner
+    file: infra/cluster/local-path-provisioner.yaml
+    tags: [network, local-path-provisioner, woodpecker]
   - name: docker-registry-htpasswd-secrets
     inline: |
       apiVersion: v1
