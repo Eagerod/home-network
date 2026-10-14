@@ -46,3 +46,5 @@ README.md
 .gitignore-extra
 Dockerfile.ci
 LICENSE
+.woodpecker.yaml
+.woodpecker.yml

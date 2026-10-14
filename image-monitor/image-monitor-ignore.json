@@ -9,15 +9,6 @@
 	"certbot/certbot": [
 		"^amd64-"
 	],
-	"drone/drone": [
-		"\\\\blinux-amd64",
-		"^\\\\d+$",
-		"^\\\\d+\\\\.\\\\d+$",
-		"\\\\bdebug\\\\b"
-	],
-	"drone/drone-runner-kube": [
-		"\\\\blinux\\\\b"
-	],
 	"fireflyiii/core": [
 		"^develop$",
 		"\\\\bdev$",
@@ -27,17 +18,6 @@
 	],
 	"fireflyiii/data-importer": [
 		"^develop$"
-	],
-	"gitea/gitea": [
-		"^\\\\d+$",
-		"^\\\\d+\\\\.\\\\d+$",
-		"^\\\\d+-rootless$",
-		"^\\\\d+\\\\.\\\\d+-rootless$",
-		"\\\\bdev\\\\b",
-		"\\\\blatest\\\\b",
-		"\\\\brc\\\\d+\\\\b",
-		"\\\\blinux-amd64\\\\b",
-		"\\\\bnightly\\\\b"
 	],
 	"guacamole/guacamole": [
 		"\\\\b-RC\\\\d+"
