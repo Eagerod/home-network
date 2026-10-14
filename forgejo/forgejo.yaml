@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: forgejo
   namespace: dev
@@ -11,6 +11,7 @@ spec:
   selector:
     matchLabels:
       app: forgejo
+  serviceName: forgejo
   template:
     metadata:
       labels:
