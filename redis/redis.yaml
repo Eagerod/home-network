@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  labels:
+    app: redis
+spec:
+  revisionHistoryLimit: 0
+  replicas: 2
+  selector:
+    matchLabels:
+      app: redis
+  serviceName: redis
+  template:
+    metadata:
+      name: redis
+      labels:
+        app: redis
+    spec:
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      initContainers:
+        - name: redis-init
+          image: registry.internal.aleemhaji.com/busybox:1.37.0
+          command:
+            - sh
+            - -c
+            - |
+              set -ex
+              CONFIG_DIR="/config/redis-$POD_ORDINAL"
+              CONFIG_FILE="$CONFIG_DIR/redis.conf"
+              CLUSTER_CONFIG_FILE="$CONFIG_DIR/cluster.conf"
+              mkdir -p "$CONFIG_DIR"
+
+              touch "$CLUSTER_CONFIG_FILE"
+
+              if [ ! -f "$CONFIG_FILE" ]; then
+                if [ "$POD_ORDINAL" -ne 0 ]; then
+                  echo "slaveof redis-0.redis 6379" > "$CONFIG_FILE"
+                else
+                  echo "cluster-enabled yes" > "$CONFIG_FILE"
+                fi
+
+                echo "cluster-config-file $CLUSTER_CONFIG_FILE" >> "$CONFIG_FILE"
+              fi
+          env:
+            - name: POD_ORDINAL
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['apps.kubernetes.io/pod-index']
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      containers:
+        - name: redis
+          image: registry.internal.aleemhaji.com/redis:8.2.2
+          ports:
+            - containerPort: 6379
+          command:
+            - sh
+            - -eufc
+            - |
+              CONFIG_DIR="/config/redis-$POD_ORDINAL"
+              CONFIG_FILE="$CONFIG_DIR/redis.conf"
+
+              cat "$CONFIG_FILE"
+
+              redis-server "$CONFIG_FILE"
+          env:
+            - name: POD_ORDINAL
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['apps.kubernetes.io/pod-index']
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: config
+          nfs:
+            server: 192.168.96.4
+            path: /mnt/main/apps/redis
