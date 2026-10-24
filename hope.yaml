@@ -1514,3 +1514,5 @@ jobs:
       - VM_NAME
       - SLACK_BOT_ALERTING_CHANNEL
       - *vm_builder_service_ip
+  - name: frame-repair
+    file: adb/repair.yaml

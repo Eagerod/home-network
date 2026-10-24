@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: adb-repair-manual-
+  namespace: immich
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: adb-repair
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: registry.internal.aleemhaji.com
+      containers:
+        - name: adb
+          image: registry.internal.aleemhaji.com/adb:13.6
+          command:
+            - sh
+            - -eufc
+            - |
+              adb connect 192.168.1.130:5555
+              adb shell input keyevent KEYCODE_WAKEUP
+              sleep 3
+              adb shell am start -n de.ozerov.fully/.MainActivity
+              sleep 15
+              adb shell input keyevent KEYCODE_SLEEP
+          volumeMounts:
+            - name: adb-secrets
+              mountPath: /home/adb/.android/adbkey.pub
+              subPath: adbkey.pub
+              readOnly: true
+            - name: adb-secrets
+              mountPath: /home/adb/.android/adbkey
+              subPath: adbkey
+              readOnly: true
+      volumes:
+        - name: adb-secrets
+          secret:
+            secretName: adb-secrets
+            defaultMode: 0644
