@@ -944,6 +944,17 @@ resources:
     parameters:
       - POSTGRES_ROOT_PASSWORD_BASE64
     tags: [apps, postgres]
+  - name: postgres-backup-script
+    inline: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: postgres-backup
+      binaryData:
+        postgres-backup.sh: ${POSTGRES_BACKUP_SCRIPT}
+    fileParameters:
+      - POSTGRES_BACKUP_SCRIPT=postgres/postgres-backup.sh
+    tags: [apps, postgres, backups]
   - name: postgres
     file: postgres/postgres.yaml
     tags: [apps, postgres]
@@ -958,7 +969,7 @@ resources:
     parameters:
       - MYSQL_ROOT_PASSWORD_BASE64
     tags: [apps, mysql]
-  - name: mysql-backup
+  - name: mysql-backup-script
     inline: |
       apiVersion: v1
       kind: ConfigMap

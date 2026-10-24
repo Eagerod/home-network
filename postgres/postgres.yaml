@@ -107,3 +107,50 @@ spec:
       protocol: TCP
   selector:
     app: postgres
+---
+# kubectl create job --from=cronjob/postgres-backup "postgres-backup-manual-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom  | head -c 5)"
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+spec:
+  schedule: "6 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: registry.internal.aleemhaji.com
+          containers:
+            - name: postgres-backup
+              image: registry.internal.aleemhaji.com/postgres:9.6.24
+              command:
+                - sh
+                - /scripts/postgres-backup.sh
+              volumeMounts:
+                - name: backups
+                  mountPath: /var/lib/backups
+                - name: backup-script
+                  mountPath: /scripts
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: root_password
+                - name: PGHOST
+                  value: postgres
+          volumes:
+            - name: backups
+              nfs:
+                server: 192.168.96.4
+                path: /mnt/main/backup/apps/postgres
+            - name: backup-script
+              projected:
+                sources:
+                  - configMap:
+                      name: postgres-backup
